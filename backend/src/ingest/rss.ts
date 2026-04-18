@@ -1,0 +1,103 @@
+import { createHash } from 'crypto';
+import Parser from 'rss-parser';
+import type { Pool, PoolClient } from 'pg';
+import type { SourceRow } from './types';
+
+const FETCH_TIMEOUT_MS = 30_000;
+const parser = new Parser();
+
+function externalIdForItem(guid: string | undefined, link: string): string {
+  if (guid && guid.trim()) return guid.trim();
+  return createHash('sha256').update(link).digest('hex');
+}
+
+function jurisdictionLabel(row: SourceRow): string {
+  if (row.county) {
+    return `${row.locality_name}, ${row.county} County (${row.region})`;
+  }
+  return `${row.locality_name} (${row.region})`;
+}
+
+export async function fetchRssXml(url: string): Promise<string> {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const res = await fetch(url, {
+      signal: ctrl.signal,
+      headers: { 'User-Agent': 'FronteraIngest/0.1' },
+    });
+    if (!res.ok) {
+      throw new Error(`RSS fetch failed: ${res.status} ${res.statusText}`);
+    }
+    return await res.text();
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+export async function ingestRssForSource(client: PoolClient, source: SourceRow, xml: string): Promise<number> {
+  const feed = await parser.parseString(xml);
+  const items = feed.items ?? [];
+  let inserted = 0;
+
+  for (const item of items) {
+    const link = item.link?.trim();
+    if (!link) continue;
+
+    const extId = externalIdForItem(
+      typeof item.guid === 'string' ? item.guid : item.guid ? String(item.guid) : undefined,
+      link,
+    );
+    const title = item.title?.trim() || link;
+    const summary = (item.contentSnippet || item.summary || '').trim() || null;
+    let publishedAt: Date | null = null;
+    if (item.pubDate) {
+      const d = new Date(item.pubDate);
+      if (!Number.isNaN(d.getTime())) publishedAt = d;
+    }
+
+    const ins = await client.query<{ id: string }>(
+      `INSERT INTO source_items (source_id, external_id, raw_url, raw_title)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (source_id, external_id) DO NOTHING
+       RETURNING id`,
+      [source.id, extId, link, title],
+    );
+
+    if (ins.rowCount === 0) continue;
+
+    await client.query(
+      `INSERT INTO feed_items (locality_id, source_id, type, title, summary, categories, jurisdiction, source_url, published_at)
+       VALUES ($1, $2, 'text', $3, $4, $5::text[], $6, $7, $8)`,
+      [
+        source.locality_id,
+        source.id,
+        title,
+        summary,
+        [] as string[],
+        jurisdictionLabel(source),
+        link,
+        publishedAt,
+      ],
+    );
+    inserted += 1;
+  }
+
+  return inserted;
+}
+
+export async function ingestRssSource(pool: Pool, source: SourceRow, xml: string): Promise<number> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const n = await ingestRssForSource(client, source, xml);
+    await client.query(`UPDATE sources SET last_fetched = now() WHERE id = $1`, [source.id]);
+    await client.query('COMMIT');
+    return n;
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
+}

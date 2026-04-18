@@ -1,0 +1,18 @@
+{
+  "app": "node node_modules/ts-node/dist/bin.js --prefer-ts-exts bin/app.ts",
+  "watch": {
+    "include": ["**"],
+    "exclude": ["cdk.out", "cdk.context.json", "node_modules", "*.d.ts", "dist"]
+  },
+  "context": {
+    "@aws-cdk/aws-lambda:useLatestRuntimeVersion": true,
+    "frontera": {
+      "vpcId": "vpc-REPLACE_ME",
+      "privateSubnetIds": ["subnet-REPLACE_A", "subnet-REPLACE_B"],
+      "availabilityZones": ["us-east-1a", "us-east-1b"],
+      "lambdaSecurityGroupId": "sg-REPLACE_ME",
+      "dbSecretArn": "arn:aws:secretsmanager:us-east-1:000000000000:secret:frontera/db-AbCdEf",
+      "rawBucketName": ""
+    }
+  }
+}
