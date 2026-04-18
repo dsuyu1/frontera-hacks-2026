@@ -1,19 +1,32 @@
 @import "tailwindcss";
 
 :root {
-  --sidebar-bg: #111111;
-  --sidebar-border: #1f1f1f;
-  --main-bg: #0d0d0d;
-  --card-bg: #1a1a1a;
-  --card-hover: #222222;
-  --reader-bg: #141414;
-  --text-primary: #e4e4e7;
-  --text-secondary: #71717a;
-  --text-muted: #52525b;
-  --border: #27272a;
-  --accent: #3b82f6;
-  --tag-bg: #1e293b;
-  --tag-text: #93c5fd;
+  /* Feedly dark palette */
+  --sidebar-bg: #242526;
+  --sidebar-border: #333333;
+  --sidebar-active-bg: #2c2c2d;
+  --sidebar-hover-bg: #2c2c2d;
+  --main-bg: #191919;
+  --row-bg: transparent;
+  --row-hover: #242424;
+  --row-selected: #2a2a2a;
+  --reader-bg: #1e1e1e;
+  --reader-content-bg: #1e1e1e;
+
+  --text-primary: #e0e0e0;
+  --text-secondary: #999999;
+  --text-muted: #666666;
+  --border: #333333;
+
+  --accent: #2bb24c;
+  --accent-hover: #25a044;
+  --accent-dim: rgba(43,178,76,0.15);
+
+  --thumb-radius: 4px;
+  --row-radius: 0px;
+
+  --sidebar-width: 240px;
+  --reader-width: 660px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -22,24 +35,73 @@ html, body {
   height: 100%;
   background: var(--main-bg);
   color: var(--text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
-::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: #444; }
+::-webkit-scrollbar-thumb { background: #3a3a3a; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #4a4a4a; }
 
 a { color: inherit; text-decoration: none; }
+button { font-family: inherit; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .yt-embed {
   width: 100%;
   aspect-ratio: 16/9;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   background: #000;
+}
+
+/* Mobile bottom tabs */
+.mobile-tabs {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .sidebar-desktop {
+    display: none !important;
+  }
+  .mobile-tabs {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background: var(--sidebar-bg);
+    border-top: 1px solid var(--sidebar-border);
+    z-index: 100;
+    align-items: stretch;
+  }
+  .mobile-tab-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    font-size: 10px;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.15s;
+    padding: 0;
+  }
+  .mobile-tab-btn.active {
+    color: var(--accent);
+  }
+  .mobile-tab-icon {
+    font-size: 20px;
+    line-height: 1;
+  }
+  .feed-main-body {
+    padding-bottom: 64px !important;
+  }
 }
