@@ -14,4 +14,5 @@ export type IngestResult = {
   sourcesProcessed: number;
   itemsInserted: number;
   errors: string[];
+  videos_queued: string[];
 };

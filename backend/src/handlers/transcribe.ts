@@ -16,7 +16,7 @@ export const handler = async (event: Event) => {
     if (!video) throw new Error(`Video not found: ${video_id}`);
 
     if (action === 'start') {
-      if (video.status === 'transcribed') return { video_id, status: 'already_done' };
+      if (video.status === 'transcribed') return { video_id, status: 'completed' };
 
       const jobName = `frontera-${video_id}`.replace(/[^a-zA-Z0-9_-]/g, '-');
       const ext = video.s3_key.split('.').pop() as MediaFormat;

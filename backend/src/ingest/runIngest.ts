@@ -41,5 +41,6 @@ export async function runIngest(pool?: Pool): Promise<IngestResult> {
     sourcesProcessed: sources.length,
     itemsInserted,
     errors,
+    videos_queued: [],
   };
 }
