@@ -1,10 +1,9 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { FeedItem } from '@/lib/api';
 import Sidebar from './Sidebar';
-import ArticleList from './ArticleList';
+import ArticleCard from './ArticleCard';
 import Reader from './Reader';
-import ExploreTab from './ExploreTab';
 
 interface Props {
   title: string;
@@ -13,85 +12,96 @@ interface Props {
 }
 
 export default function FeedLayout({ title, items, loading }: Props) {
-  const [tab, setTab] = useState<'me' | 'explore'>('me');
   const [selected, setSelected] = useState<FeedItem | null>(null);
-  const [mobileView, setMobileView] = useState<'list' | 'reader'>('list');
 
-  // Keyboard navigation
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
-      const idx = selected ? items.findIndex(i => i.id === selected.id) : -1;
-      if (e.key === 'j') setSelected(items[Math.min(idx + 1, items.length - 1)] ?? null);
-      if (e.key === 'k') setSelected(idx > 0 ? items[idx - 1] : items[0]);
       if (e.key === 'Escape') setSelected(null);
+      if (!selected) return;
+      const idx = items.findIndex(i => i.id === selected.id);
+      if (e.key === 'j') setSelected(items[Math.min(idx + 1, items.length - 1)]);
+      if (e.key === 'k' && idx > 0) setSelected(items[idx - 1]);
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [items, selected]);
 
-  const tabBtn = (t: 'me' | 'explore', label: string) => (
-    <button
-      onClick={() => setTab(t)}
-      style={{
-        padding: '6px 18px', background: 'none', border: 'none', cursor: 'pointer',
-        fontSize: 13, fontWeight: tab === t ? 600 : 400,
-        color: tab === t ? '#e4e4e7' : '#52525b',
-        borderBottom: `2px solid ${tab === t ? '#3b82f6' : 'transparent'}`,
-        transition: 'all 0.15s', marginBottom: -1,
-      }}
-    >
-      {label}
-    </button>
-  );
-
   return (
-    <div style={{ display: 'flex', height: '100vh', background: 'var(--main-bg)' }}>
-      {/* Sidebar — hidden on mobile when reading */}
-      <div style={{ display: mobileView === 'reader' ? 'none' : 'flex' } as React.CSSProperties}
-        className="sidebar-wrapper">
-        <Sidebar />
-      </div>
+    <div style={{ display: 'flex', height: '100vh', background: 'var(--main-bg)', overflow: 'hidden' }}>
+      <Sidebar />
 
-      {/* Main */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
-        {/* Tab bar */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        {/* Page header */}
         <div style={{
-          display: 'flex', alignItems: 'center', gap: 0, padding: '0 20px',
-          borderBottom: '1px solid var(--border)', background: 'var(--main-bg)',
+          padding: '28px 36px 20px',
+          borderBottom: '1px solid var(--border)',
+          background: 'var(--main-bg)',
           flexShrink: 0,
         }}>
-          {tabBtn('me', 'Me')}
-          {tabBtn('explore', 'Explore')}
-          <div style={{ flex: 1 }} />
-          <span style={{ fontSize: 12, color: '#3f3f46' }}>{title}</span>
-          <div style={{ width: 16 }} />
+          <h1 style={{ fontSize: 32, fontWeight: 800, color: '#e4e4e7', letterSpacing: '-0.5px', lineHeight: 1 }}>
+            {title}
+          </h1>
+          {!loading && items.length > 0 && (
+            <p style={{ fontSize: 14, color: '#52525b', marginTop: 6 }}>
+              {items.length} {items.length === 1 ? 'story' : 'stories'}
+            </p>
+          )}
         </div>
 
-        {/* Content */}
-        <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-          {tab === 'explore' ? (
-            <ExploreTab />
-          ) : (
-            <>
-              {/* Article list */}
-              <div style={{ display: mobileView === 'reader' ? 'none' : 'block' } as React.CSSProperties}>
-                <ArticleList
-                  title={title}
-                  items={items}
-                  loading={loading}
-                  selectedId={selected?.id ?? null}
-                  onSelect={item => { setSelected(item); setMobileView('reader'); }}
-                />
-              </div>
+        {/* Body */}
+        <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
+          {/* Card grid */}
+          <div style={{
+            height: '100%', overflowY: 'auto',
+            padding: '32px 36px',
+            transition: 'filter 0.2s',
+            filter: selected ? 'brightness(0.5)' : 'none',
+          }}>
+            {loading && (
+              <div style={{ color: '#52525b', fontSize: 16 }}>Loading…</div>
+            )}
 
-              {/* Reader */}
-              <Reader
-                item={selected}
-                onClose={() => { setSelected(null); setMobileView('list'); }}
-              />
-            </>
-          )}
+            {!loading && items.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '80px 0', color: '#3f3f46' }}>
+                <div style={{ fontSize: 40, marginBottom: 16 }}>📭</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: '#52525b' }}>Nothing here yet</div>
+                <div style={{ fontSize: 15, marginTop: 8 }}>Check back after the next daily update at 3 AM UTC.</div>
+              </div>
+            )}
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+              gap: 20,
+            }}>
+              {items.map(item => (
+                <ArticleCard
+                  key={item.id}
+                  item={item}
+                  selected={selected?.id === item.id}
+                  onSelect={() => setSelected(item)}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Slide-in reader panel */}
+          <div
+            style={{
+              position: 'absolute', top: 0, right: 0, bottom: 0,
+              width: '100%', maxWidth: 680,
+              background: 'var(--reader-bg)',
+              borderLeft: '1px solid var(--border)',
+              transform: selected ? 'translateX(0)' : 'translateX(100%)',
+              transition: 'transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
+              zIndex: 10,
+              overflowY: 'auto',
+              boxShadow: selected ? '-8px 0 40px rgba(0,0,0,0.6)' : 'none',
+            }}
+          >
+            <Reader item={selected} onClose={() => setSelected(null)} />
+          </div>
         </div>
       </div>
     </div>

@@ -4,7 +4,24 @@ import type { Pool, PoolClient } from 'pg';
 import type { SourceRow } from './types';
 
 const FETCH_TIMEOUT_MS = 30_000;
-const parser = new Parser();
+const parser = new Parser({
+  customFields: {
+    item: [
+      ['media:content', 'mediaContent', { keepArray: false }],
+      ['media:thumbnail', 'mediaThumbnail', { keepArray: false }],
+    ],
+  },
+});
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function extractThumbnail(item: any): string | null {
+  if (item.enclosure?.url && item.enclosure.type?.startsWith('image/')) return item.enclosure.url;
+  if (item.mediaThumbnail?.$.url) return item.mediaThumbnail.$.url;
+  if (item.mediaContent?.$.url && item.mediaContent.$.medium !== 'audio' && item.mediaContent.$.medium !== 'video') return item.mediaContent.$.url;
+  const html = item['content:encoded'] || item.content || '';
+  const m = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+  return m?.[1] ?? null;
+}
 
 function externalIdForItem(guid: string | undefined, link: string): string {
   if (guid && guid.trim()) return guid.trim();
@@ -66,9 +83,10 @@ export async function ingestRssForSource(client: PoolClient, source: SourceRow, 
 
     if (ins.rowCount === 0) continue;
 
+    const thumbnailUrl = extractThumbnail(item);
     await client.query(
-      `INSERT INTO feed_items (locality_id, source_id, type, title, summary, categories, jurisdiction, source_url, published_at)
-       VALUES ($1, $2, 'text', $3, $4, $5::text[], $6, $7, $8)`,
+      `INSERT INTO feed_items (locality_id, source_id, type, title, summary, categories, jurisdiction, source_url, published_at, thumbnail_url)
+       VALUES ($1, $2, 'text', $3, $4, $5::text[], $6, $7, $8, $9)`,
       [
         source.locality_id,
         source.id,
@@ -78,6 +96,7 @@ export async function ingestRssForSource(client: PoolClient, source: SourceRow, 
         jurisdictionLabel(source),
         link,
         publishedAt,
+        thumbnailUrl,
       ],
     );
     inserted += 1;

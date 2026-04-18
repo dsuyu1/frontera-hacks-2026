@@ -72,14 +72,20 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
         const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
         const { rows } = await db.query(
-          `SELECT fi.*, l.name as locality_name, l.city,
-                  (SELECT ${CLIP_SELECT}
-                   FROM clips c JOIN videos v ON v.id = c.video_id AND v.feed_item_id = fi.id
-                   WHERE c.status = 'published' ORDER BY c.created_at ASC LIMIT 1) as clip
-           FROM feed_items fi
-           JOIN localities l ON l.id = fi.locality_id
-           ${where}
-           ORDER BY fi.published_at DESC NULLS LAST, fi.created_at DESC
+          `WITH deduped AS (
+             SELECT DISTINCT ON (lower(left(fi.title, 100)))
+               fi.*, l.name as locality_name, l.city
+             FROM feed_items fi
+             JOIN localities l ON l.id = fi.locality_id
+             ${where}
+             ORDER BY lower(left(fi.title, 100)), fi.published_at DESC NULLS LAST, fi.created_at DESC
+           )
+           SELECT d.*,
+             (SELECT ${CLIP_SELECT}
+              FROM clips c JOIN videos v ON v.id = c.video_id AND v.feed_item_id = d.id
+              WHERE c.status = 'published' ORDER BY c.created_at ASC LIMIT 1) as clip
+           FROM deduped d
+           ORDER BY d.published_at DESC NULLS LAST, d.created_at DESC
            LIMIT $1 OFFSET $2`,
           params,
         );
