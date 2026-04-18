@@ -13,9 +13,9 @@ export default function ArticleRow({ item, selected, onSelect }: {
   return (
     <div onClick={onSelect} style={{
       display: 'flex', gap: 12, padding: '12px 14px', cursor: 'pointer',
-      background: selected ? '#1f1f1f' : 'transparent',
+      background: selected ? 'var(--row-selected)' : 'transparent',
       borderBottom: '1px solid var(--border)',
-      borderLeft: selected ? '2px solid #3b82f6' : '2px solid transparent',
+      borderLeft: selected ? '2px solid var(--accent)' : '2px solid transparent',
       transition: 'background 0.1s',
       opacity: isRead && !selected ? 0.55 : 1,
     }}>
@@ -46,7 +46,7 @@ export default function ArticleRow({ item, selected, onSelect }: {
             </span>
           )}
           {!isRead && (
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#3b82f6', flexShrink: 0 }} />
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent)', flexShrink: 0 }} />
           )}
         </div>
         <div style={{
