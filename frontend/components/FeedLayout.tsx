@@ -99,7 +99,13 @@ export default function FeedLayout({ title, items, loading }: Props) {
               </div>
             )}
 
-            <div style={{ maxWidth: 720, margin: '0 auto' }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: 1,
+              maxWidth: 1200,
+              margin: '0 auto',
+            }}>
               {items.map(item => (
                 <ArticleCard
                   key={item.id}

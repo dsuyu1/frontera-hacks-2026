@@ -15,7 +15,6 @@ const NAV_TOP = [
   { href: '/all', icon: '≡', label: 'All' },
   { href: '/read-later', icon: '⊡', label: 'Saved for Later' },
   { href: '/recently-read', icon: '◷', label: 'Read History' },
-  { href: '/videos', icon: '▶', label: 'Videos' },
 ];
 
 export default function Sidebar() {
