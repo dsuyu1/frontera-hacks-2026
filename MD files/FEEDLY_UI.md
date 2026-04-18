@@ -1,12 +1,12 @@
-# Feedly News Reader UI Clone — Plan & Requirements
+# Feedly-Style UI (Gov Feed Frontend) — Plan & Requirements
 
 ## Goal
-Build a faithful clone of the **Feedly News Reader** core experience (visual + behavior) suitable for a demo product. The clone should reproduce the familiar 3‑pane reader layout and key workflows: navigate feeds/collections, browse article lists, read articles, and manage read state.
+Build a Feedly-style reader UI for the local-government feed product: a familiar 3‑pane layout for browsing a locality-scoped daily feed, reading summaries, and watching generated meeting clips.
 
 ## Non-goals
 - No real Feedly API integration.
+- No complex personalization beyond locality + include/exclude categories (ranking is later).
 - No account management, billing, teams, or admin.
-- No full feed discovery/import/export in v1.
 
 ## Target UX (high-level)
 A responsive **3‑pane layout**:
@@ -22,8 +22,7 @@ Support quick keyboard-driven reading: open next/prev article, mark as read/unre
 - `/today` → “Today” smart feed.
 - `/all` → “All” / “All Feeds” smart feed.
 - `/read-later` → Saved articles.
-- `/collection/:collectionId` → Collection view.
-- `/feed/:feedId` → Specific feed view.
+- `/locality/:localityId` → Locality feed (e.g., Edinburg, McAllen, Mission).
 - `/search?q=` → Search results across articles (client-side for demo).
 - `/settings` (optional v1.1) → Preferences (theme, density, shortcuts).
 
@@ -80,6 +79,11 @@ Support a minimal, consistent set (not necessarily identical to Feedly):
 - Search input filters articles by title + snippet + source name.
 - Results appear in `/search?q=` and update on submit.
 
+### Locality + category filters
+- A user selects one or more localities (MVP: Edinburg, McAllen, Mission).
+- A user selects included categories and optional excluded categories.
+- Filters apply to both text items and video-derived items.
+
 ### Responsive behavior
 - Desktop (>= 1024px): 3 panes visible.
 - Tablet (>= 768px): 2 panes (sidebar + list; reader opens as overlay or replaces list).
@@ -116,13 +120,22 @@ Support a minimal, consistent set (not necessarily identical to Feedly):
 - `Article`
   - `id`, `feedId`, `source`, `title`, `snippet`, `contentHtml`, `url`, `publishedAt`, `imageUrl?`, `read`, `saved`
 
+### Backend alignment (target)
+- Replace fixture-loading with API calls:
+  - `GET /localities`
+  - `GET /categories`
+  - `GET /feed?locality=...&categories=...`
+  - `GET /clips/:id`
+
 ### Demo data generation
 - Seeded JSON fixtures checked into repo.
 - Ensure enough data to test scrolling (e.g., 200–500 articles across multiple feeds).
 
 ## Implementation Plan (incremental)
 ### Milestone 1 — App scaffold + layout shell
-- Choose stack (recommended: React + Next.js + Tailwind).
+- Stack: **React + Next.js (App Router) + Tailwind CSS**.
+- Deployment target: **AWS Amplify Hosting** (Gen 2); connect git repo, enable SSR.
+- Auth (if needed): wire **Amplify Auth** (Cognito User Pool).
 - Implement layout with sidebar, list pane, reader pane.
 - Set up routing and selection state.
 
@@ -157,6 +170,10 @@ Support a minimal, consistent set (not necessarily identical to Feedly):
 - Responsive behavior matches the described breakpoints.
 
 ## Open Questions
-- Preferred tech stack (Next.js/React vs. something else)?
 - Should opening an article always mark as read, or only after X seconds?
 - Should the reader render full HTML or simplified content?
+
+## Resolved Decisions
+- **Stack**: React + Next.js (App Router) + Tailwind CSS.
+- **Hosting**: AWS Amplify Hosting Gen 2 (not Vercel); SSR handled by Amplify's Lambda@Edge integration.
+- **Auth**: Amazon Cognito via Amplify Auth (optional for MVP, but scaffolded from day one).

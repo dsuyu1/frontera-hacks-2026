@@ -6,9 +6,9 @@
 
 ## High-Level Components
 - **Web app + API**
-  - Option A (fastest): `Next.js` on Vercel + API routes calling AWS.
-  - Option B (AWS-only): `Amplify Hosting` for Next.js + `API Gateway` + `Lambda` for backend.
-- **Auth (optional for MVP)**: `Amazon Cognito` (User Pool).
+  - `AWS Amplify Hosting` (Gen 2) for the Next.js frontend (CI/CD from git, SSR support via Lambda@Edge).
+  - `Amazon API Gateway` (HTTP API) + `Lambda` for all backend routes.
+- **Auth (optional for MVP)**: `Amazon Cognito` (User Pool) via Amplify Auth.
 - **Metadata DB**: `Amazon RDS (Postgres)`.
 - **Object storage**: `Amazon S3` for:
   - raw fetched documents
@@ -20,8 +20,9 @@
 - **Compute for jobs**
   - `Lambda` for lightweight steps (fetch RSS/pages, parse metadata, enqueue work).
   - `ECS Fargate` for heavy/long-running steps (YouTube download, ffmpeg clipping, large video fetch/processing).
-- **Transcription**: `Amazon Transcribe` (timestamped output).
-- **LLM for segmentation/summaries**: `Amazon Bedrock` (primary) or external LLM API.
+- **Transcription**: `Amazon Transcribe` (timestamped, speaker-diarized output).
+- **LLM for segmentation/summaries**: `Amazon Bedrock` — Claude 3 Haiku for throughput-sensitive steps (segmentation, tagging), Claude 3.5 Sonnet for final summaries.
+- **Embeddings (MVP+)**: `Amazon Bedrock Titan Embeddings` for semantic ranking.
 - **Observability**: `CloudWatch Logs`, `CloudWatch Metrics`, `X-Ray` (optional).
 
 ## Daily Batch Pipeline
@@ -114,8 +115,15 @@
   - additional binaries (`yt-dlp`, ffmpeg)
 - Direct fetch can start in Lambda for discovery/metadata, then switch to Fargate when file handling is required.
 
+## Deployment Notes (AWS-Native)
+- All infrastructure defined with **AWS CDK** (TypeScript) — no manual console setup.
+- Amplify Hosting auto-deploys on push to `main`; preview environments on PRs.
+- Secrets (API keys, DB credentials) stored in `AWS Secrets Manager`; accessed by Lambda/Fargate at runtime.
+- RDS Postgres in a private VPC subnet; Lambda/Fargate access via VPC + security groups.
+
 ## Future Enhancements
 - Per-agenda-item clips (beyond 1/30-minute rule).
 - Better dedupe across sources and jurisdictions.
-- Captioning and multilingual summaries.
-- Search (OpenSearch / vector search) and alerting.
+- Captioning and multilingual (Spanish) summaries via Amazon Translate.
+- Full-text + semantic search via `Amazon OpenSearch Serverless` + Titan Embeddings.
+- Push notifications via `Amazon SNS` for high-importance items.

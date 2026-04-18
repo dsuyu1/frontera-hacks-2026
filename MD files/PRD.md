@@ -3,7 +3,9 @@
 ## 1) Overview
 Build a “Feedly for local government” app that aggregates public information relevant to a user’s locality and produces a daily feed. For long-form public meeting videos, the app generates short, high-signal clips so users can catch up quickly.
 
-**Initial launch region (MVP):** Rio Grande Valley (RGV), Texas — all counties and all incorporated cities within the RGV.
+**Initial launch region (MVP):** Rio Grande Valley (RGV), Texas.
+
+**Initial jurisdiction coverage (MVP):** City of Edinburg, City of McAllen, City of Mission.
 
 ## 2) Goals
 - Provide a daily, locality-scoped feed of important local-government updates.
@@ -24,7 +26,7 @@ Build a “Feedly for local government” app that aggregates public information
 ## 5) User Experience (MVP)
 ### 5.1 Onboarding
 - User selects:
-  - Location: city / county / region (RGV).
+  - Location: city (Edinburg, McAllen, Mission).
   - Categories of interest (multi-select).
 
 ### 5.2 Feed
@@ -71,10 +73,9 @@ Initial category set (editable):
 - The system supports a locality hierarchy:
   - Region (RGV) → county → city (and potentially other jurisdictions).
 - Feed queries support locality scoping and optionally multiple selected localities.
-- RGV locality coverage (MVP):
-  - Counties: all RGV counties.
-  - Cities: all incorporated cities within the RGV counties.
-  - The locality dataset must be generated from an authoritative public dataset (e.g., US Census TIGER/Line for county and place boundaries) and be refreshable.
+- Locality coverage (MVP):
+  - Cities: Edinburg, McAllen, Mission.
+  - The locality dataset should be generated from an authoritative public dataset (e.g., US Census TIGER/Line) and be refreshable.
 
 ### 8.2 Ingestion (Public Sources)
 - System discovers and ingests new items daily.
@@ -98,6 +99,7 @@ For each qualifying meeting video:
 - Clip generation should:
   - Be timestamp-accurate.
   - Include configurable padding (e.g., a few seconds) to avoid abrupt cuts.
+  - Prefer ~60 seconds per clip, with a hard max of **3 minutes**.
 - Store and serve clips efficiently (streaming-friendly format).
 
 ### 8.5 Topic/Importance Detection
@@ -180,8 +182,10 @@ Minimum entities:
 
 ## 14) MVP Acceptance Criteria
 - User can select an RGV locality + categories and see a daily feed.
-- At least one meeting-video source is ingested for the RGV MVP.
+- Locality options include Edinburg, McAllen, and Mission.
+- At least one meeting-video source is ingested for each MVP city (or a clearly documented exception).
 - For each ingested meeting video, the system produces **1 clip per 30 minutes** of video.
+- Clips are **<= 3 minutes** (prefer ~60 seconds).
 - Each clip has a title + summary + category tags and plays successfully.
 - Each feed item links back to the original public source.
 
@@ -194,5 +198,11 @@ Minimum entities:
 ## 15) Open Questions
 - Which authoritative dataset will define “RGV counties” for this product (common definitions differ; confirm county list used for inclusion)?
 - What minimum set of sources should define “good coverage” for MVP?
-- Which ASR and LLM providers will be used initially (cost/latency constraints)?
 - Should clips be hard-capped in length (e.g., 45–120 seconds) even if the “important” segment runs longer?
+
+## 16) Resolved Decisions
+- **ASR provider**: `Amazon Transcribe` — provides word-level timestamps and speaker diarization; no external API dependency.
+- **LLM provider**: `Amazon Bedrock` — Claude 3 Haiku for high-volume steps (segment selection, category tagging), Claude 3.5 Sonnet for final summaries; keeps all data within AWS.
+- **Frontend hosting**: `AWS Amplify Hosting` (Gen 2) — git-connected CI/CD, SSR support, preview environments.
+- **IaC**: `AWS CDK` (TypeScript) — all infrastructure as code, no manual provisioning.
+- **Secrets management**: `AWS Secrets Manager` — DB credentials, any third-party keys.
