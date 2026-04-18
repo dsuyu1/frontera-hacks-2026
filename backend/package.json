@@ -7,17 +7,18 @@
     "dev": "ts-node src/local.ts"
   },
   "dependencies": {
-    "@aws-sdk/client-secrets-manager": "^3",
-    "@aws-sdk/client-s3": "^3",
-    "@aws-sdk/client-transcribe": "^3",
     "@aws-sdk/client-bedrock-runtime": "^3",
+    "@aws-sdk/client-s3": "^3",
+    "@aws-sdk/client-secrets-manager": "^3",
     "@aws-sdk/client-sfn": "^3",
+    "@aws-sdk/client-transcribe": "^3",
     "pg": "^8"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8",
     "@types/node": "^20",
     "@types/pg": "^8",
+    "esbuild": "^0.28.0",
     "typescript": "^5"
   }
 }
