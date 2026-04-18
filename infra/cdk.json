@@ -1,1 +1,18 @@
-{ "app": "npx ts-node --prefer-ts-exts bin/infra.ts", "context": { "@aws-cdk/core:enablePartitionLiterals": true, "@aws-cdk/aws-ec2:restrictDefaultSecurityGroup": true } }
+{
+  "app": "node node_modules/ts-node/dist/bin.js --prefer-ts-exts bin/app.ts",
+  "watch": {
+    "include": ["**"],
+    "exclude": ["cdk.out", "cdk.context.json", "node_modules", "*.d.ts", "dist"]
+  },
+  "context": {
+    "@aws-cdk/aws-lambda:useLatestRuntimeVersion": true,
+    "frontera": {
+      "vpcId": "vpc-0be7639d55a24f8cc",
+      "privateSubnetIds": ["subnet-0449bd6d076cbd7bb", "subnet-09662ea53054829b8"],
+      "availabilityZones": ["us-east-1a", "us-east-1b"],
+      "lambdaSecurityGroupId": "sg-01430cfd92e4017de",
+      "dbSecretArn": "arn:aws:secretsmanager:us-east-1:602569699510:secret:DatabaseDbSecret1098DC6E-TQmJ7ROtNdgQ-Y7yZNP",
+      "rawBucketName": "frontera-main-602569699510"
+    }
+  }
+}
