@@ -50,10 +50,12 @@ Combine similarity + business rules:
 - `score = 0.6*cosine(user_embedding, item_embedding) + 0.3*category_match + 0.1*recency_boost`
 - Add exploration: small % of diverse items for learning.
 
-## Storage (Suggested)
-- `item_embeddings` table or store embedding vector in `feed_items` (if DB supports it) or S3.
-- `user_profiles` table: latest `profile_embedding` + `category_weights`.
-- `user_events` table: append-only interaction events.
+## Storage
+- Enable `pgvector` on RDS Postgres (`CREATE EXTENSION vector`).
+- Add `embedding vector(1536)` column to `feed_items` and `user_profiles` (Titan Embeddings V2 outputs 1536 dims).
+- `user_profiles` table: `profile_embedding`, `category_weights` (JSONB), `updated_at`.
+- `user_events` table: append-only — `user_id`, `item_id`, `event_type`, `value`, `timestamp`.
+- Scale path: migrate to `Amazon OpenSearch Serverless` (vector engine) when RDS vector search becomes a bottleneck (typically >1M items).
 
 ## Notes
 - Always keep locality/category filtering as a hard constraint (ranking only within the allowed set).

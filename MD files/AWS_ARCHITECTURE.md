@@ -8,7 +8,7 @@
 - **Web app + API**
   - `AWS Amplify Hosting` (Gen 2) for the Next.js frontend (CI/CD from git, SSR support via Lambda@Edge).
   - `Amazon API Gateway` (HTTP API) + `Lambda` for all backend routes.
-- **Auth (optional for MVP)**: `Amazon Cognito` (User Pool) via Amplify Auth.
+- **Auth**: `Amazon Cognito` (User Pool) via Amplify Auth — include in MVP; required for persisting locality/category preferences server-side.
 - **Metadata DB**: `Amazon RDS (Postgres)`.
 - **Object storage**: `Amazon S3` for:
   - raw fetched documents
@@ -88,6 +88,9 @@
 - `transcripts` (pointers + key fields)
 - `clips` (start/end, title/summary, s3 key, categories)
 - `feed_items` (user-facing items)
+- `user_events` (append-only interaction log for ranking)
+- `user_profiles` (locality/category prefs + profile embedding)
+- Enable **`pgvector`** extension for embedding columns on `feed_items` and `user_profiles` (MVP+); avoids a separate vector store for initial scale.
 
 ## API Surface (Example)
 - `GET /localities`

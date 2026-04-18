@@ -176,4 +176,4 @@ Support a minimal, consistent set (not necessarily identical to Feedly):
 ## Resolved Decisions
 - **Stack**: React + Next.js (App Router) + Tailwind CSS.
 - **Hosting**: AWS Amplify Hosting Gen 2 (not Vercel); SSR handled by Amplify's Lambda@Edge integration.
-- **Auth**: Amazon Cognito via Amplify Auth (optional for MVP, but scaffolded from day one).
+- **Auth**: Amazon Cognito via Amplify Auth — included in MVP; required for server-side preference persistence.
