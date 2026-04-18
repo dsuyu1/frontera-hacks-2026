@@ -1,0 +1,76 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Daily ingest (EventBridge → Lambda) + SQS video acquisition queue (PRD §8.3, §11).
+
+Parameters:
+  DatabaseUrl:
+    Type: String
+    NoEcho: true
+    Description: Postgres connection string for Prisma (same VPC/security as RDS recommended).
+  IngestScheduleExpression:
+    Type: String
+    Default: cron(0 14 * * ? *)
+    Description: UTC cron for daily ingest (default 14:00 UTC; adjust for RGV local).
+
+Globals:
+  Function:
+    Timeout: 900
+    MemorySize: 1024
+    Architectures:
+      - x86_64
+
+Resources:
+  VideoAcquisitionQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${AWS::StackName}-video-acquisition"
+      VisibilityTimeout: 960
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt VideoAcquisitionDLQ.Arn
+        maxReceiveCount: 5
+
+  VideoAcquisitionDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${AWS::StackName}-video-acquisition-dlq"
+
+  IngestFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      DockerTag: ingest-latest
+      DockerContext: ..
+      Dockerfile: Dockerfile
+      DockerBuildPlatform: linux/amd64
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-ingest"
+      PackageType: Image
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Effect: Allow
+              Action:
+                - sqs:SendMessage
+              Resource: !GetAtt VideoAcquisitionQueue.Arn
+            - Effect: Allow
+              Action:
+                - cloudwatch:PutMetricData
+              Resource: "*"
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          VIDEO_ACQUISITION_QUEUE_URL: !Ref VideoAcquisitionQueue
+          INGEST_METRICS_NAMESPACE: Frontera/Ingest
+          NODE_ENV: production
+      Events:
+        DailySchedule:
+          Type: Schedule
+          Properties:
+            Schedule: !Ref IngestScheduleExpression
+            Name: !Sub "${AWS::StackName}-daily-ingest"
+            Description: Fetch new public feed sources (batch).
+
+Outputs:
+  VideoAcquisitionQueueUrl:
+    Value: !Ref VideoAcquisitionQueue
+  IngestFunctionArn:
+    Value: !GetAtt IngestFunction.Arn
