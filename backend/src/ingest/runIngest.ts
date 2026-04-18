@@ -2,6 +2,7 @@ import type { Pool } from 'pg';
 import { getPool } from '../db/client';
 import { fetchRssXml, ingestRssSource } from './rss';
 import { putRawRssSnapshot } from './s3RawSnapshot';
+import { ingestYouTubeSource } from './youtube';
 import type { IngestResult, SourceRow } from './types';
 
 async function loadActiveSources(pool: Pool): Promise<SourceRow[]> {
@@ -21,6 +22,7 @@ export async function runIngest(pool?: Pool): Promise<IngestResult> {
   const sources = await loadActiveSources(p);
   const errors: string[] = [];
   let itemsInserted = 0;
+  const newVideoIds: string[] = [];
 
   for (const source of sources) {
     try {
@@ -29,6 +31,10 @@ export async function runIngest(pool?: Pool): Promise<IngestResult> {
         await putRawRssSnapshot(source.id, xml);
         const n = await ingestRssSource(p, source, xml);
         itemsInserted += n;
+      } else if (source.type === 'youtube_channel') {
+        const { inserted, videoIds } = await ingestYouTubeSource(p, source);
+        itemsInserted += inserted;
+        newVideoIds.push(...videoIds);
       } else {
         errors.push(`skipped unsupported source type "${source.type}" (${source.id})`);
       }
@@ -41,6 +47,6 @@ export async function runIngest(pool?: Pool): Promise<IngestResult> {
     sourcesProcessed: sources.length,
     itemsInserted,
     errors,
-    videos_queued: [],
+    videos_queued: newVideoIds,
   };
 }

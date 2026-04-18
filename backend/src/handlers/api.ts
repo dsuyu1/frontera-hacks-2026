@@ -1,13 +1,27 @@
 import { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda';
+import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
 import { withClient } from '../lib/db';
+
+const bedrock = new BedrockRuntimeClient({ region: 'us-east-1' });
 
 function json(status: number, body: unknown): APIGatewayProxyResultV2 {
   return {
     statusCode: status,
-    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
     body: JSON.stringify(body),
   };
 }
+
+const CLIP_SELECT = `json_build_object(
+  'id', c.id, 's3_key', c.s3_key, 'embed_url', c.embed_url,
+  'title', c.title, 'summary', c.summary,
+  'start_time_s', c.start_time_s, 'end_time_s', c.end_time_s,
+  'categories', c.categories
+)`;
 
 export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> => {
   const method = event.requestContext.http.method;
@@ -59,7 +73,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
 
         const { rows } = await db.query(
           `SELECT fi.*, l.name as locality_name, l.city,
-                  (SELECT json_build_object('id', c.id, 's3_key', c.s3_key, 'title', c.title, 'summary', c.summary, 'start_time_s', c.start_time_s, 'end_time_s', c.end_time_s, 'categories', c.categories)
+                  (SELECT ${CLIP_SELECT}
                    FROM clips c JOIN videos v ON v.id = c.video_id AND v.feed_item_id = fi.id
                    WHERE c.status = 'published' ORDER BY c.created_at ASC LIMIT 1) as clip
            FROM feed_items fi
@@ -77,7 +91,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
         const id = path.split('/')[2];
         const { rows: [item] } = await db.query(
           `SELECT fi.*, l.name as locality_name,
-                  json_agg(json_build_object('id', c.id, 's3_key', c.s3_key, 'title', c.title, 'summary', c.summary, 'start_time_s', c.start_time_s, 'end_time_s', c.end_time_s)) FILTER (WHERE c.id IS NOT NULL) as clips
+                  json_agg(${CLIP_SELECT}) FILTER (WHERE c.id IS NOT NULL) as clips
            FROM feed_items fi
            JOIN localities l ON l.id = fi.locality_id
            LEFT JOIN videos v ON v.feed_item_id = fi.id
@@ -98,8 +112,54 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
         const cdnDomain = process.env.CLIPS_CDN_DOMAIN;
         return json(200, {
           ...clip,
-          playback_url: clip.s3_key ? `https://${cdnDomain}/${clip.s3_key}` : null,
+          playback_url: clip.s3_key ? `https://${cdnDomain}/${clip.s3_key}` : clip.embed_url,
         });
+      }
+
+      // GET /trending — Bedrock-powered trending topics from recent feed items
+      if (method === 'GET' && path === '/trending') {
+        const { rows } = await db.query(
+          `SELECT title, summary, categories, city, type, thumbnail_url, id, source_url, published_at
+           FROM feed_items fi
+           JOIN localities l ON l.id = fi.locality_id
+           WHERE fi.created_at > now() - interval '7 days'
+           ORDER BY fi.published_at DESC NULLS LAST
+           LIMIT 40`,
+        );
+
+        if (rows.length === 0) return json(200, { topics: [] });
+
+        const titlesText = rows.map(r => `- ${r.title} (${r.city})`).join('\n');
+
+        const res = await bedrock.send(new InvokeModelCommand({
+          modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
+          body: JSON.stringify({
+            anthropic_version: 'bedrock-2023-05-31',
+            max_tokens: 600,
+            messages: [{
+              role: 'user',
+              content: `You are analyzing local RGV (Rio Grande Valley, TX) news headlines. Identify the top 5 trending civic topics from these recent articles:\n\n${titlesText}\n\nReturn JSON array of 5 objects: [{"topic": "<2-4 word topic>", "description": "<1 sentence>", "category": "<one of: public-safety,infrastructure,education,economic-development,health,politics-elections,environment>"}]. Return ONLY valid JSON.`,
+            }],
+          }),
+          contentType: 'application/json',
+          accept: 'application/json',
+        }));
+
+        const bedrockResp = JSON.parse(new TextDecoder().decode(res.body));
+        const text = bedrockResp.content[0].text.trim();
+        const jsonMatch = text.match(/\[[\s\S]*\]/);
+        const topics = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
+
+        // Attach related articles to each topic
+        const enriched = topics.map((t: { topic: string; description: string; category: string }) => ({
+          ...t,
+          articles: rows
+            .filter(r => r.categories?.includes(t.category) || r.title.toLowerCase().includes(t.topic.toLowerCase().split(' ')[0]))
+            .slice(0, 3)
+            .map(r => ({ id: r.id, title: r.title, city: r.city, thumbnail_url: r.thumbnail_url, source_url: r.source_url, published_at: r.published_at })),
+        }));
+
+        return json(200, { topics: enriched });
       }
 
       // POST /users/preferences
@@ -109,7 +169,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
         return json(200, { saved: true, locality_ids, included_categories, excluded_categories });
       }
 
-      // GET /stats (for debugging)
+      // GET /stats
       if (method === 'GET' && path === '/stats') {
         const { rows: [stats] } = await db.query(`
           SELECT

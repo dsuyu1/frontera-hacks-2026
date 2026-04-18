@@ -1,12 +1,12 @@
 import { execSync } from 'child_process';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import { createReadStream, statSync, mkdirSync, rmSync } from 'fs';
+import { readFileSync, mkdirSync, rmSync, readdirSync } from 'fs';
 import { withClient } from '../lib/db';
 
 const s3 = new S3Client({});
 const BUCKET = process.env.S3_BUCKET!;
 const YTDLP = '/opt/bin/yt-dlp';
-const TMP = '/tmp/video-acquire';
+const TMP = '/tmp/captions';
 
 interface Event { video_id: string }
 
@@ -18,50 +18,62 @@ export const handler = async (event: Event) => {
       'SELECT * FROM videos WHERE id = $1', [video_id],
     );
     if (!video) throw new Error(`Video not found: ${video_id}`);
-    if (video.status === 'downloaded') return { video_id, skipped: true };
+    if (video.status !== 'pending') return { video_id, skipped: true, status: video.status };
 
-    mkdirSync(`${TMP}/${video_id}`, { recursive: true });
-    const outPath = `${TMP}/${video_id}/original.mp4`;
+    const videoUrl = video.source_url;
+    const dir = `${TMP}/${video_id}`;
+    mkdirSync(dir, { recursive: true });
 
-    console.log(`Downloading ${video.source_url}`);
+    console.log(`Downloading captions for ${videoUrl}`);
 
-    // Download audio only (much smaller; sufficient for transcription + clipping audio)
-    execSync(
-      `${YTDLP} -x --audio-format mp3 -o "${TMP}/${video_id}/original.%(ext)s" --no-warnings "${video.source_url}"`,
-      { timeout: 600_000 },
-    );
+    try {
+      execSync(
+        `${YTDLP} --write-auto-sub --skip-download --sub-format vtt --sub-langs en ` +
+        `--js-runtimes node --no-warnings -o "${dir}/caption" "${videoUrl}" 2>&1`,
+        { timeout: 60_000, encoding: 'utf8' },
+      );
+    } catch (err) {
+      // Some videos have no auto-captions; store empty and continue
+      console.warn(`Caption download failed for ${video_id}:`, err);
+      const emptyCaption = 'WEBVTT\n\n';
+      await s3.send(new PutObjectCommand({
+        Bucket: BUCKET,
+        Key: `captions/${video_id}/auto.vtt`,
+        Body: emptyCaption,
+        ContentType: 'text/vtt',
+      }));
+      await db.query(
+        "UPDATE videos SET caption_s3_key = $1, status = 'transcribed' WHERE id = $2",
+        [`captions/${video_id}/auto.vtt`, video_id],
+      );
+      return { video_id, status: 'transcribed', has_captions: false };
+    }
 
-    // Find the downloaded file
-    const files = execSync(`ls ${TMP}/${video_id}/`, { encoding: 'utf8' }).trim().split('\n');
-    const audioFile = files.find((f) => f.match(/\.(mp3|m4a|webm|opus)$/));
-    if (!audioFile) throw new Error('No audio file found after download');
+    // Find the downloaded VTT file
+    const files = readdirSync(dir);
+    const vttFile = files.find(f => f.endsWith('.vtt'));
 
-    const localPath = `${TMP}/${video_id}/${audioFile}`;
-    const ext = audioFile.split('.').pop()!;
-    const s3Key = `raw/video/${video_id}/original.${ext}`;
+    let vttContent: string;
+    if (vttFile) {
+      vttContent = readFileSync(`${dir}/${vttFile}`, 'utf8');
+    } else {
+      vttContent = 'WEBVTT\n\n';
+    }
 
-    // Get duration via yt-dlp metadata
-    const metaJson = execSync(
-      `${YTDLP} --dump-json --no-download --no-warnings "${video.source_url}" 2>/dev/null`,
-      { encoding: 'utf8', timeout: 30_000 },
-    );
-    const meta = JSON.parse(metaJson);
-    const durationS = Math.round(meta.duration ?? 0);
-
-    console.log(`Uploading to S3: ${s3Key} (${statSync(localPath).size} bytes)`);
+    const s3Key = `captions/${video_id}/auto.vtt`;
     await s3.send(new PutObjectCommand({
       Bucket: BUCKET, Key: s3Key,
-      Body: createReadStream(localPath),
-      ContentType: `audio/${ext}`,
+      Body: vttContent,
+      ContentType: 'text/vtt',
     }));
 
     await db.query(
-      "UPDATE videos SET s3_key = $1, duration_s = $2, status = 'downloaded' WHERE id = $3",
-      [s3Key, durationS, video_id],
+      "UPDATE videos SET caption_s3_key = $1, status = 'transcribed' WHERE id = $2",
+      [s3Key, video_id],
     );
 
-    rmSync(`${TMP}/${video_id}`, { recursive: true, force: true });
+    rmSync(dir, { recursive: true, force: true });
 
-    return { video_id, s3_key: s3Key, duration_s: durationS };
+    return { video_id, caption_s3_key: s3Key, status: 'transcribed', has_captions: !!vttFile };
   });
 };

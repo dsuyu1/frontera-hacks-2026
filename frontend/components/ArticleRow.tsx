@@ -3,76 +3,63 @@ import { FeedItem } from '@/lib/api';
 import { useFeedStore } from '@/lib/store';
 import { formatDistanceToNow } from 'date-fns';
 
-interface Props {
-  item: FeedItem;
-  selected: boolean;
-  onSelect: () => void;
-}
-
-const CATEGORY_LABELS: Record<string, string> = {
-  'city-council': 'City Council', 'planning-zoning': 'Zoning', 'infrastructure': 'Infrastructure',
-  'public-safety': 'Safety', 'budget-taxes': 'Budget', 'economic-development': 'Economic Dev',
-  'education': 'Education', 'transportation': 'Transport', 'utilities-water': 'Utilities',
-  'business': 'Business', 'environment': 'Environment', 'health': 'Health', 'politics-elections': 'Politics',
-};
-
-export default function ArticleRow({ item, selected, onSelect }: Props) {
+export default function ArticleRow({ item, selected, onSelect }: {
+  item: FeedItem; selected: boolean; onSelect: () => void;
+}) {
   const { readIds } = useFeedStore();
   const isRead = readIds.has(item.id);
-
-  const timeAgo = item.published_at
-    ? formatDistanceToNow(new Date(item.published_at), { addSuffix: true })
-    : '';
-
-  const primaryCategory = item.categories?.[0];
-  const categoryLabel = primaryCategory ? CATEGORY_LABELS[primaryCategory] ?? primaryCategory : null;
+  const date = item.published_at ?? item.created_at;
 
   return (
-    <button
-      onClick={onSelect}
-      className={`w-full text-left px-4 py-3 border-b border-gray-100 transition-colors group ${
-        selected
-          ? 'bg-blue-50 border-l-2 border-l-blue-500'
-          : 'hover:bg-gray-50 border-l-2 border-l-transparent'
-      }`}
-    >
-      <div className="flex items-start gap-2">
-        {/* Unread dot */}
-        <div className="mt-1.5 flex-shrink-0">
-          {!isRead ? <div className="unread-dot" /> : <div className="w-1.5 h-1.5" />}
+    <div onClick={onSelect} style={{
+      display: 'flex', gap: 12, padding: '12px 14px', cursor: 'pointer',
+      background: selected ? '#1f1f1f' : 'transparent',
+      borderBottom: '1px solid var(--border)',
+      borderLeft: selected ? '2px solid #3b82f6' : '2px solid transparent',
+      transition: 'background 0.1s',
+      opacity: isRead && !selected ? 0.55 : 1,
+    }}>
+      {/* Thumbnail */}
+      {item.thumbnail_url ? (
+        <img src={item.thumbnail_url} alt="" style={{
+          width: 72, height: 48, objectFit: 'cover', borderRadius: 4,
+          flexShrink: 0, background: '#222',
+        }} />
+      ) : (
+        <div style={{
+          width: 72, height: 48, borderRadius: 4, flexShrink: 0,
+          background: item.type === 'video' ? '#1a1f2e' : '#1a1a1a',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 18, color: '#333',
+        }}>
+          {item.type === 'video' ? '▶' : ''}
         </div>
+      )}
 
-        <div className="flex-1 min-w-0">
-          {/* Source + time */}
-          <div className="flex items-center gap-1.5 mb-0.5">
-            <span className="text-xs text-gray-400 font-medium">{item.city}</span>
-            {categoryLabel && (
-              <>
-                <span className="text-gray-300">·</span>
-                <span className="text-xs text-gray-400">{categoryLabel}</span>
-              </>
-            )}
-            {item.type === 'video' && (
-              <>
-                <span className="text-gray-300">·</span>
-                <span className="text-xs bg-rose-100 text-rose-600 px-1 rounded font-medium">Video</span>
-              </>
-            )}
-            <span className="text-gray-300 ml-auto">·</span>
-            <span className="text-xs text-gray-400 flex-shrink-0">{timeAgo}</span>
-          </div>
-
-          {/* Title */}
-          <p className={`text-sm leading-snug line-clamp-2 ${isRead ? 'text-gray-500 font-normal' : 'text-gray-900 font-medium'}`}>
-            {item.title}
-          </p>
-
-          {/* Snippet */}
-          {item.summary && (
-            <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{item.summary}</p>
+      {/* Text */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 4, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 11, color: '#52525b' }}>{item.city}</span>
+          {item.type === 'video' && (
+            <span style={{ fontSize: 10, padding: '1px 5px', borderRadius: 3, background: '#1a1f2e', color: '#3b82f6' }}>
+              VIDEO
+            </span>
+          )}
+          {!isRead && (
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#3b82f6', flexShrink: 0 }} />
           )}
         </div>
+        <div style={{
+          fontSize: 13, fontWeight: 500, color: '#e4e4e7',
+          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+          lineHeight: 1.4, marginBottom: 4,
+        }}>
+          {item.title}
+        </div>
+        <div style={{ fontSize: 11, color: '#52525b' }}>
+          {date ? formatDistanceToNow(new Date(date), { addSuffix: true }) : ''}
+        </div>
       </div>
-    </button>
+    </div>
   );
 }

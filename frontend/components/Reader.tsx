@@ -1,157 +1,120 @@
 'use client';
 import { useEffect } from 'react';
-import { FeedItem, Clip } from '@/lib/api';
+import { FeedItem } from '@/lib/api';
 import { useFeedStore } from '@/lib/store';
-import VideoPlayer from './VideoPlayer';
 import { formatDistanceToNow } from 'date-fns';
+import VideoPlayer from './VideoPlayer';
 
-interface Props {
-  item: FeedItem | null;
-  onClose?: () => void;
-}
-
-const CATEGORY_LABELS: Record<string, string> = {
-  'city-council': 'City Council', 'planning-zoning': 'Planning & Zoning', 'infrastructure': 'Infrastructure',
-  'public-safety': 'Public Safety', 'budget-taxes': 'Budget & Taxes', 'economic-development': 'Economic Development',
-  'education': 'Education', 'transportation': 'Transportation', 'utilities-water': 'Utilities & Water',
-  'business': 'Business', 'environment': 'Environment', 'health': 'Health', 'politics-elections': 'Politics',
-};
-
-export default function Reader({ item, onClose }: Props) {
+export default function Reader({ item, onClose }: { item: FeedItem | null; onClose?: () => void }) {
   const { readIds, savedIds, markRead, markUnread, toggleSaved } = useFeedStore();
 
-  // Auto-mark as read when opened
   useEffect(() => {
     if (item && !readIds.has(item.id)) markRead(item.id);
   }, [item?.id]);
 
   if (!item) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 text-center px-8">
-        <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-4">
-          <svg className="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-        </div>
-        <p className="text-sm font-medium text-gray-600 mb-1">Select an article to read</p>
-        <p className="text-xs text-gray-400">Use <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-xs">j</kbd> / <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-xs">k</kbd> to navigate</p>
+      <div style={{
+        flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: '#3f3f46', fontSize: 13, background: 'var(--reader-bg)',
+      }}>
+        Select an article to read
       </div>
     );
   }
 
   const isRead = readIds.has(item.id);
   const isSaved = savedIds.has(item.id);
-  const clip = item.clip as Clip | null | undefined;
+  const date = item.published_at ?? item.created_at;
 
   return (
-    <div className="flex-1 flex flex-col bg-white overflow-hidden">
-      {/* Reader toolbar */}
-      <div className="px-6 py-3 border-b border-gray-100 flex items-center gap-3 flex-shrink-0">
+    <div style={{
+      flex: 1, background: 'var(--reader-bg)', overflowY: 'auto',
+      display: 'flex', flexDirection: 'column',
+    }}>
+      {/* Toolbar */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 8, padding: '12px 20px',
+        borderBottom: '1px solid var(--border)', position: 'sticky', top: 0,
+        background: 'var(--reader-bg)', zIndex: 1,
+      }}>
         {onClose && (
-          <button onClick={onClose} className="p-1.5 rounded-md hover:bg-gray-100 text-gray-500 lg:hidden">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
+          <button onClick={onClose} style={btnStyle}>← Back</button>
         )}
-        <div className="flex items-center gap-2 ml-auto">
-          <button
-            onClick={() => isRead ? markUnread(item.id) : markRead(item.id)}
-            title={isRead ? 'Mark unread (m)' : 'Mark read (m)'}
-            className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md transition-colors ${
-              isRead ? 'text-gray-500 hover:bg-gray-100' : 'text-blue-600 bg-blue-50 hover:bg-blue-100'
-            }`}
-          >
-            <svg className="w-3.5 h-3.5" fill={isRead ? 'none' : 'currentColor'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <circle cx="12" cy="12" r="10" />
-            </svg>
-            {isRead ? 'Read' : 'Unread'}
-          </button>
-
-          <button
-            onClick={() => toggleSaved(item.id)}
-            title={isSaved ? 'Unsave (s)' : 'Save for later (s)'}
-            className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md transition-colors ${
-              isSaved ? 'text-amber-600 bg-amber-50 hover:bg-amber-100' : 'text-gray-500 hover:bg-gray-100'
-            }`}
-          >
-            <svg className="w-3.5 h-3.5" fill={isSaved ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-            </svg>
-            {isSaved ? 'Saved' : 'Save'}
-          </button>
-
-          <a
-            href={item.source_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md text-gray-500 hover:bg-gray-100 transition-colors"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-            Original
-          </a>
-        </div>
+        <div style={{ flex: 1 }} />
+        <button onClick={() => isRead ? markUnread(item.id) : markRead(item.id)} style={{
+          ...btnStyle, color: isRead ? '#3b82f6' : '#71717a',
+        }}>
+          {isRead ? '◉ Read' : '○ Unread'}
+        </button>
+        <button onClick={() => toggleSaved(item.id)} style={{
+          ...btnStyle, color: isSaved ? '#f59e0b' : '#71717a',
+        }}>
+          {isSaved ? '★ Saved' : '☆ Save'}
+        </button>
+        <a href={item.source_url} target="_blank" rel="noopener noreferrer" style={{ ...btnStyle, color: '#71717a' }}>
+          ↗ Source
+        </a>
       </div>
 
-      {/* Article content */}
-      <div className="flex-1 overflow-y-auto px-8 py-6 max-w-3xl mx-auto w-full">
-        {/* Category tags */}
-        <div className="flex flex-wrap gap-1.5 mb-4">
-          <span className="text-xs px-2 py-1 bg-emerald-50 text-emerald-700 rounded-full font-medium">{item.city}</span>
-          {item.categories.slice(0, 3).map((cat) => (
-            <span key={cat} className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
-              {CATEGORY_LABELS[cat] ?? cat}
-            </span>
+      {/* Content */}
+      <div style={{ padding: '24px', maxWidth: 680, width: '100%', margin: '0 auto' }}>
+        {/* Tags */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
+          <span style={tagStyle('#1a2e1a', '#4ade80')}>{item.city}</span>
+          {item.type === 'video' && <span style={tagStyle('#1a1f2e', '#3b82f6')}>VIDEO</span>}
+          {item.categories.slice(0, 3).map(c => (
+            <span key={c} style={tagStyle('#1e1e2e', '#818cf8')}>{c.replace(/-/g, ' ')}</span>
           ))}
-          {item.type === 'video' && (
-            <span className="text-xs px-2 py-1 bg-rose-50 text-rose-600 rounded-full font-medium">Video</span>
-          )}
         </div>
 
         {/* Title */}
-        <h1 className="text-xl font-bold text-gray-900 leading-snug mb-2">{item.title}</h1>
+        <h1 style={{ fontSize: 20, fontWeight: 700, color: '#e4e4e7', lineHeight: 1.35, marginBottom: 10 }}>
+          {item.title}
+        </h1>
 
         {/* Meta */}
-        <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
-          <span>{item.jurisdiction ?? item.city}</span>
-          <span>·</span>
-          <span>{item.published_at ? formatDistanceToNow(new Date(item.published_at), { addSuffix: true }) : 'Unknown date'}</span>
-          <span>·</span>
-          <a href={item.source_url} target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 transition-colors truncate max-w-[200px]">
-            {new URL(item.source_url).hostname}
-          </a>
+        <div style={{ fontSize: 12, color: '#52525b', marginBottom: 20 }}>
+          {item.jurisdiction ?? item.city}
+          {date && ` · ${formatDistanceToNow(new Date(date), { addSuffix: true })}`}
         </div>
 
-        {/* Video player */}
-        {clip && (
-          <div className="mb-6">
-            <VideoPlayer clip={clip} />
-          </div>
+        {/* Thumbnail (for text articles without video) */}
+        {item.thumbnail_url && item.type === 'text' && (
+          <img src={item.thumbnail_url} alt="" style={{
+            width: '100%', borderRadius: 8, marginBottom: 20, objectFit: 'cover', maxHeight: 280,
+          }} />
         )}
+
+        {/* Video clip */}
+        {item.clip && <VideoPlayer clip={item.clip} />}
 
         {/* Summary */}
         {item.summary && (
-          <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed">
-            <p>{item.summary}</p>
-          </div>
+          <p style={{ fontSize: 15, color: '#a1a1aa', lineHeight: 1.7, marginBottom: 20 }}>
+            {item.summary}
+          </p>
         )}
 
-        {!item.summary && !clip && (
-          <div className="rounded-xl border border-dashed border-gray-200 p-6 text-center">
-            <p className="text-sm text-gray-500 mb-2">Content pending processing</p>
-            <a
-              href={item.source_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-blue-500 hover:text-blue-600 underline"
-            >
-              View original source →
+        {!item.summary && !item.clip && (
+          <div style={{ padding: '20px 0' }}>
+            <a href={item.source_url} target="_blank" rel="noopener noreferrer"
+              style={{ color: '#3b82f6', fontSize: 14 }}>
+              Read full article ↗
             </a>
           </div>
         )}
       </div>
     </div>
   );
+}
+
+const btnStyle: React.CSSProperties = {
+  padding: '5px 10px', background: 'none', border: '1px solid var(--border)',
+  borderRadius: 5, cursor: 'pointer', fontSize: 12, color: '#71717a',
+  transition: 'color 0.1s, border-color 0.1s',
+};
+
+function tagStyle(bg: string, color: string): React.CSSProperties {
+  return { padding: '2px 8px', borderRadius: 4, background: bg, color, fontSize: 11, fontWeight: 500 };
 }

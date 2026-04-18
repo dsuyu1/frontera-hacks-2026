@@ -9,114 +9,171 @@ const BUCKET = process.env.S3_BUCKET!;
 interface Segment { start: number; end: number; title: string; summary: string; categories: string[] }
 interface Event { video_id: string }
 
+interface VttCue { start: number; end: number; text: string }
+
+function parseVtt(vtt: string): VttCue[] {
+  const cues: VttCue[] = [];
+  const blocks = vtt.split(/\n\n+/);
+  for (const block of blocks) {
+    const lines = block.trim().split('\n');
+    const timeLine = lines.find(l => l.includes('-->'));
+    if (!timeLine) continue;
+    const [startStr, endStr] = timeLine.split('-->').map(s => s.trim().split(' ')[0]);
+    const start = toSeconds(startStr);
+    const end = toSeconds(endStr);
+    const text = lines.filter(l => !l.includes('-->') && !l.match(/^\d+$/) && l.trim())
+      .join(' ')
+      .replace(/<[^>]+>/g, '')
+      .trim();
+    if (text && text !== '[music]' && text !== '[Music]') {
+      cues.push({ start, end, text });
+    }
+  }
+  return cues;
+}
+
+function toSeconds(ts: string): number {
+  const parts = ts.split(':').map(Number);
+  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  if (parts.length === 2) return parts[0] * 60 + parts[1];
+  return parts[0];
+}
+
 export const handler = async (event: Event) => {
   const { video_id } = event;
 
   return withClient(async (db) => {
     const { rows: [video] } = await db.query(
-      'SELECT v.*, t.s3_key as transcript_key FROM videos v JOIN transcripts t ON t.video_id = v.id WHERE v.id = $1',
+      'SELECT v.*, vi.embed_url FROM videos v LEFT JOIN videos vi ON vi.id = v.id WHERE v.id = $1',
       [video_id],
     );
     if (!video) throw new Error(`Video not found: ${video_id}`);
 
-    // Load transcript from S3
-    const obj = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: video.transcript_key }));
-    const raw = await obj.Body!.transformToString();
-    const transcriptData = JSON.parse(raw);
+    const captionKey = video.caption_s3_key;
+    let cues: VttCue[] = [];
 
-    const items: Array<{ start_time: string; end_time: string; content: string; speaker: string }> =
-      transcriptData.results?.items ?? [];
+    if (captionKey) {
+      try {
+        const obj = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: captionKey }));
+        const vttText = await obj.Body!.transformToString();
+        cues = parseVtt(vttText);
+      } catch {
+        console.warn('Could not load captions for', video_id);
+      }
+    }
 
-    const durationS: number = video.duration_s ?? 3600;
-    const windowSize = 30 * 60; // 30 minutes in seconds
+    const embedBase = video.embed_url ?? `https://www.youtube.com/embed/${video.source_url.split('v=')[1]}`;
+
+    // If no captions or very sparse, generate one segment from video title/description
+    if (cues.length < 5) {
+      const { rows: [fi] } = await db.query(
+        'SELECT title, summary FROM feed_items WHERE id = $1', [video.feed_item_id],
+      );
+      const seg = await generateSegmentFromMeta(fi?.title ?? 'Meeting', fi?.summary ?? '');
+      await db.query(
+        `INSERT INTO clips (video_id, start_time_s, end_time_s, title, summary, categories, embed_url, status)
+         VALUES ($1, $2, $3, $4, $5, $6::text[], $7, 'pending')`,
+        [video_id, seg.start, seg.end, seg.title, seg.summary, seg.categories,
+         `${embedBase}?start=${seg.start}`],
+      );
+      await db.query("UPDATE videos SET status = 'segmented' WHERE id = $1", [video_id]);
+      return { video_id, segments_created: 1 };
+    }
+
+    const durationS = cues[cues.length - 1]?.end ?? 3600;
+    const windowSize = 30 * 60;
     const numWindows = Math.ceil(durationS / windowSize);
-
-    const segments: Segment[] = [];
+    let segmentsCreated = 0;
 
     for (let w = 0; w < numWindows; w++) {
       const windowStart = w * windowSize;
       const windowEnd = Math.min((w + 1) * windowSize, durationS);
+      const windowCues = cues.filter(c => c.start >= windowStart && c.start < windowEnd);
+      if (windowCues.length < 3) continue;
 
-      // Get transcript text for this window
-      const windowItems = items.filter((item) => {
-        const t = parseFloat(item.start_time ?? '0');
-        return t >= windowStart && t < windowEnd && item.content;
-      });
+      const transcriptText = windowCues.map(c => c.text).join(' ').slice(0, 6000);
+      const seg = await askBedrockForSegment(transcriptText, windowStart, windowEnd);
 
-      if (windowItems.length === 0) continue;
-
-      const transcriptText = windowItems.map((i) => i.content).join(' ').slice(0, 8000);
-
-      const segment = await askBedrockForBestSegment(transcriptText, windowStart, windowEnd);
-      segments.push(segment);
-    }
-
-    // Save segments to DB
-    for (const seg of segments) {
       await db.query(
-        `INSERT INTO clips (video_id, start_time_s, end_time_s, title, summary, categories, status)
-         VALUES ($1, $2, $3, $4, $5, $6::text[], 'pending')`,
-        [video_id, seg.start, seg.end, seg.title, seg.summary, seg.categories],
+        `INSERT INTO clips (video_id, start_time_s, end_time_s, title, summary, categories, embed_url, status)
+         VALUES ($1, $2, $3, $4, $5, $6::text[], $7, 'pending')`,
+        [video_id, seg.start, seg.end, seg.title, seg.summary, seg.categories,
+         `${embedBase}?start=${seg.start}`],
       );
+      segmentsCreated++;
     }
 
     await db.query("UPDATE videos SET status = 'segmented' WHERE id = $1", [video_id]);
-
-    return { video_id, segments_created: segments.length };
+    return { video_id, segments_created: segmentsCreated };
   });
 };
 
-async function askBedrockForBestSegment(
-  transcript: string, windowStart: number, windowEnd: number,
-): Promise<Segment> {
-  const prompt = `You are analyzing a local government meeting transcript segment (${formatTime(windowStart)} to ${formatTime(windowEnd)}).
+async function askBedrockForSegment(transcript: string, windowStart: number, windowEnd: number): Promise<Segment> {
+  const prompt = `You are analyzing a local government meeting transcript (${formatTime(windowStart)}–${formatTime(windowEnd)}).
 
 Transcript:
 ${transcript}
 
-Identify the single most important 60-90 second segment in this window. Return a JSON object with:
-- "start": number (seconds from start of full video, between ${windowStart} and ${windowEnd})
-- "end": number (seconds, max 180s after start)
-- "title": string (specific title, e.g. "Rezoning vote for Main St development")
-- "summary": string (2-3 sentence factual summary)
-- "categories": array of relevant slugs from: politics-elections, city-council, planning-zoning, infrastructure, public-safety, education, transportation, utilities-water, economic-development, business, environment, budget-taxes, health
+Find the most important civic topic discussed. Return JSON:
+{"start": <seconds>, "end": <seconds, max 120 after start>, "title": "<specific title>", "summary": "<2 sentences>", "categories": [<slugs from: politics-elections,city-council,planning-zoning,infrastructure,public-safety,education,transportation,utilities-water,economic-development,business,environment,budget-taxes,health>]}
 
-Return ONLY valid JSON, no other text.`;
+Return ONLY valid JSON.`;
 
   try {
     const res = await bedrock.send(new InvokeModelCommand({
       modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
       body: JSON.stringify({
         anthropic_version: 'bedrock-2023-05-31',
-        max_tokens: 512,
+        max_tokens: 400,
         messages: [{ role: 'user', content: prompt }],
       }),
       contentType: 'application/json',
       accept: 'application/json',
     }));
-
     const response = JSON.parse(new TextDecoder().decode(res.body));
     const text = response.content[0].text.trim();
     const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('No JSON in response');
-
+    if (!jsonMatch) throw new Error('No JSON');
     const parsed = JSON.parse(jsonMatch[0]);
     return {
-      start: Math.max(windowStart, Math.min(windowEnd - 60, Number(parsed.start))),
-      end: Math.min(windowEnd, Number(parsed.start) + Math.min(180, Number(parsed.end) - Number(parsed.start))),
+      start: Math.max(windowStart, Number(parsed.start)),
+      end: Math.min(windowEnd, Number(parsed.start) + Math.min(120, Number(parsed.end) - Number(parsed.start))),
       title: String(parsed.title),
       summary: String(parsed.summary),
       categories: Array.isArray(parsed.categories) ? parsed.categories : ['city-council'],
     };
-  } catch (err) {
-    console.error('Bedrock segment selection failed, using fallback:', err);
+  } catch {
     return {
-      start: windowStart + Math.floor((windowEnd - windowStart) * 0.3),
-      end: windowStart + Math.floor((windowEnd - windowStart) * 0.3) + 90,
-      title: `Meeting segment ${formatTime(windowStart)}–${formatTime(windowEnd)}`,
-      summary: 'Automated segment selection. Full transcript available.',
+      start: windowStart + 60,
+      end: windowStart + 180,
+      title: `Meeting Segment ${formatTime(windowStart)}`,
+      summary: 'Government meeting discussion.',
       categories: ['city-council'],
     };
+  }
+}
+
+async function generateSegmentFromMeta(title: string, description: string): Promise<Segment> {
+  try {
+    const res = await bedrock.send(new InvokeModelCommand({
+      modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
+      body: JSON.stringify({
+        anthropic_version: 'bedrock-2023-05-31',
+        max_tokens: 300,
+        messages: [{
+          role: 'user',
+          content: `Create a brief summary of this government meeting: "${title}". Description: "${description}". Return JSON: {"start":600,"end":720,"title":"<title>","summary":"<2 sentences>","categories":["city-council"]}`,
+        }],
+      }),
+      contentType: 'application/json',
+      accept: 'application/json',
+    }));
+    const response = JSON.parse(new TextDecoder().decode(res.body));
+    const text = response.content[0].text.trim();
+    const parsed = JSON.parse(text.match(/\{[\s\S]*\}/)![0]);
+    return { start: 600, end: 720, title: parsed.title ?? title, summary: parsed.summary ?? description, categories: parsed.categories ?? ['city-council'] };
+  } catch {
+    return { start: 600, end: 720, title, summary: description || 'Government meeting recording.', categories: ['city-council'] };
   }
 }
 

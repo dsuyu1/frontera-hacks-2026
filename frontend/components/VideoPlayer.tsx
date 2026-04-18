@@ -1,41 +1,49 @@
 'use client';
-import { Clip, clipUrl } from '@/lib/api';
+import { Clip } from '@/lib/api';
 
-interface Props { clip: Clip }
-
-function formatTime(s: number): string {
+function fmt(s: number) {
   const m = Math.floor(s / 60), sec = Math.floor(s % 60);
   return `${m}:${String(sec).padStart(2, '0')}`;
 }
 
-export default function VideoPlayer({ clip }: Props) {
-  const url = clip.playback_url ?? (clip.s3_key ? clipUrl(clip.s3_key) : null);
+export default function VideoPlayer({ clip }: { clip: Clip }) {
+  const embedUrl = clip.embed_url ?? (clip.s3_key ? null : null);
+  if (!embedUrl && !clip.s3_key) {
+    return (
+      <div style={{ padding: '24px', textAlign: 'center', color: '#52525b', fontSize: 13 }}>
+        Video processing…
+      </div>
+    );
+  }
 
   return (
-    <div className="rounded-xl overflow-hidden border border-gray-200 bg-gray-950">
-      {url ? (
-        <video
-          controls
-          preload="metadata"
-          className="w-full aspect-video object-cover"
-          src={url}
-        >
-          Your browser does not support the video tag.
+    <div style={{ marginBottom: 20 }}>
+      {embedUrl ? (
+        <iframe
+          className="yt-embed"
+          src={embedUrl}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      ) : clip.playback_url ? (
+        <video controls preload="metadata" style={{ width: '100%', borderRadius: 8, background: '#000' }}>
+          <source src={clip.playback_url} />
         </video>
-      ) : (
-        <div className="w-full aspect-video flex items-center justify-center">
-          <p className="text-gray-500 text-sm">Video processing...</p>
-        </div>
-      )}
+      ) : null}
 
-      <div className="px-4 py-3 bg-gray-950 text-white">
-        <p className="font-medium text-sm mb-0.5">{clip.title}</p>
-        <div className="flex items-center gap-2 text-xs text-gray-400">
-          <span>{formatTime(clip.start_time_s)} – {formatTime(clip.end_time_s)}</span>
-          <span>·</span>
-          <span>{Math.round(clip.end_time_s - clip.start_time_s)}s clip</span>
-        </div>
-        {clip.summary && <p className="text-xs text-gray-400 mt-1">{clip.summary}</p>}
+      <div style={{ marginTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: 12, color: '#52525b' }}>
+          {fmt(clip.start_time_s)} – {fmt(clip.end_time_s)}
+        </span>
+        {embedUrl && (
+          <a
+            href={embedUrl.replace('/embed/', '/watch?v=').replace('?start=', '&t=')}
+            target="_blank" rel="noopener noreferrer"
+            style={{ fontSize: 12, color: '#3b82f6' }}
+          >
+            Watch on YouTube ↗
+          </a>
+        )}
       </div>
     </div>
   );
