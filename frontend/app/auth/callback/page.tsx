@@ -30,13 +30,13 @@ function CallbackInner() {
     }}>
       {status === 'loading' ? (
         <>
-          <div style={{ fontSize: 24, color: '#2bb24c' }}>frontera</div>
+          <div style={{ fontSize: 24, color: '#f97316' }}>frontera</div>
           <div style={{ fontSize: 14, color: '#666' }}>Signing you in…</div>
         </>
       ) : (
         <>
           <div style={{ fontSize: 14, color: '#ef4444' }}>Sign-in failed. Please try again.</div>
-          <a href="/today" style={{ color: '#2bb24c', fontSize: 13 }}>← Go back</a>
+          <a href="/today" style={{ color: '#f97316', fontSize: 13 }}>← Go back</a>
         </>
       )}
     </div>
