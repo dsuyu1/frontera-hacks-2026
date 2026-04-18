@@ -185,6 +185,12 @@ Minimum entities:
 - Each clip has a title + summary + category tags and plays successfully.
 - Each feed item links back to the original public source.
 
+## 14.1) Recommendations (MVP+)
+- Track implicit feedback (impressions, clicks/opens, watch time, completion, saves, hides).
+- Use tracked behavior to rank items within the user’s selected locality scope and category filters.
+- MVP approach: category/entity interest weights + recency.
+- Enhanced approach: semantic similarity using embeddings (Bedrock Titan Embeddings) between user profile and item content.
+
 ## 15) Open Questions
 - Which authoritative dataset will define “RGV counties” for this product (common definitions differ; confirm county list used for inclusion)?
 - What minimum set of sources should define “good coverage” for MVP?
