@@ -29,7 +29,7 @@ export default function LandingPage() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
             <div>
-              <span style={{ fontWeight: 800, fontSize: 20, color: '#2bb24c', letterSpacing: '-0.5px', fontFamily: 'Georgia, serif' }}>
+              <span style={{ fontWeight: 800, fontSize: 20, color: '#f97316', letterSpacing: '-0.5px', fontFamily: 'Georgia, serif' }}>
                 frontera
               </span>
             </div>
@@ -67,15 +67,15 @@ export default function LandingPage() {
             href="/today"
             style={{
               padding: '9px 20px',
-              background: '#2bb24c',
+              background: '#f97316',
               color: '#fff',
               borderRadius: 8,
               fontSize: 14,
               fontWeight: 600,
               transition: 'background 0.15s',
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#25a044'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#2bb24c'; }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#ea6c0a'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#f97316'; }}
           >
             Open Feed →
           </Link>
@@ -94,17 +94,17 @@ export default function LandingPage() {
           alignItems: 'center',
           gap: 8,
           padding: '5px 14px',
-          background: 'rgba(43,178,76,0.1)',
-          border: '1px solid rgba(43,178,76,0.25)',
+          background: 'rgba(249,115,22,0.1)',
+          border: '1px solid rgba(249,115,22,0.25)',
           borderRadius: 20,
           fontSize: 12,
-          color: '#2bb24c',
+          color: '#f97316',
           fontWeight: 600,
           letterSpacing: '0.04em',
           textTransform: 'uppercase',
           marginBottom: 28,
         }}>
-          <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#2bb24c', display: 'inline-block' }} />
+          <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f97316', display: 'inline-block' }} />
           Rio Grande Valley · Updated Daily
         </div>
         <h1 style={{
@@ -116,7 +116,7 @@ export default function LandingPage() {
           marginBottom: 24,
         }}>
           Stay ahead of<br />
-          <span style={{ color: '#2bb24c' }}>local government</span>
+          <span style={{ color: '#f97316' }}>local government</span>
         </h1>
         <p style={{
           fontSize: 18,
@@ -132,15 +132,15 @@ export default function LandingPage() {
             href="/today"
             style={{
               padding: '12px 28px',
-              background: '#2bb24c',
+              background: '#f97316',
               color: '#fff',
               borderRadius: 8,
               fontSize: 15,
               fontWeight: 600,
               transition: 'background 0.15s',
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#25a044'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#2bb24c'; }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#ea6c0a'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#f97316'; }}
           >
             Read Today's Feed
           </Link>
@@ -214,8 +214,8 @@ export default function LandingPage() {
           }}>
             <div style={{
               width: 40, height: 40, borderRadius: 10,
-              background: 'rgba(43,178,76,0.12)',
-              border: '1px solid rgba(43,178,76,0.2)',
+              background: 'rgba(249,115,22,0.12)',
+              border: '1px solid rgba(249,115,22,0.2)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 18,
             }}>☀</div>
@@ -226,7 +226,7 @@ export default function LandingPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
               {['City council decisions', 'Public meeting summaries', 'Budget & ordinance updates'].map(item => (
                 <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#aaa' }}>
-                  <span style={{ color: '#2bb24c', fontSize: 12 }}>✓</span> {item}
+                  <span style={{ color: '#f97316', fontSize: 12 }}>✓</span> {item}
                 </div>
               ))}
             </div>
@@ -236,7 +236,7 @@ export default function LandingPage() {
                 marginTop: 12,
                 display: 'inline-block',
                 padding: '9px 20px',
-                background: '#2bb24c',
+                background: '#f97316',
                 color: '#fff',
                 borderRadius: 7,
                 fontSize: 13,
@@ -250,8 +250,8 @@ export default function LandingPage() {
 
           {/* Tile 2 — Video Clips */}
           <div style={{
-            background: '#0e1f14',
-            border: '1px solid #1a3322',
+            background: '#1a1208',
+            border: '1px solid #2a1e0a',
             borderRadius: 16,
             padding: '40px 36px',
             display: 'flex',
@@ -260,19 +260,19 @@ export default function LandingPage() {
           }}>
             <div style={{
               width: 40, height: 40, borderRadius: 10,
-              background: 'rgba(43,178,76,0.15)',
-              border: '1px solid rgba(43,178,76,0.3)',
+              background: 'rgba(249,115,22,0.15)',
+              border: '1px solid rgba(249,115,22,0.3)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 18,
             }}>▶</div>
-            <h3 style={{ fontSize: 22, fontWeight: 700, color: '#c8f0d4' }}>Video Coverage</h3>
-            <p style={{ fontSize: 14, color: '#5a8a6a', lineHeight: 1.7 }}>
+            <h3 style={{ fontSize: 22, fontWeight: 700, color: '#fde8cc' }}>Video Coverage</h3>
+            <p style={{ fontSize: 14, color: '#8a6a3a', lineHeight: 1.7 }}>
               Watch clipped highlights from city council sessions, school board meetings, and public hearings — with AI-generated summaries.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
               {['Council meeting clips', 'AI summaries', 'Searchable transcripts'].map(item => (
-                <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#4a8a5a' }}>
-                  <span style={{ color: '#2bb24c', fontSize: 12 }}>✓</span> {item}
+                <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#8a5a2a' }}>
+                  <span style={{ color: '#f97316', fontSize: 12 }}>✓</span> {item}
                 </div>
               ))}
             </div>
@@ -282,9 +282,9 @@ export default function LandingPage() {
                 marginTop: 12,
                 display: 'inline-block',
                 padding: '9px 20px',
-                background: 'rgba(43,178,76,0.15)',
-                color: '#2bb24c',
-                border: '1px solid rgba(43,178,76,0.3)',
+                background: 'rgba(249,115,22,0.15)',
+                color: '#f97316',
+                border: '1px solid rgba(249,115,22,0.3)',
                 borderRadius: 7,
                 fontSize: 13,
                 fontWeight: 600,
@@ -321,7 +321,7 @@ export default function LandingPage() {
                 <div key={city} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#aaa' }}>
                   <span style={{
                     width: 6, height: 6, borderRadius: '50%',
-                    background: '#2bb24c', display: 'inline-block', flexShrink: 0,
+                    background: '#f97316', display: 'inline-block', flexShrink: 0,
                   }} />
                   {city}
                 </div>
@@ -363,7 +363,7 @@ export default function LandingPage() {
           gap: 32,
         }}>
           <div>
-            <div style={{ fontWeight: 800, fontSize: 18, color: '#2bb24c', fontFamily: 'Georgia, serif', marginBottom: 8 }}>
+            <div style={{ fontWeight: 800, fontSize: 18, color: '#f97316', fontFamily: 'Georgia, serif', marginBottom: 8 }}>
               frontera
             </div>
             <div style={{ fontSize: 13, color: '#444' }}>RGV Local Government Feed</div>
