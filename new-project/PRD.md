@@ -14,7 +14,6 @@ Build a “Feedly for local government” app that aggregates public information
 - Real-time processing during meetings (batch only).
 - Full personalization beyond user-selected categories and chosen locality.
 - Editorial human curation.
-- Paying for or ingesting non-public/behind-paywall sources.
 - Comprehensive coverage of every RGV jurisdiction on day one.
 
 ## 4) Target Users
