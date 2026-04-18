@@ -109,15 +109,17 @@ export const handler = async (event: Event) => {
 };
 
 async function askBedrockForSegment(transcript: string, windowStart: number, windowEnd: number): Promise<Segment> {
-  const prompt = `You are analyzing a local government meeting transcript (${formatTime(windowStart)}–${formatTime(windowEnd)}).
+  const prompt = `You are a local government reporter analyzing a meeting transcript (${formatTime(windowStart)}–${formatTime(windowEnd)}).
 
-Transcript:
+Transcript excerpt:
 ${transcript}
 
-Find the most important civic topic discussed. Return JSON:
-{"start": <seconds>, "end": <seconds, max 120 after start>, "title": "<specific title>", "summary": "<2 sentences>", "categories": [<slugs from: politics-elections,city-council,planning-zoning,infrastructure,public-safety,education,transportation,utilities-water,economic-development,business,environment,budget-taxes,health>]}
+Identify the single most newsworthy agenda item or decision. Write a SHORT, SPECIFIC newspaper headline for it (5-9 words, action-focused).
+Good examples: "Council Approves $4M Road Repaving Contract", "Zoning Variance Denied for Proposed Walmart", "New Police Substation Approved for South Side"
+Bad examples: "Meeting Discussion", "City Council Meeting", "Council Talks About Issues"
 
-Return ONLY valid JSON.`;
+Return ONLY valid JSON:
+{"start": <seconds from transcript>, "end": <start + 60 to 120>, "title": "<newspaper headline, max 10 words>", "summary": "<2 sentences describing the decision and its civic impact>", "categories": [<1-2 slugs from: politics-elections,city-council,planning-zoning,infrastructure,public-safety,education,transportation,utilities-water,economic-development,business,environment,budget-taxes,health>]}`;
 
   try {
     const res = await bedrock.send(new InvokeModelCommand({
@@ -162,7 +164,14 @@ async function generateSegmentFromMeta(title: string, description: string): Prom
         max_tokens: 300,
         messages: [{
           role: 'user',
-          content: `Create a brief summary of this government meeting: "${title}". Description: "${description}". Return JSON: {"start":600,"end":720,"title":"<title>","summary":"<2 sentences>","categories":["city-council"]}`,
+          content: `You are a local government reporter. Create a SHORT, SPECIFIC newspaper headline (5-9 words) for this government meeting video. The headline should describe the most likely civic action, not just repeat the video title.
+
+Video title: "${title}"
+Description: "${description}"
+
+Examples of good headlines: "City Council Reviews Annual Infrastructure Budget", "McAllen Approves New Drainage Improvement Plan"
+
+Return ONLY valid JSON: {"start":60,"end":180,"title":"<specific 5-9 word headline>","summary":"<2 sentences about what this meeting likely covers and why it matters to residents>","categories":["city-council"]}`,
         }],
       }),
       contentType: 'application/json',
@@ -171,9 +180,9 @@ async function generateSegmentFromMeta(title: string, description: string): Prom
     const response = JSON.parse(new TextDecoder().decode(res.body));
     const text = response.content[0].text.trim();
     const parsed = JSON.parse(text.match(/\{[\s\S]*\}/)![0]);
-    return { start: 600, end: 720, title: parsed.title ?? title, summary: parsed.summary ?? description, categories: parsed.categories ?? ['city-council'] };
+    return { start: 60, end: 180, title: parsed.title ?? title, summary: parsed.summary ?? description, categories: parsed.categories ?? ['city-council'] };
   } catch {
-    return { start: 600, end: 720, title, summary: description || 'Government meeting recording.', categories: ['city-council'] };
+    return { start: 60, end: 180, title, summary: description || 'Government meeting recording.', categories: ['city-council'] };
   }
 }
 

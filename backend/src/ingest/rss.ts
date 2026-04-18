@@ -23,6 +23,26 @@ function extractThumbnail(item: any): string | null {
   return m?.[1] ?? null;
 }
 
+async function fetchOgImage(url: string): Promise<string | null> {
+  try {
+    const ctrl = new AbortController();
+    setTimeout(() => ctrl.abort(), 6000);
+    const res = await fetch(url, {
+      signal: ctrl.signal,
+      headers: { 'User-Agent': 'FronteraIngest/0.1' },
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+    const m = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+      ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
+      ?? html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i)
+      ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i);
+    return m?.[1] ?? null;
+  } catch {
+    return null;
+  }
+}
+
 function externalIdForItem(guid: string | undefined, link: string): string {
   if (guid && guid.trim()) return guid.trim();
   return createHash('sha256').update(link).digest('hex');
@@ -73,6 +93,13 @@ export async function ingestRssForSource(client: PoolClient, source: SourceRow, 
       if (!Number.isNaN(d.getTime())) publishedAt = d;
     }
 
+    // Skip if a story with the same title already exists (cross-source dedup)
+    const existing = await client.query(
+      `SELECT 1 FROM feed_items WHERE lower(left(title, 80)) = lower(left($1, 80)) LIMIT 1`,
+      [title],
+    );
+    if ((existing.rowCount ?? 0) > 0) continue;
+
     const ins = await client.query<{ id: string }>(
       `INSERT INTO source_items (source_id, external_id, raw_url, raw_title)
        VALUES ($1, $2, $3, $4)
@@ -83,7 +110,11 @@ export async function ingestRssForSource(client: PoolClient, source: SourceRow, 
 
     if (ins.rowCount === 0) continue;
 
-    const thumbnailUrl = extractThumbnail(item);
+    let thumbnailUrl = extractThumbnail(item);
+    // Fall back to OG image scrape if no thumbnail in feed
+    if (!thumbnailUrl) {
+      thumbnailUrl = await fetchOgImage(link);
+    }
     await client.query(
       `INSERT INTO feed_items (locality_id, source_id, type, title, summary, categories, jurisdiction, source_url, published_at, thumbnail_url)
        VALUES ($1, $2, 'text', $3, $4, $5::text[], $6, $7, $8, $9)`,

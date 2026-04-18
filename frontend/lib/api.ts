@@ -36,10 +36,41 @@ export interface TrendingTopic {
   articles: Array<{ id: string; title: string; city: string; thumbnail_url: string | null; source_url: string; published_at: string | null }>;
 }
 
+export interface Comment {
+  id: string;
+  user_id: string;
+  username: string;
+  body: string;
+  created_at: string;
+}
+
+function authHeaders(): Record<string, string> {
+  try {
+    const raw = typeof window !== 'undefined' && localStorage.getItem('frontera_auth');
+    if (!raw) return {};
+    const { idToken } = JSON.parse(raw);
+    return idToken ? { Authorization: `Bearer ${idToken}` } : {};
+  } catch { return {}; }
+}
+
 async function get<T>(path: string): Promise<T> {
   const res = await fetch(API_BASE + path, { cache: 'no-store' });
   if (!res.ok) throw new Error(`API ${res.status}: ${path}`);
   return res.json();
+}
+
+async function post<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(API_BASE + path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`API ${res.status}: ${path}`);
+  return res.json();
+}
+
+async function del(path: string): Promise<void> {
+  await fetch(API_BASE + path, { method: 'DELETE', headers: authHeaders() });
 }
 
 export const api = {
@@ -57,4 +88,7 @@ export const api = {
   },
   feedItem: (id: string) => get<FeedItem>(`/feed/${id}`),
   trending: () => get<{ topics: TrendingTopic[] }>('/trending'),
+  comments: (itemId: string) => get<{ comments: Comment[] }>(`/comments?item_id=${itemId}`),
+  postComment: (itemId: string, text: string) => post<Comment>('/comments', { item_id: itemId, text }),
+  deleteComment: (commentId: string) => del(`/comments/${commentId}`),
 };

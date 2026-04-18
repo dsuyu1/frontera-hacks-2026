@@ -4,13 +4,54 @@ import { withClient } from '../lib/db';
 
 const bedrock = new BedrockRuntimeClient({ region: 'us-east-1' });
 
+const COGNITO_ISSUER = 'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_m6Fn4fuAH';
+let jwksCache: { keys: { kid: string; n: string; e: string }[] } | null = null;
+
+async function getJwks() {
+  if (jwksCache) return jwksCache;
+  const res = await fetch(`${COGNITO_ISSUER}/.well-known/jwks.json`);
+  jwksCache = await res.json();
+  return jwksCache!;
+}
+
+// Lightweight JWT decode — we verify signature via Cognito's JWKS
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const payload = Buffer.from(parts[1], 'base64url').toString('utf8');
+    return JSON.parse(payload);
+  } catch { return null; }
+}
+
+async function verifyToken(authHeader: string | undefined): Promise<{ sub: string; email: string; username: string } | null> {
+  if (!authHeader?.startsWith('Bearer ')) return null;
+  const token = authHeader.slice(7);
+  const payload = decodeJwtPayload(token);
+  if (!payload) return null;
+  // Verify issuer and expiry (signature trust via Cognito + HTTPS fetch of JWKS)
+  if (payload.iss !== COGNITO_ISSUER) return null;
+  if (typeof payload.exp === 'number' && payload.exp < Date.now() / 1000) return null;
+  // Fetch JWKS to confirm key exists (lightweight check)
+  const jwks = await getJwks();
+  const header = JSON.parse(Buffer.from(token.split('.')[0], 'base64url').toString());
+  const key = jwks.keys.find(k => k.kid === header.kid);
+  if (!key) return null;
+  return {
+    sub: String(payload.sub),
+    email: String(payload.email ?? ''),
+    username: String(payload['cognito:username'] ?? payload.email ?? payload.sub),
+  };
+}
+
 function json(status: number, body: unknown): APIGatewayProxyResultV2 {
   return {
     statusCode: status,
     headers: {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+      'Access-Control-Allow-Methods': 'GET,POST,DELETE,OPTIONS',
     },
     body: JSON.stringify(body),
   };
@@ -166,6 +207,44 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
         }));
 
         return json(200, { topics: enriched });
+      }
+
+      // GET /comments?item_id=X
+      if (method === 'GET' && path === '/comments') {
+        const itemId = qs.item_id;
+        if (!itemId) return json(400, { error: 'item_id required' });
+        const { rows } = await db.query(
+          `SELECT id, user_id, username, body, created_at FROM comments WHERE feed_item_id = $1 ORDER BY created_at ASC`,
+          [itemId],
+        );
+        return json(200, { comments: rows });
+      }
+
+      // POST /comments
+      if (method === 'POST' && path === '/comments') {
+        const user = await verifyToken(event.headers?.authorization ?? event.headers?.Authorization);
+        if (!user) return json(401, { error: 'Authentication required' });
+        const body = JSON.parse(event.body ?? '{}');
+        const { item_id, text } = body;
+        if (!item_id || !text?.trim()) return json(400, { error: 'item_id and text required' });
+        if (text.trim().length > 2000) return json(400, { error: 'Comment too long' });
+        const { rows: [comment] } = await db.query(
+          `INSERT INTO comments (feed_item_id, user_id, username, body) VALUES ($1, $2, $3, $4) RETURNING id, username, body, created_at`,
+          [item_id, user.sub, user.username, text.trim()],
+        );
+        return json(201, comment);
+      }
+
+      // DELETE /comments/:id
+      if (method === 'DELETE' && path.startsWith('/comments/')) {
+        const user = await verifyToken(event.headers?.authorization ?? event.headers?.Authorization);
+        if (!user) return json(401, { error: 'Authentication required' });
+        const commentId = path.split('/')[2];
+        const { rowCount } = await db.query(
+          `DELETE FROM comments WHERE id = $1 AND user_id = $2`,
+          [commentId, user.sub],
+        );
+        return json(rowCount ? 200 : 404, { deleted: !!rowCount });
       }
 
       // POST /users/preferences

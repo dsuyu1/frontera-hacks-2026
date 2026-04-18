@@ -1,7 +1,8 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getStoredUser, startLogin, logout, AuthUser } from '@/lib/auth';
 
 const LOCALITIES = [
   { id: '06252ca8-e5ad-4037-8068-b5b6d1097c55', name: 'Edinburg' },
@@ -20,6 +21,9 @@ const NAV_TOP = [
 export default function Sidebar() {
   const pathname = usePathname();
   const [feedsOpen, setFeedsOpen] = useState(true);
+  const [user, setUser] = useState<AuthUser | null>(null);
+
+  useEffect(() => { setUser(getStoredUser()); }, []);
 
   return (
     <aside
@@ -142,8 +146,45 @@ export default function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div style={{ padding: '12px 18px', borderTop: '1px solid var(--sidebar-border)', fontSize: 11, color: 'var(--text-muted)' }}>
-        Updates daily · 3 AM UTC
+      <div style={{ borderTop: '1px solid var(--sidebar-border)' }}>
+        {user ? (
+          <div style={{ padding: '10px 18px', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{
+              width: 26, height: 26, borderRadius: '50%',
+              background: 'var(--accent-dim)', border: '1px solid var(--accent)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 11, fontWeight: 700, color: 'var(--accent)', flexShrink: 0,
+            }}>
+              {user.username[0].toUpperCase()}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {user.username}
+              </div>
+            </div>
+            <button onClick={logout} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: 'var(--text-muted)', padding: 0 }}>
+              Sign out
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={startLogin}
+            style={{
+              width: '100%', padding: '10px 18px',
+              background: 'none', border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 8,
+              color: 'var(--accent)', fontSize: 13, fontWeight: 600,
+              transition: 'background 0.1s',
+            }}
+            onMouseEnter={e => { (e.currentTarget.style.background = 'var(--sidebar-hover-bg)'); }}
+            onMouseLeave={e => { (e.currentTarget.style.background = 'none'); }}
+          >
+            <span style={{ fontSize: 15 }}>→</span> Sign in
+          </button>
+        )}
+        <div style={{ padding: '6px 18px 10px', fontSize: 10, color: 'var(--text-muted)' }}>
+          Updates daily · 3 AM UTC
+        </div>
       </div>
     </aside>
   );
