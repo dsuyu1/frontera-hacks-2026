@@ -181,6 +181,7 @@ function VideoSection({ item }: { item: FeedItem }) {
   const status = statusData?.status;
   const transcriptText = transcriptData?.text ?? '';
   const clips = statusData?.clips ?? [];
+  const publishedClips = clips.filter(c => c.status === 'published');
 
   // Derive YouTube embed URL for immediate playback: use video record's embed_url,
   // or fall back to extracting the video ID from the feed item's source_url.
@@ -203,7 +204,7 @@ function VideoSection({ item }: { item: FeedItem }) {
   return (
     <>
       {/* Immediate YouTube embed — autoplays muted when the article is opened */}
-      {immediateEmbedUrl && (
+      {immediateEmbedUrl && publishedClips.length === 0 && (
         <div style={{ marginBottom: 20 }}>
           <iframe
             key={immediateEmbedUrl}
@@ -260,7 +261,7 @@ function VideoSection({ item }: { item: FeedItem }) {
       </div>
 
       {/* Clips (YouTube embeds) */}
-      {clips.filter(c => c.status === 'published').map(clip => (
+      {publishedClips.map(clip => (
         <div key={clip.id} style={{ marginBottom: 24 }}>
           <VideoPlayer clip={clip} autoplay />
           {clip.title && (
