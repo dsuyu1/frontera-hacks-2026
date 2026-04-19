@@ -108,7 +108,8 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
       return json(200, { answer });
     } catch (err) {
       console.error('Ask error:', err);
-      return json(500, { error: 'Ask failed' });
+      const detail = err instanceof Error ? err.message : String(err);
+      return json(500, { error: 'Ask failed', detail });
     }
   }
 

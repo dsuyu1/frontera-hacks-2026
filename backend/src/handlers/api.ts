@@ -438,9 +438,15 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
           accept: 'application/json',
         }));
 
-        const bedrockResp = JSON.parse(new TextDecoder().decode(res.body));
-        const answer = bedrockResp.content[0].text.trim();
-        return json(200, { answer });
+        try {
+          const bedrockResp = JSON.parse(new TextDecoder().decode(res.body));
+          const answer = bedrockResp.content[0].text.trim();
+          return json(200, { answer });
+        } catch (err) {
+          console.error('Ask parse error:', err);
+          const detail = err instanceof Error ? err.message : String(err);
+          return json(500, { error: 'Ask failed', detail });
+        }
       }
 
       // GET /transcript?item_id=X — return readable caption text for a video feed item

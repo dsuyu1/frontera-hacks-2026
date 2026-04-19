@@ -124,9 +124,11 @@ export default function FolderFeedClient({ folderId }: { folderId: string }) {
 
   if (!folder) {
     return (
-      <div style={{ padding: '80px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
-        Feed not found.
-      </div>
+      <FeedLayout
+        title="Feed not found"
+        items={[]}
+        loading={false}
+      />
     );
   }
 
