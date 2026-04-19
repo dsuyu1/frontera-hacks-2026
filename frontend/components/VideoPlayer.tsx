@@ -7,9 +7,9 @@ function fmt(s: number) {
   return `${m}:${String(sec).padStart(2, '0')}`;
 }
 
-export default function VideoPlayer({ clip }: { clip: Clip }) {
-  const embedUrl = clip.embed_url ?? (clip.s3_key ? null : null);
-  if (!embedUrl && !clip.s3_key) {
+export default function VideoPlayer({ clip, autoplay }: { clip: Clip; autoplay?: boolean }) {
+  const embedUrl = clip.embed_url;
+  if (!embedUrl && !clip.s3_key && !clip.playback_url) {
     return (
       <div style={{ padding: '24px', textAlign: 'center', color: '#52525b', fontSize: 13 }}>
         Video processing…
@@ -17,17 +17,30 @@ export default function VideoPlayer({ clip }: { clip: Clip }) {
     );
   }
 
+  const autoPlay = autoplay ?? false;
+  const iframeSrc = embedUrl
+    ? (() => {
+      const url = new URL(embedUrl);
+      if (autoPlay) {
+        url.searchParams.set('autoplay', '1');
+        url.searchParams.set('mute', '1');
+        url.searchParams.set('playsinline', '1');
+      }
+      return url.toString();
+    })()
+    : null;
+
   return (
     <div style={{ marginBottom: 20 }}>
       {embedUrl ? (
         <iframe
           className="yt-embed"
-          src={embedUrl}
+          src={iframeSrc ?? embedUrl}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
         />
       ) : clip.playback_url ? (
-        <video controls preload="metadata" style={{ width: '100%', borderRadius: 8, background: '#000' }}>
+        <video controls preload="metadata" autoPlay={autoPlay} muted={autoPlay} style={{ width: '100%', borderRadius: 8, background: '#000' }}>
           <source src={clip.playback_url} />
         </video>
       ) : null}

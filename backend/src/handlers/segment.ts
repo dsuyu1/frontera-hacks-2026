@@ -1,12 +1,12 @@
 import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { withClient } from '../lib/db';
+import { normalizeSegments, type Segment } from '../segmenting/selectSegments';
 
 const bedrock = new BedrockRuntimeClient({ region: 'us-east-1' });
 const s3 = new S3Client({});
 const BUCKET = process.env.S3_BUCKET!;
 
-interface Segment { start: number; end: number; title: string; summary: string; categories: string[] }
 interface Event { video_id: string }
 
 interface VttCue { start: number; end: number; text: string }
@@ -108,7 +108,7 @@ export const handler = async (event: Event) => {
         'SELECT title, summary FROM feed_items WHERE id = $1', [video.feed_item_id],
       );
       const seg = await generateSegmentFromMeta(fi?.title ?? 'Meeting', fi?.summary ?? '');
-      const clipEmbedUrl = embedBase ? `${embedBase}?start=${seg.start}` : null;
+      const clipEmbedUrl = embedBase ? `${embedBase}?start=${seg.start}&end=${seg.end}` : null;
       await db.query(
         `INSERT INTO clips (video_id, start_time_s, end_time_s, title, summary, categories, embed_url, status)
          VALUES ($1, $2, $3, $4, $5, $6::text[], $7, 'pending')`,
@@ -130,15 +130,17 @@ export const handler = async (event: Event) => {
       if (windowCues.length < 3) continue;
 
       const transcriptText = windowCues.map(c => c.text).join(' ').slice(0, 6000);
-      const seg = await askBedrockForSegment(transcriptText, windowStart, windowEnd);
-
-      const clipEmbedUrl = embedBase ? `${embedBase}?start=${seg.start}` : null;
-      await db.query(
-        `INSERT INTO clips (video_id, start_time_s, end_time_s, title, summary, categories, embed_url, status)
-         VALUES ($1, $2, $3, $4, $5, $6::text[], $7, 'pending')`,
-        [video_id, seg.start, seg.end, seg.title, seg.summary, seg.categories, clipEmbedUrl],
-      );
-      segmentsCreated++;
+      const segs = await askBedrockForSegments(transcriptText, windowStart, windowEnd);
+      const picked = normalizeSegments(segs, { windowStart, windowEnd }).slice(0, 2);
+      for (const seg of picked) {
+        const clipEmbedUrl = embedBase ? `${embedBase}?start=${seg.start}&end=${seg.end}` : null;
+        await db.query(
+          `INSERT INTO clips (video_id, start_time_s, end_time_s, title, summary, categories, embed_url, status)
+           VALUES ($1, $2, $3, $4, $5, $6::text[], $7, 'pending')`,
+          [video_id, seg.start, seg.end, seg.title, seg.summary, seg.categories, clipEmbedUrl],
+        );
+        segmentsCreated++;
+      }
     }
 
     await db.query("UPDATE videos SET status = 'segmented' WHERE id = $1", [video_id]);
@@ -146,25 +148,33 @@ export const handler = async (event: Event) => {
   });
 };
 
-async function askBedrockForSegment(transcript: string, windowStart: number, windowEnd: number): Promise<Segment> {
+async function askBedrockForSegments(transcript: string, windowStart: number, windowEnd: number): Promise<Segment[]> {
   const prompt = `You are a local government reporter analyzing a meeting transcript (${formatTime(windowStart)}–${formatTime(windowEnd)}).
 
 Transcript excerpt:
 ${transcript}
 
-Identify the single most newsworthy agenda item or decision. Write a SHORT, SPECIFIC newspaper headline for it (5-9 words, action-focused).
-Good examples: "Council Approves $4M Road Repaving Contract", "Zoning Variance Denied for Proposed Walmart", "New Police Substation Approved for South Side"
-Bad examples: "Meeting Discussion", "City Council Meeting", "Council Talks About Issues"
+Pick the 2 most newsworthy moments in this time range. For each moment:
+- Choose a start/end within this window.
+- Make the clip 60–180 seconds.
+- Write a SHORT, SPECIFIC newspaper headline (5–9 words).
+- Write a 1–2 sentence summary about the decision and civic impact.
 
-Return ONLY valid JSON:
-{"start": <seconds from transcript>, "end": <start + 60 to 120>, "title": "<newspaper headline, max 10 words>", "summary": "<2 sentences describing the decision and its civic impact>", "categories": [<1-2 slugs from: politics-elections,city-council,planning-zoning,infrastructure,public-safety,education,transportation,utilities-water,economic-development,business,environment,budget-taxes,health>]}`;
+Return ONLY valid JSON array (no markdown):
+[
+  {"start": <seconds>, "end": <seconds>, "title": "...", "summary": "...", "categories": ["<1-2 slugs>"]},
+  {"start": <seconds>, "end": <seconds>, "title": "...", "summary": "...", "categories": ["<1-2 slugs>"]}
+]
+
+Allowed category slugs:
+politics-elections,city-council,planning-zoning,infrastructure,public-safety,education,transportation,utilities-water,economic-development,business,environment,budget-taxes,health`;
 
   try {
     const res = await bedrock.send(new InvokeModelCommand({
       modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
       body: JSON.stringify({
         anthropic_version: 'bedrock-2023-05-31',
-        max_tokens: 400,
+        max_tokens: 700,
         messages: [{ role: 'user', content: prompt }],
       }),
       contentType: 'application/json',
@@ -172,24 +182,21 @@ Return ONLY valid JSON:
     }));
     const response = JSON.parse(new TextDecoder().decode(res.body));
     const text = response.content[0].text.trim();
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
     if (!jsonMatch) throw new Error('No JSON');
     const parsed = JSON.parse(jsonMatch[0]);
-    return {
-      start: Math.max(windowStart, Number(parsed.start)),
-      end: Math.min(windowEnd, Number(parsed.start) + Math.min(120, Number(parsed.end) - Number(parsed.start))),
-      title: String(parsed.title),
-      summary: String(parsed.summary),
-      categories: Array.isArray(parsed.categories) ? parsed.categories : ['city-council'],
-    };
+    if (!Array.isArray(parsed)) throw new Error('Not array');
+    return parsed as Segment[];
   } catch {
-    return {
-      start: windowStart + 60,
-      end: windowStart + 180,
-      title: `Meeting Segment ${formatTime(windowStart)}`,
-      summary: 'Government meeting discussion.',
-      categories: ['city-council'],
-    };
+    return [
+      {
+        start: windowStart + 60,
+        end: Math.min(windowEnd, windowStart + 180),
+        title: `Meeting Segment ${formatTime(windowStart)}`,
+        summary: 'Government meeting discussion.',
+        categories: ['city-council'],
+      },
+    ];
   }
 }
 

@@ -388,7 +388,7 @@ function VideoSection({ item }: { item: FeedItem }) {
       {/* Clips (YouTube embeds) */}
       {clips.filter(c => c.status === 'published').map(clip => (
         <div key={clip.id} style={{ marginBottom: 24 }}>
-          <VideoPlayer clip={clip} />
+          <VideoPlayer clip={clip} autoplay />
           {clip.title && (
             <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 4 }}>{clip.title}</p>
           )}

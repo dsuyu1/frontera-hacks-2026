@@ -3,6 +3,7 @@ import { getPool } from '../db/client';
 import { fetchRssXml, ingestRssSource } from './rss';
 import { putRawRssSnapshot } from './s3RawSnapshot';
 import { ingestYouTubeSource } from './youtube';
+import { refreshElectionSnapshots } from './elections';
 import type { IngestResult, SourceRow } from './types';
 
 async function loadActiveSources(pool: Pool): Promise<SourceRow[]> {
@@ -41,6 +42,12 @@ export async function runIngest(pool?: Pool): Promise<IngestResult> {
     } catch (err) {
       errors.push(`source ${source.id} (${source.type}): ${err instanceof Error ? err.message : String(err)}`);
     }
+  }
+
+  try {
+    await refreshElectionSnapshots(p);
+  } catch (err) {
+    errors.push(`elections: ${err instanceof Error ? err.message : String(err)}`);
   }
 
   return {

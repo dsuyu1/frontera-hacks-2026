@@ -6,6 +6,7 @@ import { createPublicKey, createVerify } from 'node:crypto';
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 import { withClient } from '../lib/db';
+import { extractArticleTextFromHtml } from './articleExtract';
 
 const s3 = new S3Client({});
 const sfnClient = new SFNClient({});
@@ -172,6 +173,19 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
       if (method === 'GET' && path === '/categories') {
         const { rows } = await db.query('SELECT * FROM categories ORDER BY name');
         return json(200, rows);
+      }
+
+      // GET /elections/dates
+      if (method === 'GET' && path === '/elections/dates') {
+        const { rows } = await db.query(
+          `SELECT es.slug, es.name, es.url,
+                  sn.next_election_date, sn.early_voting_start, sn.early_voting_end, sn.fetched_at
+           FROM election_sources es
+           LEFT JOIN election_snapshots sn ON sn.source_id = es.id
+           WHERE es.active = true
+           ORDER BY es.slug`,
+        );
+        return json(200, { sources: rows });
       }
 
       // GET /feed
@@ -396,58 +410,8 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
             },
           });
           if (!res.ok) return json(200, { text: '' });
-          let html = await res.text();
-
-          // Strip noise elements
-          html = html
-            .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
-            .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')
-            .replace(/<noscript\b[^>]*>[\s\S]*?<\/noscript>/gi, '')
-            .replace(/<nav\b[^>]*>[\s\S]*?<\/nav>/gi, '')
-            .replace(/<header\b[^>]*>[\s\S]*?<\/header>/gi, '')
-            .replace(/<footer\b[^>]*>[\s\S]*?<\/footer>/gi, '')
-            .replace(/<aside\b[^>]*>[\s\S]*?<\/aside>/gi, '')
-            .replace(/<form\b[^>]*>[\s\S]*?<\/form>/gi, '')
-            .replace(/<!--[\s\S]*?-->/g, '');
-
-          // Try increasingly broad content selectors
-          const contentSelectors = [
-            // Specific article body classes common in local news sites
-            /class=["'][^"']*(?:article-body|article-content|entry-content|post-content|story-body|article-text|news-content|field-body|node-content)[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|section|article)/i,
-            // Standard semantic elements
-            /<article\b[^>]*>([\s\S]*?)<\/article>/i,
-            // main with substantial content
-            /<main\b[^>]*>([\s\S]*?)<\/main>/i,
-            // div with article-like class
-            /<div[^>]+class=["'][^"']*(?:content|body|text)[^"']*["'][^>]*>([\s\S]{500,}?)<\/div>/i,
-          ];
-
-          let content = '';
-          for (const selector of contentSelectors) {
-            const m = html.match(selector);
-            if (m && m[1] && m[1].length > 300) {
-              content = m[1];
-              break;
-            }
-          }
-          if (!content) content = html;
-
-          const text = content
-            .replace(/<[^>]+>/g, ' ')
-            .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-            .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, ' ')
-            .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
-            .replace(/[ \t]{2,}/g, ' ')
-            .replace(/\n[ \t]*/g, '\n')
-            .replace(/\n{3,}/g, '\n\n')
-            .trim();
-
-          // Filter out very short lines (ads, nav remnants)
-          const paragraphs = text.split('\n\n')
-            .map(p => p.trim())
-            .filter(p => p.length > 40);
-
-          return json(200, { text: paragraphs.join('\n\n').slice(0, 14000) });
+          const html = await res.text();
+          return json(200, { text: extractArticleTextFromHtml(html) });
         } catch (err) {
           console.error('Article fetch error:', err);
           return json(200, { text: '' });

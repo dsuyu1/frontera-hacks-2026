@@ -30,6 +30,12 @@ export default function ArticleCard({ item, selected, onSelect }: {
     { revalidateOnFocus: false, dedupingInterval: 3_600_000 },
   );
 
+  const { data: articleData } = useSWR(
+    selected && !isVideo && !item.summary ? `card-article:${item.id}` : null,
+    () => api.article(item.source_url),
+    { revalidateOnFocus: false, dedupingInterval: 3_600_000 },
+  );
+
   const thumbUrl = (() => {
     if (!storedFailed && item.thumbnail_url) return item.thumbnail_url;
     if (!ogFailed && ogData?.imageUrl) return ogData.imageUrl;
@@ -124,6 +130,16 @@ export default function ArticleCard({ item, selected, onSelect }: {
             marginBottom: 8,
           } as React.CSSProperties}>
             {item.summary}
+          </p>
+        )}
+
+        {!item.summary && articleData?.text && (
+          <p style={{
+            fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5,
+            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+            marginBottom: 8,
+          } as React.CSSProperties}>
+            {articleData.text.split('\n\n')[0] ?? ''}
           </p>
         )}
 
