@@ -47,25 +47,13 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
         transition: 'width 0.22s cubic-bezier(0.4,0,0.2,1)',
       }}
     >
-      {/* Logo + collapse button */}
-      <div style={{ padding: '20px 18px 16px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexShrink: 0 }}>
-        <div>
-          <div style={{
-            fontWeight: 800, fontSize: 24, color: 'var(--accent)',
-            letterSpacing: '-0.5px', fontFamily: 'Georgia, serif', whiteSpace: 'nowrap',
-          }}>
-            frontera
-          </div>
-          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3, letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
-            RGV Local Government
-          </div>
-        </div>
+      <div style={{ padding: '14px 14px 10px', display: 'flex', justifyContent: 'flex-end', flexShrink: 0 }}>
         <button
           onClick={onToggle}
           title="Collapse sidebar"
           style={{
-            marginTop: 2, padding: '4px 6px', background: 'none', border: 'none',
-            cursor: 'pointer', color: 'var(--text-muted)', borderRadius: 4,
+            padding: '6px 8px', background: 'none', border: 'none',
+            cursor: 'pointer', color: 'var(--text-muted)', borderRadius: 6,
             lineHeight: 1, flexShrink: 0,
             transition: 'color 0.1s, background 0.1s',
           }}
