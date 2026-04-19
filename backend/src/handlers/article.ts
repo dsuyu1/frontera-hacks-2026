@@ -164,9 +164,19 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
       if (!res.ok) return json(502, { error: 'search_failed', status: res.status });
       const html = await res.text();
       const found = parseDuckDuckGoHtml(html);
-      const sources = found.map(r => {
-        const u = new URL(r.url);
-        return { title: r.title, url: r.url, domain: u.hostname.replace(/^www\./, ''), snippet: r.snippet };
+      const sources = found.flatMap(r => {
+        try {
+          // DDG wraps outgoing links as //duckduckgo.com/l/?uddg=<encoded-url>
+          let finalUrl = r.url.startsWith('//') ? `https:${r.url}` : r.url;
+          const parsed = new URL(finalUrl);
+          if (parsed.hostname.includes('duckduckgo.com') && parsed.searchParams.has('uddg')) {
+            finalUrl = decodeURIComponent(parsed.searchParams.get('uddg')!);
+          }
+          const u = new URL(finalUrl);
+          return [{ title: r.title, url: finalUrl, domain: u.hostname.replace(/^www\./, ''), snippet: r.snippet }];
+        } catch {
+          return [];
+        }
       });
       return json(200, { sources });
     } catch (err) {

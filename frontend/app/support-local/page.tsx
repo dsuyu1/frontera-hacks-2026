@@ -7,6 +7,7 @@ import { ExternalLink } from '@/components/Icons';
 import { useSupportSources } from '@/hooks/useSupportLocal';
 
 export default function SupportLocalPage() {
+  const articleBaseConfigured = !!process.env.NEXT_PUBLIC_ARTICLE_URL;
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [q, setQ] = useState('');
   const [region, setRegion] = useState('Rio Grande Valley');
@@ -102,6 +103,20 @@ export default function SupportLocalPage() {
 
         <div style={{ flex: 1, overflowY: 'auto' }}>
           <div style={{ maxWidth: 860, margin: '0 auto', padding: '8px 20px 56px' }}>
+            {!articleBaseConfigured && (
+              <div style={{
+                padding: '14px 14px',
+                border: '1px solid var(--border)',
+                borderRadius: 12,
+                background: 'rgba(255,255,255,0.02)',
+                color: 'var(--text-secondary)',
+                fontSize: 13,
+                marginBottom: 12,
+              }}>
+                This page requires `NEXT_PUBLIC_ARTICLE_URL` to be set in your deployment environment.
+              </div>
+            )}
+
             {error && (
               <div style={{ padding: '18px 16px', border: '1px solid var(--border)', borderRadius: 12, color: 'var(--text-secondary)' }}>
                 Search failed. Try again with fewer keywords.
