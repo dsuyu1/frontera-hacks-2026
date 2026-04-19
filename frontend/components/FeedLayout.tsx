@@ -10,6 +10,7 @@ import MobileTabs from './MobileTabs';
 import { AUTH_CHANGED_EVENT, getStoredUser, startLogin, AuthUser } from '@/lib/auth';
 import { ChevronRight } from './Icons';
 import { setKnownSourcesFromItems } from '@/lib/sources';
+import AccountMenu from './AccountMenu';
 
 interface Props {
   title: string;
@@ -136,20 +137,7 @@ export default function FeedLayout({ title, items, loading, subtitle, headerActi
             </div>
             <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
               {headerAction}
-              {!user && (
-                <button
-                  onClick={startLogin}
-                  style={{
-                    padding: '8px 16px', background: 'var(--accent)', color: '#fff',
-                    border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700,
-                    cursor: 'pointer', transition: 'background 0.15s',
-                  }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--accent-hover)'; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--accent)'; }}
-                >
-                  Sign in
-                </button>
-              )}
+              {!user && <AccountMenu />}
             </div>
           </div>
         </div>

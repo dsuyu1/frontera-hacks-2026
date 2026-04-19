@@ -48,6 +48,26 @@ export async function startLogin() {
   window.location.href = `${COGNITO_DOMAIN}/oauth2/authorize?${params}`;
 }
 
+export async function startSignup() {
+  const verifier = generatePKCE();
+  const challenge = await sha256base64url(verifier);
+  sessionStorage.setItem('pkce_verifier', verifier);
+  const state = Math.random().toString(36).slice(2);
+  sessionStorage.setItem('pkce_state', state);
+
+  const params = new URLSearchParams({
+    response_type: 'code',
+    client_id: CLIENT_ID,
+    redirect_uri: REDIRECT_URI,
+    scope: 'email openid profile',
+    code_challenge_method: 'S256',
+    code_challenge: challenge,
+    state,
+    screen_hint: 'signup',
+  });
+  window.location.href = `${COGNITO_DOMAIN}/oauth2/authorize?${params}`;
+}
+
 export async function handleCallback(code: string, returnedState: string): Promise<AuthUser | null> {
   const verifier = sessionStorage.getItem('pkce_verifier');
   const expectedState = sessionStorage.getItem('pkce_state');

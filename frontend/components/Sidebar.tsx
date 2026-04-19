@@ -2,10 +2,11 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { AUTH_CHANGED_EVENT, getStoredUser, startLogin, logout, AuthUser } from '@/lib/auth';
+import { AUTH_CHANGED_EVENT, getStoredUser, logout, AuthUser } from '@/lib/auth';
 import { SOURCES_CHANGED_EVENT, getFeedFolders, createFeedFolder, deleteFeedFolder, type FeedFolder } from '@/lib/sources';
 import { Sun, List, Bookmark, Clock, ChevronLeft, ChevronRight, ChevronDown, LogIn, Star, Heart } from './Icons';
 import AuthModal from './AuthModal';
+import AccountMenu from './AccountMenu';
 
 type NavItem = { href: string; Icon: React.ComponentType<{ size?: number; color?: string }>; label: string };
 const NAV_TOP: NavItem[] = [
@@ -298,19 +299,9 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
             </button>
           </div>
         ) : (
-          <button
-            onClick={startLogin}
-            style={{
-              width: '100%', padding: open ? '12px 20px' : '12px 0', background: 'none', border: 'none',
-              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: open ? 'flex-start' : 'center', gap: open ? 8 : 0,
-              color: 'var(--accent)', fontSize: 14, fontWeight: 700, transition: 'background 0.1s',
-              whiteSpace: 'nowrap',
-            }}
-            onMouseEnter={e => { (e.currentTarget.style.background = 'var(--sidebar-hover-bg)'); }}
-            onMouseLeave={e => { (e.currentTarget.style.background = 'none'); }}
-          >
-            <LogIn size={16} /> {open && 'Sign in'}
-          </button>
+          <div style={{ padding: open ? '10px 18px' : '10px 10px', display: 'flex', justifyContent: open ? 'flex-start' : 'center' }}>
+            <AccountMenu compact />
+          </div>
         )}
         {open && (
           <div style={{ padding: '6px 20px 12px', fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>

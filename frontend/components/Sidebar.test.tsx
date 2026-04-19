@@ -7,6 +7,7 @@ vi.mock('@/lib/auth', () => ({
   AUTH_CHANGED_EVENT: 'frontera_auth_changed',
   getStoredUser: () => null,
   startLogin: () => {},
+  startSignup: () => {},
   logout: () => {},
 }));
 
