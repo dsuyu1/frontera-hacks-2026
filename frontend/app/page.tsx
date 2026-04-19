@@ -452,7 +452,6 @@ export default function LandingPage() {
             </p>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
               <Button href="/today" variant="primary">Read Today</Button>
-              <Button href="/videos" variant="ghost">Watch clips</Button>
               <Button href="/explore" variant="ghost">Explore</Button>
             </div>
           </div>
