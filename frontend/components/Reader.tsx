@@ -628,59 +628,60 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
           <img src={item.thumbnail_url} alt="" style={{ width: '100%', borderRadius: 6, marginBottom: 20, objectFit: 'cover', maxHeight: 240 }} />
         )}
 
-        {/* ── VIDEO SECTION ── */}
-        {isVideo && <VideoSection item={item} />}
-
-        {/* ── TEXT ARTICLE SECTION ── */}
-        {!isVideo && (
-          <>
-            <div style={{ marginBottom: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)' }}>
-                  Full Article
-                </span>
-                {!item.summary && (
-                  <a href={item.source_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: 'var(--accent)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 3 }}>
-                    View source <ExternalLink size={11} />
-                  </a>
-                )}
-              </div>
-
-              {articleLoading && (
-                <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>Fetching article…</p>
-              )}
-
-              {!articleLoading && articleText && (
-                <div style={{ fontSize: 15, color: 'var(--text-primary)', lineHeight: 1.8 }}>
-                  {articleText.split('\n\n').map((para, i) =>
-                    para.trim() ? <p key={i} style={{ marginBottom: 16 }}>{para.trim()}</p> : null
+        {isVideo ? (
+          <VideoSection item={item} />
+        ) : (
+          <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ marginBottom: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)' }}>
+                    Full Article
+                  </span>
+                  {!item.summary && (
+                    <a href={item.source_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: 'var(--accent)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 3 }}>
+                      View source <ExternalLink size={11} />
+                    </a>
                   )}
                 </div>
-              )}
 
-              {!articleLoading && !articleText && articleEmbedUrl && (
-                <div style={{ border: '1px solid #222', borderRadius: 8, overflow: 'hidden', height: 720, background: '#0b0b0b' }}>
-                  <iframe
-                    src={articleEmbedUrl}
-                    style={{ width: '100%', height: '100%', border: 0 }}
-                    title="Embedded document"
-                  />
-                </div>
-              )}
+                {articleLoading && (
+                  <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>Fetching article…</p>
+                )}
 
-              {!articleLoading && !articleText && !articleEmbedUrl && (
-                <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                  Could not load article content.{' '}
-                  <a href={item.source_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                    Read on source site <ExternalLink size={11} />
-                  </a>
-                </p>
-              )}
+                {!articleLoading && articleText && (
+                  <div style={{ fontSize: 15, color: 'var(--text-primary)', lineHeight: 1.8 }}>
+                    {articleText.split('\n\n').map((para, i) =>
+                      para.trim() ? <p key={i} style={{ marginBottom: 16 }}>{para.trim()}</p> : null
+                    )}
+                  </div>
+                )}
+
+                {!articleLoading && !articleText && articleEmbedUrl && (
+                  <div style={{ border: '1px solid #222', borderRadius: 8, overflow: 'hidden', height: 720, background: '#0b0b0b' }}>
+                    <iframe
+                      src={articleEmbedUrl}
+                      style={{ width: '100%', height: '100%', border: 0 }}
+                      title="Embedded document"
+                    />
+                  </div>
+                )}
+
+                {!articleLoading && !articleText && !articleEmbedUrl && (
+                  <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                    Could not load article content.{' '}
+                    <a href={item.source_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                      Read on source site <ExternalLink size={11} />
+                    </a>
+                  </p>
+                )}
+              </div>
             </div>
 
-            {/* Ask AI for text articles */}
-            <AskAIPanel item={item} contextText={articleText} />
-          </>
+            <div style={{ width: 360, flexShrink: 0, position: 'sticky', top: 82 }}>
+              <AskAIPanel item={item} contextText={articleText} />
+            </div>
+          </div>
         )}
 
         {/* Comments */}
