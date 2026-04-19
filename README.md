@@ -63,7 +63,7 @@ Bedrock Nova models power real-time topic clustering, article categorization, an
 We built this in a weekend for the RGV. With more time, this scales to any underserved local news market in the country.                       
 
 
-## Fun Statistics
+## Fun Stats
 - 7 Red Bulls
 - 98 AWS Amplify deployments  
 - 120 commits
