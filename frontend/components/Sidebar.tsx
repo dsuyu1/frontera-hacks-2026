@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AUTH_CHANGED_EVENT, getStoredUser, startLogin, logout, AuthUser } from '@/lib/auth';
 import { SOURCES_CHANGED_EVENT, getFeedFolders, createFeedFolder, deleteFeedFolder, type FeedFolder } from '@/lib/sources';
 import { Sun, List, Bookmark, Clock, ChevronLeft, ChevronRight, ChevronDown, LogIn, Star } from './Icons';
+import AuthModal from './AuthModal';
 
 type NavItem = { href: string; Icon: React.ComponentType<{ size?: number; color?: string }>; label: string };
 const NAV_TOP: NavItem[] = [
@@ -23,6 +24,7 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
   const [folders, setFolders] = useState<FeedFolder[]>(() => getFeedFolders());
   const [addingFeed, setAddingFeed] = useState(false);
   const [newFeedName, setNewFeedName] = useState('');
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -88,25 +90,46 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
       <nav style={{ flex: 1, padding: '6px 0', overflowY: 'auto' }}>
         {NAV_TOP.map(n => {
           const active = pathname === n.href || (n.href === '/today' && pathname === '/');
+          const isFollowSources = n.href === '/profile';
+          const sharedStyle: React.CSSProperties = {
+            display: 'flex', alignItems: 'center', gap: 12,
+            padding: '12px 20px',
+            color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
+            background: active ? 'var(--sidebar-active-bg)' : 'transparent',
+            fontSize: 14, fontWeight: active ? 650 : 450,
+            borderLeft: `3px solid ${active ? 'var(--accent)' : 'transparent'}`,
+            transition: 'all 0.1s', whiteSpace: 'nowrap',
+          };
+          const iconEl = (
+            <span style={{ width: 22, display: 'flex', justifyContent: 'center', alignItems: 'center', opacity: active ? 1 : 0.65, flexShrink: 0 }}>
+              <n.Icon size={20} />
+            </span>
+          );
+
+          if (isFollowSources && !user) {
+            return (
+              <button
+                key={n.href}
+                onClick={() => setShowAuthModal(true)}
+                style={{ ...sharedStyle, width: '100%', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--sidebar-hover-bg)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+              >
+                {iconEl}
+                {n.label}
+              </button>
+            );
+          }
+
           return (
             <Link
               key={n.href}
               href={n.href}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 12,
-                padding: '12px 20px',
-                color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
-                background: active ? 'var(--sidebar-active-bg)' : 'transparent',
-                fontSize: 14, fontWeight: active ? 650 : 450,
-                borderLeft: `3px solid ${active ? 'var(--accent)' : 'transparent'}`,
-                transition: 'all 0.1s', whiteSpace: 'nowrap',
-              }}
+              style={sharedStyle}
               onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--sidebar-hover-bg)'; }}
               onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
             >
-              <span style={{ width: 22, display: 'flex', justifyContent: 'center', alignItems: 'center', opacity: active ? 1 : 0.65, flexShrink: 0 }}>
-                <n.Icon size={20} />
-              </span>
+              {iconEl}
               {n.label}
             </Link>
           );
@@ -273,6 +296,8 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
           Updates daily · 3 AM UTC
         </div>
       </div>
+
+      {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
     </aside>
   );
 }
