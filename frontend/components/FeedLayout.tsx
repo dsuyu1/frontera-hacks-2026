@@ -186,21 +186,29 @@ export default function FeedLayout({ title, items, loading, subtitle, headerActi
           {/* Slide-in reader panel */}
           <div
             style={{
-              position: 'absolute',
-              top: 0, right: 0, bottom: 0,
-              width: '100%',
-              maxWidth: 'calc(var(--reader-width) + 420px)',
-              background: 'var(--reader-bg)',
-              borderLeft: '1px solid var(--border)',
+              position: 'fixed',
+              inset: 0,
+              display: 'flex',
+              justifyContent: 'flex-end',
               transform: selected ? 'translateX(0)' : 'translateX(100%)',
               transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-              zIndex: 20,
-              overflow: 'hidden',
-              boxShadow: selected ? '-12px 0 40px rgba(0,0,0,0.5)' : 'none',
+              zIndex: 300,
+              pointerEvents: selected ? 'auto' : 'none',
             }}
           >
             {selected && (
-              <div style={{ display: 'flex', height: '100%' }}>
+              <div
+                style={{
+                  width: '100%',
+                  maxWidth: 'calc(var(--reader-width) + 420px)',
+                  height: '100%',
+                  background: 'var(--reader-bg)',
+                  borderLeft: '1px solid var(--border)',
+                  overflow: 'hidden',
+                  boxShadow: '-12px 0 40px rgba(0,0,0,0.5)',
+                  display: 'flex',
+                }}
+              >
                 <div style={{ flex: 1, minWidth: 0, borderRight: '1px solid var(--border)' }}>
                   <Reader item={selected} onClose={() => setSelected(null)} />
                 </div>

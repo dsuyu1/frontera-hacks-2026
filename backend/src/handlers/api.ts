@@ -212,6 +212,41 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
       if (method === 'GET' && path === '/feed') {
         const limit = Math.min(100, parseInt(qs.limit ?? '50'));
         const offset = parseInt(qs.offset ?? '0');
+        const followingMode = qs.following === 'true';
+
+        // Following mode: require auth and filter to user's followed source domains
+        if (followingMode) {
+          const user = await verifyToken(event.headers?.authorization ?? event.headers?.Authorization);
+          if (!user) return json(401, { error: 'Authentication required' });
+
+          const { rows: followedRows } = await db.query(
+            'SELECT domain FROM user_followed_sources WHERE user_id = $1',
+            [user.sub],
+          );
+          if (followedRows.length === 0) return json(200, { items: [], limit, offset, following: true });
+
+          const domains: string[] = followedRows.map((r: { domain: string }) => r.domain);
+          const { rows } = await db.query(
+            `WITH deduped AS (
+               SELECT DISTINCT ON (lower(left(fi.title, 100)))
+                 fi.*, l.name as locality_name, l.city
+               FROM feed_items fi
+               JOIN localities l ON l.id = fi.locality_id
+               WHERE lower(regexp_replace(regexp_replace(fi.source_url, '^https?://(www\\.)?', '', 'i'), '/.*$', '')) = ANY($3::text[])
+               ORDER BY lower(left(fi.title, 100)), fi.published_at DESC NULLS LAST, fi.created_at DESC
+             )
+             SELECT d.*,
+               (SELECT ${CLIP_SELECT}
+                FROM clips c JOIN videos v ON v.id = c.video_id AND v.feed_item_id = d.id
+                WHERE c.status = 'published' ORDER BY c.start_time_s ASC LIMIT 1) as clip
+             FROM deduped d
+             ORDER BY d.published_at DESC NULLS LAST, d.created_at DESC
+             LIMIT $1 OFFSET $2`,
+            [limit, offset, domains],
+          );
+          return json(200, { items: rows, limit, offset, following: true });
+        }
+
         const params: unknown[] = [limit, offset];
         const conditions: string[] = [];
 

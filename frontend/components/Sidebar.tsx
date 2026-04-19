@@ -12,6 +12,7 @@ type NavItem = { href: string; Icon: React.ComponentType<{ size?: number; color?
 const NAV_TOP: NavItem[] = [
   { href: '/today', Icon: Sun, label: 'Today' },
   { href: '/all', Icon: List, label: 'All' },
+  { href: '/following', Icon: Star, label: 'Following', requiresAuth: true },
   { href: '/read-later', Icon: Bookmark, label: 'Saved' },
   { href: '/recently-read', Icon: Clock, label: 'History' },
   { href: '/profile?tab=sources', Icon: Star, label: 'Follow Sources', requiresAuth: true },

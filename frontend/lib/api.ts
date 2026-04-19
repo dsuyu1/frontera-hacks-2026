@@ -102,15 +102,18 @@ export const api = {
   localities: () => get<Locality[]>('/localities'),
   categories: () => get<Category[]>('/categories'),
   sourcesDomains: () => get<SourcesDomainsResponse>('/sources/domains'),
-  feed: (p: { localities?: string[]; categories?: string[]; type?: string; limit?: number; offset?: number }) => {
+  feed: (p: { localities?: string[]; categories?: string[]; type?: string; limit?: number; offset?: number; following?: boolean }) => {
     const qs = new URLSearchParams();
     if (p.localities?.length) qs.set('localities', p.localities.join(','));
     if (p.categories?.length) qs.set('categories', p.categories.join(','));
     if (p.type) qs.set('type', p.type);
     if (p.limit) qs.set('limit', String(p.limit));
     if (p.offset) qs.set('offset', String(p.offset));
+    if (p.following) qs.set('following', 'true');
     const q = qs.toString();
-    return get<{ items: FeedItem[]; limit: number; offset: number }>(`/feed${q ? '?' + q : ''}`);
+    const headers = p.following ? authHeaders() : {};
+    return fetch(API_BASE + `/feed${q ? '?' + q : ''}`, { cache: 'no-store', headers })
+      .then(r => { if (!r.ok) throw new Error(`API ${r.status}: /feed`); return r.json() as Promise<{ items: FeedItem[]; limit: number; offset: number }>; });
   },
   feedItem: (id: string) => get<FeedItem>(`/feed/${id}`),
   trending: () => get<{ topics: TrendingTopic[] }>('/trending'),
