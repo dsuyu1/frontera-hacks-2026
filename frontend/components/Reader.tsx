@@ -488,6 +488,7 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
   const isSaved = savedIds.has(item.id);
   const date = item.published_at ?? item.created_at;
   const articleText = articleData?.text ?? '';
+  const articleEmbedUrl = articleData?.embed_url ?? null;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--reader-bg)' }}>
@@ -602,7 +603,17 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
                 </div>
               )}
 
-              {!articleLoading && !articleText && (
+              {!articleLoading && !articleText && articleEmbedUrl && (
+                <div style={{ border: '1px solid #222', borderRadius: 8, overflow: 'hidden', height: 720, background: '#0b0b0b' }}>
+                  <iframe
+                    src={articleEmbedUrl}
+                    style={{ width: '100%', height: '100%', border: 0 }}
+                    title="Embedded document"
+                  />
+                </div>
+              )}
+
+              {!articleLoading && !articleText && !articleEmbedUrl && (
                 <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>
                   Could not load article content.{' '}
                   <a href={item.source_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', display: 'inline-flex', alignItems: 'center', gap: 3 }}>

@@ -6,6 +6,7 @@ import { createPublicKey, createVerify } from 'node:crypto';
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 import { withClient } from '../lib/db';
+import { buildArticleResponse } from './articleResponse';
 import { extractArticleTextFromHtml } from './articleExtract';
 
 const s3 = new S3Client({});
@@ -409,12 +410,12 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
               'Upgrade-Insecure-Requests': '1',
             },
           });
-          if (!res.ok) return json(200, { text: '' });
-          const html = await res.text();
-          return json(200, { text: extractArticleTextFromHtml(html) });
+          if (!res.ok) return json(200, { text: '', content_type: null, embed_url: null });
+          const payload = await buildArticleResponse(res, targetUrl);
+          return json(200, payload);
         } catch (err) {
           console.error('Article fetch error:', err);
-          return json(200, { text: '' });
+          return json(200, { text: '', content_type: null, embed_url: null });
         }
       }
 
