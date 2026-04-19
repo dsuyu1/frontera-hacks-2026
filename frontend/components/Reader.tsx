@@ -326,6 +326,11 @@ function VideoSection({ item }: { item: FeedItem }) {
   const transcriptText = transcriptData?.text ?? '';
   const clips = statusData?.clips ?? [];
 
+  // Derive YouTube embed URL for immediate playback: use video record's embed_url,
+  // or fall back to extracting the video ID from the feed item's source_url.
+  const ytIdMatch = item.source_url.match(/[?&]v=([a-zA-Z0-9_-]{11})/) ?? item.source_url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+  const immediateEmbedUrl = statusData?.embed_url ?? (ytIdMatch ? `https://www.youtube.com/embed/${ytIdMatch[1]}` : null);
+
   async function triggerPipeline() {
     setRunning(true);
     setRunError('');
@@ -341,6 +346,19 @@ function VideoSection({ item }: { item: FeedItem }) {
 
   return (
     <>
+      {/* Immediate YouTube embed — autoplays muted when the article is opened */}
+      {immediateEmbedUrl && (
+        <div style={{ marginBottom: 20 }}>
+          <iframe
+            key={immediateEmbedUrl}
+            className="yt-embed"
+            src={`${immediateEmbedUrl}${immediateEmbedUrl.includes('?') ? '&' : '?'}autoplay=1&mute=1&playsinline=1&rel=0`}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      )}
+
       {/* Pipeline status bar */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 10,

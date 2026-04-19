@@ -471,10 +471,10 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
         if (!itemId) return json(400, { error: 'item_id required' });
 
         const { rows: [video] } = await db.query(
-          "SELECT id, status FROM videos WHERE feed_item_id = $1 ORDER BY id DESC LIMIT 1",
+          "SELECT id, status, embed_url FROM videos WHERE feed_item_id = $1 ORDER BY id DESC LIMIT 1",
           [itemId],
         );
-        if (!video) return json(200, { status: null, clips: [] });
+        if (!video) return json(200, { status: null, embed_url: null, clips: [] });
 
         const { rows: clips } = await db.query(
           `SELECT id, status, title, summary, start_time_s, end_time_s, embed_url, s3_key
@@ -488,7 +488,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
           playback_url: c.s3_key ? `https://${cdnDomain}/${c.s3_key}` : c.embed_url,
         }));
 
-        return json(200, { video_id: video.id, status: video.status, clips: clipsWithPlayback });
+        return json(200, { video_id: video.id, status: video.status, embed_url: video.embed_url ?? null, clips: clipsWithPlayback });
       }
 
       // POST /pipeline/run — manually trigger per-video pipeline

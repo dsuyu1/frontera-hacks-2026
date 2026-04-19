@@ -1,8 +1,8 @@
 /**
  * Standalone article-fetch Lambda — NOT attached to the VPC.
- * Handles GET /article?url=... and GET /og?url=...
+ * Handles GET /article?url=..., GET /og?url=..., POST /ask
  * No database access needed; runs outside the private subnet so it can
- * reach external URLs without a NAT Gateway.
+ * reach external URLs and Bedrock without a NAT Gateway.
  */
 
 import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
@@ -78,6 +78,40 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
 
   if (method === 'OPTIONS') return json(204, {});
 
+  // POST /ask — Bedrock Q&A; no url param needed, handle before url guard
+  if (method === 'POST' && path === '/ask') {
+    try {
+      const body = JSON.parse(event.body ?? '{}');
+      const { question, articleText, articleTitle, summary } = body;
+      if (!question) return json(400, { error: 'question required' });
+
+      const context = [
+        articleTitle ? `Title: ${articleTitle}` : '',
+        summary ? `Summary: ${summary}` : '',
+        articleText ? `Article:\n${String(articleText).slice(0, 8000)}` : '',
+      ].filter(Boolean).join('\n\n');
+
+      const res = await bedrock.send(new InvokeModelCommand({
+        modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
+        body: JSON.stringify({
+          anthropic_version: 'bedrock-2023-05-31',
+          max_tokens: 512,
+          system: 'You are a helpful assistant answering questions about a local news article from the Rio Grande Valley, Texas. Be concise and accurate.',
+          messages: [{ role: 'user', content: `${context}\n\nQuestion: ${question}` }],
+        }),
+        contentType: 'application/json',
+        accept: 'application/json',
+      }));
+
+      const bedrockResp = JSON.parse(new TextDecoder().decode(res.body));
+      const answer = bedrockResp.content[0].text.trim();
+      return json(200, { answer });
+    } catch (err) {
+      console.error('Ask error:', err);
+      return json(500, { error: 'Ask failed' });
+    }
+  }
+
   const targetUrl = qs.url;
   if (!targetUrl) return json(400, { error: 'url required' });
 
@@ -135,40 +169,6 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
       return json(200, { imageUrl });
     } catch {
       return json(200, { imageUrl: null });
-    }
-  }
-
-  // POST /ask — Bedrock Q&A; runs outside VPC so it can reach bedrock.us-east-1.amazonaws.com
-  if (method === 'POST' && path === '/ask') {
-    try {
-      const body = JSON.parse(event.body ?? '{}');
-      const { question, articleText, articleTitle, summary } = body;
-      if (!question) return json(400, { error: 'question required' });
-
-      const context = [
-        articleTitle ? `Title: ${articleTitle}` : '',
-        summary ? `Summary: ${summary}` : '',
-        articleText ? `Article:\n${String(articleText).slice(0, 8000)}` : '',
-      ].filter(Boolean).join('\n\n');
-
-      const res = await bedrock.send(new InvokeModelCommand({
-        modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
-        body: JSON.stringify({
-          anthropic_version: 'bedrock-2023-05-31',
-          max_tokens: 512,
-          system: 'You are a helpful assistant answering questions about a local news article from the Rio Grande Valley, Texas. Be concise and accurate.',
-          messages: [{ role: 'user', content: `${context}\n\nQuestion: ${question}` }],
-        }),
-        contentType: 'application/json',
-        accept: 'application/json',
-      }));
-
-      const bedrockResp = JSON.parse(new TextDecoder().decode(res.body));
-      const answer = bedrockResp.content[0].text.trim();
-      return json(200, { answer });
-    } catch (err) {
-      console.error('Ask error:', err);
-      return json(500, { error: 'Ask failed' });
     }
   }
 
