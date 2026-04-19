@@ -388,7 +388,6 @@ export default function LandingPage() {
           position: 'sticky',
           top: 0,
           zIndex: 50,
-          borderBottom: '1px solid var(--border)',
           background: 'rgba(15,15,18,0.82)',
           backdropFilter: 'blur(12px)',
         }}
@@ -415,8 +414,8 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <section style={{ maxWidth: 1180, margin: '0 auto', padding: '0 18px 56px' }}>
-        <div style={{ minHeight: 'calc(100vh - 66px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <section style={{ maxWidth: 1180, margin: '0 auto', padding: '28px 18px 56px' }}>
+        <div style={{ minHeight: 'calc(100vh - 66px - 28px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ width: '100%', maxWidth: 980, textAlign: 'center' }}>
             <h1 style={{ marginTop: 0, fontSize: 'clamp(30px, 4vw, 46px)', letterSpacing: '-1.2px', lineHeight: 1.08, fontWeight: 950 as any }}>
               A calm, Feedly‑style view

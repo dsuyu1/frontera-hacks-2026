@@ -191,7 +191,7 @@ export default function FeedLayout({ title, items, loading, subtitle, headerActi
               display: 'flex',
               justifyContent: 'flex-end',
               transform: selected ? 'translateX(0)' : 'translateX(100%)',
-              transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+              transition: 'transform 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
               zIndex: 300,
               pointerEvents: selected ? 'auto' : 'none',
             }}
