@@ -69,3 +69,4 @@ We built this in a weekend for the RGV. With more time, this scales to any under
 - 7 Red Bulls
 - 98 AWS Amplify deployments  
 - 120 commits
+- K-drama watched: Call it Love
