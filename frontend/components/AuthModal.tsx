@@ -19,7 +19,7 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
       role="presentation"
       style={{
         position: 'fixed', inset: 0, zIndex: 200,
-        background: 'rgba(0,0,0,0.72)', display: 'flex',
+        background: 'rgba(0,0,0,0.8)', display: 'flex',
         alignItems: 'center', justifyContent: 'center',
       }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
@@ -33,6 +33,7 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
           background: '#111113', border: '1px solid var(--border)',
           borderRadius: 14, padding: '32px 28px', width: 380,
           maxWidth: 'calc(100vw - 32px)', display: 'flex', flexDirection: 'column', gap: 18,
+          opacity: 1,
         }}
       >
         <div>
