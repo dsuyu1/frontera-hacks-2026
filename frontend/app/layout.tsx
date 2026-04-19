@@ -4,7 +4,7 @@ import Providers from '@/components/Providers';
 import { Suspense } from 'react';
 
 export const metadata: Metadata = {
-  title: 'CivicWatch — RGV Local Government Feed',
+  title: 'CivicWatch',
   description: 'Daily feed of local government news and meeting clips for the Rio Grande Valley',
 };
 
