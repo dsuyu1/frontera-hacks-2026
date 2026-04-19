@@ -195,9 +195,6 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
         ) : (
           <button onClick={startLogin} style={{ ...toolBtn, color: 'var(--accent)' }}>Sign in</button>
         )}
-        <a href={item.source_url} target="_blank" rel="noopener noreferrer" style={{ ...toolBtn, color: 'var(--text-muted)' }}>
-          ↗ Source
-        </a>
       </div>
 
       {/* Content */}
@@ -236,18 +233,6 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
             {renderSummary(item.summary, item.source_url)}
           </p>
         )}
-
-        <a href={item.source_url} target="_blank" rel="noopener noreferrer"
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: 6,
-            padding: '9px 18px', borderRadius: 5,
-            background: 'var(--accent)', color: '#fff',
-            fontSize: 13, fontWeight: 600, transition: 'background 0.15s',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.background = 'var(--accent-hover)')}
-          onMouseLeave={e => (e.currentTarget.style.background = 'var(--accent)')}>
-          Read full article ↗
-        </a>
 
         <CommentsSection item={item} user={user} />
       </div>

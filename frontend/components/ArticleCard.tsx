@@ -46,6 +46,7 @@ export default function ArticleCard({ item, selected, onSelect }: {
         flexDirection: 'column',
         padding: '0',
         background: selected ? 'var(--row-selected)' : 'var(--row-bg)',
+        opacity: isRead && !selected ? 0.45 : 1,
         borderBottom: '1px solid var(--border)',
         cursor: 'pointer',
         transition: 'background 0.1s',
@@ -109,14 +110,6 @@ export default function ArticleCard({ item, selected, onSelect }: {
           )}
         </div>
 
-        {/* Unread dot */}
-        {!isRead && (
-          <div style={{
-            position: 'absolute', top: 8, right: 8,
-            width: 7, height: 7, borderRadius: '50%',
-            background: 'var(--accent)', boxShadow: '0 0 5px var(--accent)',
-          }} />
-        )}
       </div>
 
       {/* Text */}

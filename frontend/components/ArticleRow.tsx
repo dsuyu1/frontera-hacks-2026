@@ -30,7 +30,7 @@ export default function ArticleRow({ item, selected, onSelect }: {
       borderBottom: '1px solid var(--border)',
       borderLeft: selected ? '2px solid var(--accent)' : '2px solid transparent',
       transition: 'background 0.1s',
-      opacity: isRead && !selected ? 0.55 : 1,
+      opacity: isRead && !selected ? 0.45 : 1,
     }}>
       {/* Thumbnail */}
       {thumbUrl ? (
@@ -57,9 +57,6 @@ export default function ArticleRow({ item, selected, onSelect }: {
             <span style={{ fontSize: 10, padding: '1px 5px', borderRadius: 3, background: '#0f1623', color: '#3b82f6' }}>
               VIDEO
             </span>
-          )}
-          {!isRead && (
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent)', flexShrink: 0 }} />
           )}
         </div>
         <div style={{
