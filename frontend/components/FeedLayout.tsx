@@ -100,10 +100,10 @@ export default function FeedLayout({ title, items, loading, subtitle }: Props) {
                 {items.length} articles
               </div>
             )}
-            <div style={{ display: 'flex', gap: 14, marginTop: 4 }}>
+            <div style={{ display: 'flex', gap: 16, marginTop: 2 }}>
               {(
                 [
-                  { href: '/today', label: 'Today' },
+                  { href: '/today', label: 'Me' },
                   { href: '/explore', label: 'Explore' },
                 ] as const
               ).map(t => {
@@ -113,12 +113,12 @@ export default function FeedLayout({ title, items, loading, subtitle }: Props) {
                     key={t.href}
                     href={t.href}
                     style={{
-                      padding: '8px 2px',
-                      fontSize: 13,
-                      fontWeight: 800,
+                      padding: '6px 0',
+                      fontSize: 12,
+                      fontWeight: 700,
                       color: active ? 'var(--text-primary)' : 'var(--text-muted)',
                       textDecoration: 'none',
-                      borderBottom: active ? '3px solid var(--text-primary)' : '3px solid transparent',
+                      borderBottom: active ? '2px solid var(--text-primary)' : '2px solid transparent',
                       transition: 'all 0.12s',
                     }}
                   >

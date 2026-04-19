@@ -59,7 +59,7 @@ describe('FeedLayout sections', () => {
       />,
     );
 
-    expect(screen.getAllByText('Today').length).toBeGreaterThan(0);
+    expect(screen.getByText('Me')).toBeInTheDocument();
     expect(screen.getByText('Explore')).toBeInTheDocument();
     expect(screen.getAllByTestId('row').length).toBeGreaterThan(0);
   });
