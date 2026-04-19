@@ -2,6 +2,7 @@
 
 const COGNITO_DOMAIN = 'https://frontera-rgv.auth.us-east-1.amazoncognito.com';
 const CLIENT_ID = '750ktfl6d9gcoltfi0gndhpd5';
+export const AUTH_CHANGED_EVENT = 'frontera_auth_changed';
 const REDIRECT_URI = typeof window !== 'undefined'
   ? `${window.location.origin}/auth/callback`
   : 'https://dwzv8106oti1y.cloudfront.net/auth/callback';
@@ -77,6 +78,7 @@ export async function handleCallback(code: string, returnedState: string): Promi
   };
 
   localStorage.setItem('frontera_auth', JSON.stringify(authUser));
+  window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
   sessionStorage.removeItem('pkce_verifier');
   sessionStorage.removeItem('pkce_state');
   return authUser;
@@ -110,6 +112,7 @@ export function getStoredUser(): AuthUser | null {
 
 export function logout() {
   localStorage.removeItem('frontera_auth');
+  window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
   const params = new URLSearchParams({
     client_id: CLIENT_ID,
     logout_uri: typeof window !== 'undefined' ? window.location.origin : 'https://dwzv8106oti1y.cloudfront.net',

@@ -1,8 +1,8 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
-import { getStoredUser, startLogin, logout, AuthUser } from '@/lib/auth';
+import { useEffect, useState } from 'react';
+import { AUTH_CHANGED_EVENT, getStoredUser, startLogin, logout, AuthUser } from '@/lib/auth';
 import { Sun, List, Bookmark, Clock, ChevronLeft, ChevronRight, ChevronDown, LogIn } from './Icons';
 
 const LOCALITIES = [
@@ -22,7 +22,13 @@ const NAV_TOP: NavItem[] = [
 export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: () => void }) {
   const pathname = usePathname();
   const [feedsOpen, setFeedsOpen] = useState(true);
-  const [user] = useState<AuthUser | null>(() => getStoredUser());
+  const [user, setUser] = useState<AuthUser | null>(() => getStoredUser());
+
+  useEffect(() => {
+    const sync = () => setUser(getStoredUser());
+    window.addEventListener(AUTH_CHANGED_EVENT, sync);
+    return () => window.removeEventListener(AUTH_CHANGED_EVENT, sync);
+  }, []);
 
   return (
     <aside
@@ -153,8 +159,8 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 11, fontWeight: 700, color: 'var(--accent)', flexShrink: 0,
             }}>
-              {user.username[0].toUpperCase()}
-            </div>
+               {user.username?.[0]?.toUpperCase() ?? '?'}
+             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {user.username}

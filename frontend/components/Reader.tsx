@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from 'react';
 import useSWR from 'swr';
 import { FeedItem, api, Comment } from '@/lib/api';
 import { useFeedStore } from '@/lib/store';
-import { getStoredUser, startLogin, AuthUser } from '@/lib/auth';
+import { AUTH_CHANGED_EVENT, getStoredUser, startLogin, AuthUser } from '@/lib/auth';
 import { formatDistanceToNow } from 'date-fns';
 import VideoPlayer from './VideoPlayer';
 import { ArrowLeft, Circle, CheckCircle, Bookmark, ExternalLink, ChevronUp, ChevronDown, RefreshCw, Volume2 } from './Icons';
@@ -342,10 +342,16 @@ function TranscriptView({ text }: { text: string }) {
 
 export default function Reader({ item, onClose }: { item: FeedItem | null; onClose?: () => void }) {
   const { readIds, savedIds, markRead, markUnread, toggleSaved } = useFeedStore();
-  const [user] = useState<AuthUser | null>(() => getStoredUser());
+  const [user, setUser] = useState<AuthUser | null>(() => getStoredUser());
   const [speaking, setSpeaking] = useState(false);
   const ttsSupported = typeof window !== 'undefined' && typeof window.speechSynthesis !== 'undefined';
   const [ttsVoice, setTtsVoice] = useState<SpeechSynthesisVoice | null>(null);
+
+  useEffect(() => {
+    const sync = () => setUser(getStoredUser());
+    window.addEventListener(AUTH_CHANGED_EVENT, sync);
+    return () => window.removeEventListener(AUTH_CHANGED_EVENT, sync);
+  }, []);
 
   // For text articles: fetch full article content
   const isVideo = item?.type === 'video';
