@@ -32,6 +32,35 @@ describe('extractArticleTextFromHtml', () => {
     expect(text).not.toContain('sidebar paragraph');
   });
 
+  it('extracts full content when articleBody container has nested divs', () => {
+    const html = `
+      <html><body>
+        <div itemprop="articleBody">
+          <div class="ad-unit">Short ad.</div>
+          <p>This is the first real article paragraph with enough content to pass the filter threshold for extraction.</p>
+          <div class="share-widget">Share</div>
+          <p>This is the second real article paragraph with enough content to also pass the filter threshold for extraction.</p>
+        </div>
+      </body></html>
+    `;
+    const text = extractArticleTextFromHtml(html);
+    expect(text).toContain('first real article paragraph');
+    expect(text).toContain('second real article paragraph');
+  });
+
+  it('extracts full content from article-body div with nested elements', () => {
+    const html = `
+      <html><body>
+        <div class="article-body">
+          <div class="byline">Reporter Name</div>
+          <p>This is the main article paragraph with enough content to pass the 40-character extraction filter reliably.</p>
+        </div>
+      </body></html>
+    `;
+    const text = extractArticleTextFromHtml(html);
+    expect(text).toContain('main article paragraph');
+  });
+
   it('adds paragraph breaks for <br> and list items', () => {
     const html = `
       <html><body>

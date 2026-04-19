@@ -20,18 +20,35 @@ function stripNoise(html: string): string {
 }
 
 function pickMainContent(html: string): string {
-  const selectors: RegExp[] = [
-    /<[^>]+itemprop=["']articleBody["'][^>]*>([\s\S]*?)<\/(?:div|section|article)>/i,
-    /<article\b[^>]*>([\s\S]*?)<\/article>/i,
-    /<main\b[^>]*>([\s\S]*?)<\/main>/i,
-    /<div[^>]+id=["'][^"']*(?:article|story|content|main)[^"']*["'][^>]*>([\s\S]*?)<\/div>/i,
-    /<div[^>]+class=["'][^"']*(?:article-body|article-content|entry-content|post-content|story-body|article-text|news-content|field-body|node-content)[^"']*["'][^>]*>([\s\S]*?)<\/div>/i,
+  // Greedy matching for semantic block elements that are rarely nested — this ensures we
+  // capture the full container content rather than stopping at the first nested closing tag.
+  const greedySelectors: RegExp[] = [
+    /<[^>]+itemprop=["']articleBody["'][^>]*>([\s\S]*)<\/(?:div|section|article)>/i,
+    /<article\b[^>]*>([\s\S]*)<\/article>/i,
+    /<main\b[^>]*>([\s\S]*)<\/main>/i,
   ];
 
-  for (const selector of selectors) {
+  for (const selector of greedySelectors) {
     const match = html.match(selector);
     if (match?.[1] && match[1].length > 50) return match[1];
   }
+
+  // For div-based containers, regex cannot track nesting depth — find the opening tag and
+  // slice a generous chunk so nested divs don't cause early termination.
+  const divPatterns: RegExp[] = [
+    /<div[^>]+id=["'][^"']*(?:article|story|content|main)[^"']*["'][^>]*>/i,
+    /<div[^>]+class=["'][^"']*(?:article-body|article-content|entry-content|post-content|story-body|article-text|news-content|field-body|node-content)[^"']*["'][^>]*>/i,
+  ];
+
+  for (const pattern of divPatterns) {
+    const match = html.match(pattern);
+    if (match) {
+      const start = match.index! + match[0].length;
+      const chunk = html.slice(start, start + 60_000);
+      if (chunk.length > 50) return chunk;
+    }
+  }
+
   return html;
 }
 
