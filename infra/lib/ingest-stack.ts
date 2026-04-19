@@ -64,6 +64,8 @@ export class IngestStack extends cdk.Stack {
       DB_SECRET_ARN: f.dbSecretArn,
       S3_BUCKET: f.s3BucketName,
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
+      ...(process.env.BEDROCK_HAIKU_MODEL_ID ? { BEDROCK_HAIKU_MODEL_ID: process.env.BEDROCK_HAIKU_MODEL_ID } : {}),
+      ...(process.env.BEDROCK_SONNET_MODEL_ID ? { BEDROCK_SONNET_MODEL_ID: process.env.BEDROCK_SONNET_MODEL_ID } : {}),
     };
 
     const bundling = { minify: true, sourceMap: true };
@@ -266,6 +268,10 @@ export class IngestStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(29),
       memorySize: 512,
       // No vpcConfig — intentionally public so it can reach external URLs
+      environment: {
+        AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
+        ...(process.env.BEDROCK_HAIKU_MODEL_ID ? { BEDROCK_HAIKU_MODEL_ID: process.env.BEDROCK_HAIKU_MODEL_ID } : {}),
+      },
       bundling,
     });
 

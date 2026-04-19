@@ -171,7 +171,7 @@ politics-elections,city-council,planning-zoning,infrastructure,public-safety,edu
 
   try {
     const res = await bedrock.send(new InvokeModelCommand({
-      modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
+      modelId: process.env.BEDROCK_HAIKU_MODEL_ID ?? 'anthropic.claude-3-haiku-20240307-v1:0',
       body: JSON.stringify({
         anthropic_version: 'bedrock-2023-05-31',
         max_tokens: 700,
@@ -203,7 +203,7 @@ politics-elections,city-council,planning-zoning,infrastructure,public-safety,edu
 async function generateSegmentFromMeta(title: string, description: string): Promise<Segment> {
   try {
     const res = await bedrock.send(new InvokeModelCommand({
-      modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
+      modelId: process.env.BEDROCK_HAIKU_MODEL_ID ?? 'anthropic.claude-3-haiku-20240307-v1:0',
       body: JSON.stringify({
         anthropic_version: 'bedrock-2023-05-31',
         max_tokens: 300,
