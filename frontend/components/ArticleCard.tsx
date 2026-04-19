@@ -69,24 +69,12 @@ export default function ArticleCard({ item, selected, onSelect }: {
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         ) : (
-          /* Blog-style placeholder: favicon + source domain */
           <div style={{
             width: '100%', height: '100%',
             background: isVideo ? '#0f1623' : 'var(--surface, #18181b)',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6,
           }}>
-            {domain && !isVideo && (
-              <>
-                <img
-                  src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
-                  alt=""
-                  style={{ width: 32, height: 32, borderRadius: 6, opacity: 0.5 }}
-                  onError={e => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
-                />
-                <span style={{ fontSize: 11, color: 'var(--text-muted)', letterSpacing: '0.02em' }}>{domain}</span>
-              </>
-            )}
-            {isVideo && (
+            {isVideo ? (
               <div style={{
                 width: 44, height: 44, borderRadius: '50%',
                 background: 'rgba(255,255,255,0.08)', border: '2px solid rgba(255,255,255,0.18)',
@@ -94,6 +82,15 @@ export default function ArticleCard({ item, selected, onSelect }: {
               }}>
                 <span style={{ fontSize: 16, color: '#fff', marginLeft: 3 }}>▶</span>
               </div>
+            ) : (
+              <>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3f3f46" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+                <span style={{ fontSize: 10, color: '#3f3f46', letterSpacing: '0.04em', textTransform: 'uppercase' }}>No image</span>
+              </>
             )}
           </div>
         )}
