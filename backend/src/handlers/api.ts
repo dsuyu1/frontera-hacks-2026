@@ -151,7 +151,7 @@ const CLIP_SELECT = `json_build_object(
 
 export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> => {
   const method = event.requestContext.http.method;
-  const path = event.requestContext.http.path;
+      const path = event.rawPath ?? event.requestContext.http.path;
   const qs = event.queryStringParameters ?? {};
 
   if (method === 'OPTIONS') return json(204, {});
@@ -353,7 +353,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
       }
 
       // GET /og?url=... — server-side OG image resolver (bypasses bot blocks & hotlink protection)
-      if (method === 'GET' && path === '/og') {
+      if (method === 'GET' && path.endsWith('/og')) {
         const targetUrl = qs.url;
         if (!targetUrl) return json(400, { error: 'url required' });
         try {
@@ -388,7 +388,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
       }
 
       // GET /article?url=... — fetch and extract full article text
-      if (method === 'GET' && path === '/article') {
+      if (method === 'GET' && path.endsWith('/article')) {
         const targetUrl = qs.url;
         if (!targetUrl) return json(400, { error: 'url required' });
         try {
@@ -415,7 +415,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
       }
 
       // POST /ask — Bedrock-powered Q&A about an article
-      if (method === 'POST' && path === '/ask') {
+      if (method === 'POST' && path.endsWith('/ask')) {
         const body = JSON.parse(event.body ?? '{}');
         const { question, articleText, articleTitle, summary } = body;
         if (!question) return json(400, { error: 'question required' });
@@ -444,7 +444,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
       }
 
       // GET /transcript?item_id=X — return readable caption text for a video feed item
-      if (method === 'GET' && path === '/transcript') {
+      if (method === 'GET' && path.endsWith('/transcript')) {
         const itemId = qs.item_id;
         if (!itemId) return json(400, { error: 'item_id required' });
 
@@ -466,7 +466,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
       }
 
       // GET /video-status?item_id=X — pipeline status for a video feed item
-      if (method === 'GET' && path === '/video-status') {
+      if (method === 'GET' && path.endsWith('/video-status')) {
         const itemId = qs.item_id;
         if (!itemId) return json(400, { error: 'item_id required' });
 
@@ -492,7 +492,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
       }
 
       // POST /pipeline/run — manually trigger per-video pipeline
-      if (method === 'POST' && path === '/pipeline/run') {
+      if (method === 'POST' && path.endsWith('/pipeline/run')) {
         // Use dedicated per-video SM if available, else fall back to daily pipeline
         const smArn = process.env.PIPELINE_VIDEO_SM_ARN ?? process.env.PIPELINE_SM_ARN;
         if (!smArn) return json(503, { error: 'Pipeline not configured' });

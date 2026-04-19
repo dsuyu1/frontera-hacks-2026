@@ -73,13 +73,13 @@ const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
 
 export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> => {
   const method = event.requestContext.http.method;
-  const path = event.requestContext.http.path;
+  const path = event.rawPath ?? event.requestContext.http.path;
   const qs = event.queryStringParameters ?? {};
 
   if (method === 'OPTIONS') return json(204, {});
 
   // POST /ask — Bedrock Q&A; no url param needed, handle before url guard
-  if (method === 'POST' && path === '/ask') {
+  if (method === 'POST' && path.endsWith('/ask')) {
     try {
       const body = JSON.parse(event.body ?? '{}');
       const { question, articleText, articleTitle, summary } = body;
@@ -116,7 +116,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
   if (!targetUrl) return json(400, { error: 'url required' });
 
   // GET /article — fetch and extract full article text
-  if (method === 'GET' && path === '/article') {
+  if (method === 'GET' && path.endsWith('/article')) {
     try {
       const ctrl = new AbortController();
       setTimeout(() => ctrl.abort(), 12_000);
@@ -141,7 +141,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
   }
 
   // GET /og — resolve OG image for a URL
-  if (method === 'GET' && path === '/og') {
+  if (method === 'GET' && path.endsWith('/og')) {
     try {
       const ctrl = new AbortController();
       setTimeout(() => ctrl.abort(), 8_000);
