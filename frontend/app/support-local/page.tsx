@@ -2,9 +2,80 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import useSWR from 'swr';
 import Sidebar from '@/components/Sidebar';
 import { ExternalLink } from '@/components/Icons';
 import { useSupportSources } from '@/hooks/useSupportLocal';
+import { api, type SupportSource } from '@/lib/api';
+
+function SupportCard({ s }: { s: SupportSource }) {
+  const [imgFailed, setImgFailed] = useState(false);
+
+  const { data: ogData } = useSWR(
+    `support-og:${s.url}`,
+    () => api.og(s.url),
+    { revalidateOnFocus: false, dedupingInterval: 3_600_000 },
+  );
+
+  const thumbUrl = !imgFailed && ogData?.imageUrl ? ogData.imageUrl : null;
+  const faviconUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(s.domain)}&sz=64`;
+
+  return (
+    <div style={{ border: '1px solid var(--border)', borderRadius: 14, background: 'var(--reader-bg)', overflow: 'hidden' }}>
+      {/* Thumbnail strip */}
+      <div style={{ height: 120, background: 'var(--surface)', position: 'relative', overflow: 'hidden' }}>
+        {thumbUrl ? (
+          <img
+            src={thumbUrl}
+            alt=""
+            onError={() => setImgFailed(true)}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+        ) : (
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <img
+              src={faviconUrl}
+              alt=""
+              width={32}
+              height={32}
+              style={{ opacity: 0.5, imageRendering: 'crisp-edges' }}
+              onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Card body */}
+      <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 750, color: 'var(--text-primary)', lineHeight: 1.3, marginBottom: 3 }}>
+            {s.title}
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{s.domain}</div>
+          {s.snippet && (
+            <div style={{ marginTop: 6, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.45, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+              {s.snippet}
+            </div>
+          )}
+        </div>
+        <Link
+          href={s.url}
+          target="_blank"
+          rel="noreferrer"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '7px 11px', borderRadius: 10, border: '1px solid var(--border)',
+            color: 'var(--text-secondary)', textDecoration: 'none',
+            fontSize: 12, fontWeight: 650, whiteSpace: 'nowrap', flexShrink: 0,
+          }}
+        >
+          <ExternalLink size={14} />
+          Visit
+        </Link>
+      </div>
+    </div>
+  );
+}
 
 export default function SupportLocalPage() {
   const articleBaseConfigured = !!process.env.NEXT_PUBLIC_ARTICLE_URL;
@@ -135,55 +206,9 @@ export default function SupportLocalPage() {
               </div>
             )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
               {(data?.sources ?? []).map((s) => (
-                <div
-                  key={s.url}
-                  style={{
-                    border: '1px solid var(--border)',
-                    borderRadius: 14,
-                    padding: '14px 14px',
-                    background: 'var(--reader-bg)',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 14, fontWeight: 750, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {s.title}
-                      </div>
-                      <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-                        {s.domain}
-                      </div>
-                    </div>
-                    <Link
-                      href={s.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        padding: '8px 12px',
-                        borderRadius: 10,
-                        border: '1px solid var(--border)',
-                        color: 'var(--text-secondary)',
-                        textDecoration: 'none',
-                        fontSize: 12,
-                        fontWeight: 650,
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      <ExternalLink size={16} />
-                      Visit
-                    </Link>
-                  </div>
-
-                  {s.snippet && (
-                    <div style={{ marginTop: 10, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.35 }}>
-                      {s.snippet}
-                    </div>
-                  )}
-                </div>
+                <SupportCard key={s.url} s={s} />
               ))}
             </div>
           </div>
