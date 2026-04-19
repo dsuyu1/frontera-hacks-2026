@@ -2,9 +2,6 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, test, vi } from 'vitest';
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/today' }));
-vi.mock('next/link', () => ({
-  default: (props: any) => <a href={props.href}>{props.children}</a>,
-}));
 
 vi.mock('./ArticleCard', () => ({
   sourceDomain: () => 'example.com',
@@ -59,7 +56,7 @@ describe('FeedLayout sections', () => {
       />,
     );
 
-    expect(screen.getByText('Explore')).toBeInTheDocument();
+    expect(screen.getAllByText('Today').length).toBeGreaterThan(0);
     expect(screen.getAllByTestId('row').length).toBeGreaterThan(0);
   });
 });

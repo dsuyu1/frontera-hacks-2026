@@ -1,7 +1,5 @@
 'use client';
-import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { FeedItem } from '@/lib/api';
 import Sidebar from './Sidebar';
 import { sourceDomain } from './ArticleCard';
@@ -35,7 +33,8 @@ export default function FeedLayout({ title, items, loading, subtitle }: Props) {
   const [selected, setSelected] = useState<FeedItem | null>(null);
   const [user] = useState<AuthUser | null>(() => getStoredUser());
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const pathname = usePathname();
+  const bodyRef = useRef<HTMLDivElement | null>(null);
+  const [collapsedHeader, setCollapsedHeader] = useState(false);
 
   const groups = useMemo(() => groupBySource(items), [items]);
 
@@ -53,6 +52,15 @@ export default function FeedLayout({ title, items, loading, subtitle }: Props) {
     return () => window.removeEventListener('keydown', handler);
   }, [items, selected]);
 
+  useEffect(() => {
+    const el = bodyRef.current;
+    if (!el) return;
+    const onScroll = () => setCollapsedHeader(el.scrollTop > 56);
+    onScroll();
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, []);
+
   return (
     <div style={{ display: 'flex', height: '100vh', background: 'var(--main-bg)', overflow: 'hidden' }}>
       <Sidebar open={sidebarOpen} onToggle={() => setSidebarOpen(v => !v)} />
@@ -62,12 +70,16 @@ export default function FeedLayout({ title, items, loading, subtitle }: Props) {
 
         {/* Page header */}
         <div style={{
-          padding: '18px 20px 12px',
-          borderBottom: '1px solid var(--border)',
+          padding: collapsedHeader ? '10px 20px' : '20px 20px 14px',
+          borderBottom: collapsedHeader ? '1px solid var(--border)' : 'none',
           background: 'var(--main-bg)',
           flexShrink: 0,
+          position: 'sticky',
+          top: 0,
+          zIndex: 5,
+          transition: 'padding 0.18s ease, border-color 0.18s ease',
         }}>
-          <div style={{ maxWidth: 920, margin: '0 auto', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+          <div style={{ maxWidth: 720, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 12 }}>
             {!sidebarOpen && (
               <button
                 onClick={() => setSidebarOpen(true)}
@@ -84,48 +96,29 @@ export default function FeedLayout({ title, items, loading, subtitle }: Props) {
                 <ChevronRight size={16} />
               </button>
             )}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1 }}>
-            <div style={{ fontSize: 30, fontWeight: 850 as any, color: 'var(--text-primary)', letterSpacing: '-0.6px', lineHeight: 1.05, textAlign: 'center' }}>
-              {title}
-            </div>
-            {subtitle && (
-              <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: -4, textAlign: 'center' }}>
-                {subtitle}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div
+                style={{
+                  fontSize: collapsedHeader ? 14 : 30,
+                  fontWeight: collapsedHeader ? 700 : 850 as any,
+                  color: 'var(--text-primary)',
+                  letterSpacing: collapsedHeader ? '-0.2px' : '-0.6px',
+                  lineHeight: collapsedHeader ? 1.2 : 1.05,
+                  textAlign: 'left',
+                  transition: 'font-size 0.18s ease, letter-spacing 0.18s ease',
+                  whiteSpace: collapsedHeader ? 'nowrap' : 'normal',
+                  overflow: collapsedHeader ? 'hidden' : 'visible',
+                  textOverflow: collapsedHeader ? 'ellipsis' : 'clip',
+                }}
+              >
+                {title}
               </div>
-            )}
-            {!loading && items.length > 0 && (
-              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: -2, textAlign: 'center' }}>
-                {items.length} articles
-              </div>
-            )}
-            <div style={{ display: 'flex', gap: 16, marginTop: 2, justifyContent: 'center' }}>
-              {(
-                [
-                  { href: '/today', label: 'Me' },
-                  { href: '/explore', label: 'Explore' },
-                ] as const
-              ).map(t => {
-                const active = pathname === t.href || (t.href === '/today' && pathname === '/');
-                return (
-                  <Link
-                    key={t.href}
-                    href={t.href}
-                    style={{
-                      padding: '6px 0',
-                      fontSize: 12,
-                      fontWeight: 700,
-                      color: active ? 'var(--text-primary)' : 'var(--text-muted)',
-                      textDecoration: 'none',
-                      borderBottom: active ? '2px solid var(--text-primary)' : '2px solid transparent',
-                      transition: 'all 0.12s',
-                    }}
-                  >
-                    {t.label}
-                  </Link>
-                );
-              })}
+              {!collapsedHeader && subtitle && (
+                <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 6 }}>
+                  {subtitle}
+                </div>
+              )}
             </div>
-          </div>
             <div style={{ marginLeft: 'auto' }}>
             {!user && (
               <button
@@ -148,6 +141,7 @@ export default function FeedLayout({ title, items, loading, subtitle }: Props) {
         {/* Feed body */}
         <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
           <div
+            ref={bodyRef}
             className="feed-main-body"
             style={{
               height: '100%',
@@ -174,7 +168,7 @@ export default function FeedLayout({ title, items, loading, subtitle }: Props) {
               </div>
             )}
 
-            <div style={{ maxWidth: 920, margin: '0 auto', padding: '26px 24px 56px' }}>
+            <div style={{ maxWidth: 720, margin: '0 auto', padding: '22px 20px 56px' }}>
               {groups.map(({ domain, items: groupItems }) => (
                 <div key={domain} style={{ marginBottom: 28 }}>
                   <div style={{
