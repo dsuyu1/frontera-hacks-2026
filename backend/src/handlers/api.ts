@@ -289,6 +289,84 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
         }
       }
 
+      // GET /article?url=... — fetch and extract full article text
+      if (method === 'GET' && path === '/article') {
+        const targetUrl = qs.url;
+        if (!targetUrl) return json(400, { error: 'url required' });
+        try {
+          const ctrl = new AbortController();
+          setTimeout(() => ctrl.abort(), 10000);
+          const res = await fetch(targetUrl, {
+            signal: ctrl.signal,
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+              'Accept': 'text/html,application/xhtml+xml',
+              'Accept-Language': 'en-US,en;q=0.9',
+            },
+          });
+          if (!res.ok) return json(200, { text: '' });
+          let html = await res.text();
+
+          // Strip scripts, styles, nav, header, footer, aside
+          html = html
+            .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
+            .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')
+            .replace(/<nav\b[^>]*>[\s\S]*?<\/nav>/gi, '')
+            .replace(/<header\b[^>]*>[\s\S]*?<\/header>/gi, '')
+            .replace(/<footer\b[^>]*>[\s\S]*?<\/footer>/gi, '')
+            .replace(/<aside\b[^>]*>[\s\S]*?<\/aside>/gi, '')
+            .replace(/<form\b[^>]*>[\s\S]*?<\/form>/gi, '')
+            .replace(/<!--[\s\S]*?-->/g, '');
+
+          // Extract article/main body
+          const articleMatch =
+            html.match(/<article\b[^>]*>([\s\S]*?)<\/article>/i) ??
+            html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i);
+          let content = articleMatch && articleMatch[1].length > 200 ? articleMatch[1] : html;
+
+          const text = content
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, ' ')
+            .replace(/&#\d+;/g, ' ')
+            .replace(/\s{3,}/g, '\n\n').replace(/ {2,}/g, ' ')
+            .trim();
+
+          return json(200, { text: text.slice(0, 12000) });
+        } catch {
+          return json(200, { text: '' });
+        }
+      }
+
+      // POST /ask — Bedrock-powered Q&A about an article
+      if (method === 'POST' && path === '/ask') {
+        const body = JSON.parse(event.body ?? '{}');
+        const { question, articleText, articleTitle, summary } = body;
+        if (!question) return json(400, { error: 'question required' });
+
+        const context = [
+          articleTitle ? `Title: ${articleTitle}` : '',
+          summary ? `Summary: ${summary}` : '',
+          articleText ? `Article:\n${String(articleText).slice(0, 8000)}` : '',
+        ].filter(Boolean).join('\n\n');
+
+        const res = await bedrock.send(new InvokeModelCommand({
+          modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
+          body: JSON.stringify({
+            anthropic_version: 'bedrock-2023-05-31',
+            max_tokens: 512,
+            system: 'You are a helpful assistant answering questions about a local news article from the Rio Grande Valley, Texas. Be concise and accurate.',
+            messages: [{ role: 'user', content: `${context}\n\nQuestion: ${question}` }],
+          }),
+          contentType: 'application/json',
+          accept: 'application/json',
+        }));
+
+        const bedrockResp = JSON.parse(new TextDecoder().decode(res.body));
+        const answer = bedrockResp.content[0].text.trim();
+        return json(200, { answer });
+      }
+
       // GET /stats
       if (method === 'GET' && path === '/stats') {
         const { rows: [stats] } = await db.query(`

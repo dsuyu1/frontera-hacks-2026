@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { FeedItem } from '@/lib/api';
 import Sidebar from './Sidebar';
-import ArticleCard from './ArticleCard';
+import ArticleCard, { sourceDomain } from './ArticleCard';
 import Reader from './Reader';
 import MobileTabs from './MobileTabs';
 import { getStoredUser, startLogin, AuthUser } from '@/lib/auth';
@@ -13,13 +13,27 @@ interface Props {
   loading?: boolean;
 }
 
+function groupBySource(items: FeedItem[]): { domain: string; items: FeedItem[] }[] {
+  const map = new Map<string, FeedItem[]>();
+  for (const item of items) {
+    const domain = sourceDomain(item.source_url) || 'Unknown';
+    if (!map.has(domain)) map.set(domain, []);
+    map.get(domain)!.push(item);
+  }
+  return Array.from(map.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([domain, items]) => ({ domain, items }));
+}
+
 export default function FeedLayout({ title, items, loading }: Props) {
   const [selected, setSelected] = useState<FeedItem | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   useEffect(() => { setUser(getStoredUser()); }, []);
 
-  // Keyboard nav
+  const groups = groupBySource(items);
+
+  // Keyboard nav (flat item list for j/k)
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
@@ -66,12 +80,7 @@ export default function FeedLayout({ title, items, loading }: Props) {
               →
             </button>
           )}
-          <h1 style={{
-            fontSize: 18,
-            fontWeight: 700,
-            color: 'var(--text-primary)',
-            letterSpacing: '-0.3px',
-          }}>
+          <h1 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
             {title}
           </h1>
           {!loading && items.length > 0 && (
@@ -79,21 +88,14 @@ export default function FeedLayout({ title, items, loading }: Props) {
               {items.length} articles
             </span>
           )}
-
           <div style={{ marginLeft: 'auto' }}>
             {!user && (
               <button
                 onClick={startLogin}
                 style={{
-                  padding: '6px 14px',
-                  background: 'var(--accent)',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: 6,
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'background 0.15s',
+                  padding: '6px 14px', background: 'var(--accent)', color: '#fff',
+                  border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 600,
+                  cursor: 'pointer', transition: 'background 0.15s',
                 }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--accent-hover)'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--accent)'; }}
@@ -106,8 +108,6 @@ export default function FeedLayout({ title, items, loading }: Props) {
 
         {/* Feed body */}
         <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
-
-          {/* Article list — single column, max-width centered */}
           <div
             className="feed-main-body"
             style={{
@@ -135,20 +135,37 @@ export default function FeedLayout({ title, items, loading }: Props) {
               </div>
             )}
 
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-              gap: 1,
-              maxWidth: 1200,
-              margin: '0 auto',
-            }}>
-              {items.map(item => (
-                <ArticleCard
-                  key={item.id}
-                  item={item}
-                  selected={selected?.id === item.id}
-                  onSelect={() => setSelected(item)}
-                />
+            {/* Single-column feed grouped by source */}
+            <div style={{ maxWidth: 680, margin: '0 auto', padding: '24px 20px 48px' }}>
+              {groups.map(({ domain, items: groupItems }) => (
+                <div key={domain} style={{ marginBottom: 40 }}>
+                  {/* Source header */}
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    marginBottom: 14,
+                  }}>
+                    <span style={{
+                      fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
+                      letterSpacing: '0.08em', color: 'var(--text-muted)',
+                    }}>
+                      {domain}
+                    </span>
+                    <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+                    <span style={{ fontSize: 11, color: '#3f3f46' }}>{groupItems.length}</span>
+                  </div>
+
+                  {/* Cards */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {groupItems.map(item => (
+                      <ArticleCard
+                        key={item.id}
+                        item={item}
+                        selected={selected?.id === item.id}
+                        onSelect={() => setSelected(item)}
+                      />
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           </div>

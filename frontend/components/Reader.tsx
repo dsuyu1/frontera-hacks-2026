@@ -8,7 +8,6 @@ import { formatDistanceToNow } from 'date-fns';
 import VideoPlayer from './VideoPlayer';
 
 function renderSummary(text: string, sourceUrl: string) {
-  // Replace trailing [...] or […] with a linked "read more"
   const cleaned = text.replace(/\s*\[\.{2,3}\]\s*$|\s*\[…\]\s*$/g, '');
   const hadTruncation = cleaned.length < text.length;
   return (
@@ -56,20 +55,13 @@ function CommentsSection({ item, user }: { item: FeedItem; user: AuthUser | null
         Discussion · {comments.length}
       </h3>
 
-      {/* Comment list */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
         {comments.map(c => (
-          <div key={c.id} style={{
-            padding: '10px 14px',
-            background: '#222',
-            borderRadius: 6,
-            border: '1px solid #2a2a2a',
-          }}>
+          <div key={c.id} style={{ padding: '10px 14px', background: '#222', borderRadius: 6, border: '1px solid #2a2a2a' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
               <span style={{
                 width: 26, height: 26, borderRadius: '50%',
-                background: 'var(--accent-dim)',
-                border: '1px solid var(--accent)',
+                background: 'var(--accent-dim)', border: '1px solid var(--accent)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 11, fontWeight: 700, color: 'var(--accent)', flexShrink: 0,
               }}>
@@ -80,10 +72,7 @@ function CommentsSection({ item, user }: { item: FeedItem; user: AuthUser | null
                 {formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}
               </span>
               {user?.sub === c.user_id && (
-                <button onClick={() => deleteComment(c.id)} style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  color: '#444', fontSize: 11, padding: 0,
-                }}>✕</button>
+                <button onClick={() => deleteComment(c.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#444', fontSize: 11, padding: 0 }}>✕</button>
               )}
             </div>
             <p style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.5 }}>{c.body}</p>
@@ -94,7 +83,6 @@ function CommentsSection({ item, user }: { item: FeedItem; user: AuthUser | null
         )}
       </div>
 
-      {/* Comment form */}
       {user ? (
         <form onSubmit={submit}>
           <textarea
@@ -108,8 +96,7 @@ function CommentsSection({ item, user }: { item: FeedItem; user: AuthUser | null
               background: '#222', border: '1px solid #333',
               borderRadius: 6, color: 'var(--text-primary)',
               fontSize: 13, lineHeight: 1.5, resize: 'vertical',
-              fontFamily: 'inherit',
-              outline: 'none',
+              fontFamily: 'inherit', outline: 'none',
             }}
             onFocus={e => { e.target.style.borderColor = 'var(--accent)'; }}
             onBlur={e => { e.target.style.borderColor = '#333'; }}
@@ -152,14 +139,154 @@ function CommentsSection({ item, user }: { item: FeedItem; user: AuthUser | null
   );
 }
 
+function AskAIPanel({ item, articleText }: { item: FeedItem; articleText: string }) {
+  const [open, setOpen] = useState(false);
+  const [question, setQuestion] = useState('');
+  const [answer, setAnswer] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  async function ask(e: React.FormEvent) {
+    e.preventDefault();
+    if (!question.trim() || loading) return;
+    setLoading(true);
+    setAnswer('');
+    setError('');
+    try {
+      const data = await api.ask(question.trim(), item.title, item.summary, articleText);
+      setAnswer(data.answer);
+    } catch {
+      setError('Something went wrong. Try again.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div style={{ marginTop: 32, borderTop: '1px solid var(--border)', paddingTop: 20 }}>
+      <button
+        onClick={() => setOpen(v => !v)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          background: 'none', border: 'none', cursor: 'pointer',
+          padding: 0, width: '100%',
+        }}
+      >
+        <span style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          width: 28, height: 28, borderRadius: 6,
+          background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+          fontSize: 13, flexShrink: 0,
+        }}>✦</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          Ask AI
+        </span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 4 }}>· Ask anything about this article</span>
+        <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text-muted)' }}>{open ? '▲' : '▼'}</span>
+      </button>
+
+      {open && (
+        <div style={{ marginTop: 16 }}>
+          <form onSubmit={ask} style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+            <input
+              value={question}
+              onChange={e => setQuestion(e.target.value)}
+              placeholder="What would you like to know about this article?"
+              style={{
+                flex: 1, padding: '9px 12px',
+                background: '#1a1a1a', border: '1px solid #333',
+                borderRadius: 6, color: 'var(--text-primary)',
+                fontSize: 13, fontFamily: 'inherit', outline: 'none',
+              }}
+              onFocus={e => { e.target.style.borderColor = '#6366f1'; }}
+              onBlur={e => { e.target.style.borderColor = '#333'; }}
+            />
+            <button
+              type="submit"
+              disabled={!question.trim() || loading}
+              style={{
+                padding: '9px 16px', borderRadius: 6,
+                background: question.trim() && !loading ? 'linear-gradient(135deg, #6366f1, #8b5cf6)' : '#222',
+                color: question.trim() && !loading ? '#fff' : '#555',
+                border: 'none', cursor: question.trim() && !loading ? 'pointer' : 'default',
+                fontSize: 12, fontWeight: 600, transition: 'all 0.15s', flexShrink: 0,
+              }}
+            >
+              {loading ? '…' : 'Ask'}
+            </button>
+          </form>
+
+          {answer && (
+            <div style={{
+              padding: '14px 16px', borderRadius: 8,
+              background: 'rgba(99, 102, 241, 0.08)',
+              border: '1px solid rgba(99, 102, 241, 0.2)',
+            }}>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                <span style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: 20, height: 20, borderRadius: 4,
+                  background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                  fontSize: 10, flexShrink: 0, marginTop: 1,
+                }}>✦</span>
+                <p style={{ fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.65, margin: 0 }}>
+                  {answer}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <p style={{ fontSize: 13, color: '#ef4444', marginTop: 8 }}>{error}</p>
+          )}
+
+          {/* Suggested questions */}
+          {!answer && !loading && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+              {[
+                'What is the main point of this article?',
+                'Who is affected by this?',
+                'What are the key facts?',
+              ].map(q => (
+                <button
+                  key={q}
+                  onClick={() => setQuestion(q)}
+                  style={{
+                    padding: '5px 10px', borderRadius: 20,
+                    background: '#222', border: '1px solid #333',
+                    color: 'var(--text-muted)', cursor: 'pointer',
+                    fontSize: 11, transition: 'all 0.1s',
+                  }}
+                  onMouseEnter={e => { (e.currentTarget.style.borderColor = '#6366f1'); (e.currentTarget.style.color = '#a5b4fc'); }}
+                  onMouseLeave={e => { (e.currentTarget.style.borderColor = '#333'); (e.currentTarget.style.color = 'var(--text-muted)'); }}
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+async function fetchArticle(url: string): Promise<string> {
+  const data = await api.article(url);
+  return data.text ?? '';
+}
+
 export default function Reader({ item, onClose }: { item: FeedItem | null; onClose?: () => void }) {
   const { readIds, savedIds, markRead, markUnread, toggleSaved } = useFeedStore();
   const [user, setUser] = useState<AuthUser | null>(null);
 
-  useEffect(() => {
-    setUser(getStoredUser());
-  }, []);
+  const { data: articleData, isLoading: articleLoading } = useSWR(
+    item ? `article:${item.id}` : null,
+    () => fetchArticle(item!.source_url),
+    { revalidateOnFocus: false, dedupingInterval: 3_600_000 },
+  );
 
+  useEffect(() => { setUser(getStoredUser()); }, []);
   useEffect(() => {
     if (item && !readIds.has(item.id)) markRead(item.id);
   }, [item?.id]);
@@ -169,6 +296,7 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
   const isRead = readIds.has(item.id);
   const isSaved = savedIds.has(item.id);
   const date = item.published_at ?? item.created_at;
+  const articleText = articleData ?? '';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--reader-bg)' }}>
@@ -199,6 +327,7 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
 
       {/* Content */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
+        {/* City + date */}
         <div style={{ fontSize: 11, color: 'var(--accent)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
           {item.city}
           {date && (
@@ -208,32 +337,91 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
           )}
         </div>
 
+        {/* Title */}
         <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.3, marginBottom: 16, letterSpacing: '-0.3px' }}>
           {item.title}
         </h1>
 
-        {item.categories.length > 0 && (
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 20 }}>
-            {item.categories.slice(0, 4).map(c => (
-              <span key={c} style={{ padding: '2px 8px', borderRadius: 3, background: '#2a2a2a', color: 'var(--text-muted)', fontSize: 11, fontWeight: 500 }}>
-                {c.replace(/-/g, ' ')}
+        {/* Summary block with source link */}
+        {item.summary && (
+          <div style={{
+            padding: '14px 16px', borderRadius: 8,
+            background: '#1a1a1a', border: '1px solid #2a2a2a',
+            marginBottom: 20,
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)' }}>
+                Summary
               </span>
-            ))}
+              <a
+                href={item.source_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontSize: 11, color: 'var(--accent)', textDecoration: 'none' }}
+              >
+                View source ↗
+              </a>
+            </div>
+            <p style={{ fontSize: 14, color: '#b0b0b0', lineHeight: 1.7, margin: 0 }}>
+              {renderSummary(item.summary, item.source_url)}
+            </p>
           </div>
         )}
 
+        {/* Thumbnail */}
         {item.thumbnail_url && item.type === 'text' && (
           <img src={item.thumbnail_url} alt="" style={{ width: '100%', borderRadius: 6, marginBottom: 20, objectFit: 'cover', maxHeight: 240 }} />
         )}
 
+        {/* Video */}
         {item.clip && <VideoPlayer clip={item.clip} />}
 
-        {item.summary && (
-          <p style={{ fontSize: 15, color: '#b0b0b0', lineHeight: 1.75, marginBottom: 24 }}>
-            {renderSummary(item.summary, item.source_url)}
-          </p>
-        )}
+        {/* Full article content */}
+        <div style={{ marginBottom: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)' }}>
+              Full Article
+            </span>
+            {!item.summary && (
+              <a
+                href={item.source_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontSize: 11, color: 'var(--accent)', textDecoration: 'none' }}
+              >
+                View source ↗
+              </a>
+            )}
+          </div>
 
+          {articleLoading && (
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>Fetching article…</p>
+          )}
+
+          {!articleLoading && articleText && (
+            <div style={{ fontSize: 15, color: 'var(--text-primary)', lineHeight: 1.8 }}>
+              {articleText.split('\n\n').map((para, i) => (
+                para.trim() ? (
+                  <p key={i} style={{ marginBottom: 16 }}>{para.trim()}</p>
+                ) : null
+              ))}
+            </div>
+          )}
+
+          {!articleLoading && !articleText && (
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>
+              Could not load article content.{' '}
+              <a href={item.source_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)' }}>
+                Read on source site ↗
+              </a>
+            </p>
+          )}
+        </div>
+
+        {/* Ask AI panel */}
+        <AskAIPanel item={item} articleText={articleText} />
+
+        {/* Comments */}
         <CommentsSection item={item} user={user} />
       </div>
     </div>

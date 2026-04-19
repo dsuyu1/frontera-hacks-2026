@@ -5,7 +5,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { useState } from 'react';
 import useSWR from 'swr';
 
-function sourceDomain(url: string): string {
+export function sourceDomain(url: string): string {
   try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return ''; }
 }
 
@@ -22,7 +22,6 @@ export default function ArticleCard({ item, selected, onSelect }: {
 
   const isVideo = item.type === 'video';
 
-  // Only call /og when the stored thumbnail is absent or broken
   const needsOgFetch = !item.thumbnail_url || storedFailed;
   const { data: ogData } = useSWR(
     needsOgFetch && !isVideo ? `og:${item.source_url}` : null,
@@ -52,11 +51,13 @@ export default function ArticleCard({ item, selected, onSelect }: {
         transition: 'background 0.1s',
         position: 'relative',
         borderLeft: selected ? '2px solid var(--accent)' : '2px solid transparent',
+        borderRadius: 6,
+        overflow: 'hidden',
       }}
       onMouseEnter={e => { if (!selected) (e.currentTarget as HTMLElement).style.background = 'var(--row-hover)'; }}
       onMouseLeave={e => { if (!selected) (e.currentTarget as HTMLElement).style.background = 'var(--row-bg)'; }}
     >
-      {/* Thumbnail */}
+      {/* Thumbnail — no badge overlays */}
       <div style={{ width: '100%', height: 160, background: 'var(--surface, #18181b)', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
         {thumbUrl ? (
           <img
@@ -94,36 +95,28 @@ export default function ArticleCard({ item, selected, onSelect }: {
             )}
           </div>
         )}
-
-        {/* Badges */}
-        <div style={{ position: 'absolute', top: 8, left: 8, display: 'flex', gap: 4 }}>
-          <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.05em', color: '#fff', background: 'var(--accent)', padding: '2px 6px', borderRadius: 3 }}>
-            {item.city}
-          </span>
-          {isVideo && (
-            <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', background: '#3b82f6', padding: '2px 6px', borderRadius: 3 }}>
-              VIDEO
-            </span>
-          )}
-        </div>
-
       </div>
 
       {/* Text */}
-      <div style={{ padding: '10px 14px 12px', flex: 1 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
+      <div style={{ padding: '10px 14px 14px', flex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+          <span style={{ fontSize: 11, color: 'var(--accent)', fontWeight: 600 }}>{item.city}</span>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>·</span>
           <span style={{ fontSize: 11, color: 'var(--text-muted)', flexShrink: 0 }}>
             {date ? formatDistanceToNow(new Date(date), { addSuffix: true }) : ''}
           </span>
+          {isVideo && (
+            <span style={{ fontSize: 10, color: '#3b82f6', fontWeight: 700, marginLeft: 2 }}>VIDEO</span>
+          )}
           {item.clip && (
-            <span style={{ fontSize: 10, color: 'var(--accent)', opacity: 0.7, fontWeight: 600 }}>· CLIP</span>
+            <span style={{ fontSize: 10, color: 'var(--accent)', opacity: 0.7, fontWeight: 600 }}>CLIP</span>
           )}
         </div>
 
         <h3 style={{
           fontSize: 14, fontWeight: isRead ? 400 : 600,
           color: isRead ? 'var(--text-secondary)' : 'var(--text-primary)',
-          lineHeight: 1.4, marginBottom: 5,
+          lineHeight: 1.4, marginBottom: 6,
           display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
         } as React.CSSProperties}>
           {item.title}
@@ -133,9 +126,14 @@ export default function ArticleCard({ item, selected, onSelect }: {
           <p style={{
             fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5,
             display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+            marginBottom: 8,
           } as React.CSSProperties}>
             {item.summary}
           </p>
+        )}
+
+        {domain && (
+          <span style={{ fontSize: 10, color: '#52525b', letterSpacing: '0.02em' }}>{domain}</span>
         )}
       </div>
     </div>

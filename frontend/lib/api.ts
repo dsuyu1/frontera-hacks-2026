@@ -92,4 +92,7 @@ export const api = {
   comments: (itemId: string) => get<{ comments: Comment[] }>(`/comments?item_id=${itemId}`),
   postComment: (itemId: string, text: string) => post<Comment>('/comments', { item_id: itemId, text }),
   deleteComment: (commentId: string) => del(`/comments/${commentId}`),
+  article: (url: string) => get<{ text: string }>(`/article?url=${encodeURIComponent(url)}`),
+  ask: (question: string, articleTitle: string, summary: string | null, articleText: string) =>
+    post<{ answer: string }>('/ask', { question, articleTitle, summary, articleText }),
 };
