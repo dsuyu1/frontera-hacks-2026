@@ -5,6 +5,9 @@ import { formatDistanceToNow } from 'date-fns';
 import { useState } from 'react';
 import useSWR from 'swr';
 import { sourceDomain } from './ArticleCard';
+import { Star } from './Icons';
+import { isFavoriteSource, toggleFavoriteSource } from '@/lib/sources';
+import { getStoredUser, startLogin } from '@/lib/auth';
 
 export default function ArticleRow({ item, selected, onSelect }: {
   item: FeedItem; selected: boolean; onSelect: () => void;
@@ -16,6 +19,7 @@ export default function ArticleRow({ item, selected, onSelect }: {
 
   const isVideo = item.type === 'video';
   const domain = sourceDomain(item.source_url);
+  const isFav = domain ? isFavoriteSource(domain) : false;
   const needsOgFetch = (!item.thumbnail_url || storedFailed) && !isVideo;
   const { data: ogData } = useSWR(
     needsOgFetch ? `og:${item.source_url}` : null,
@@ -75,6 +79,29 @@ export default function ArticleRow({ item, selected, onSelect }: {
             <span style={{ fontSize: 11, padding: '2px 7px', borderRadius: 5, background: '#0f1623', color: '#3b82f6', fontWeight: 700 }}>
               VIDEO
             </span>
+          )}
+          {domain && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!getStoredUser()) {
+                  startLogin();
+                  return;
+                }
+                toggleFavoriteSource(domain);
+              }}
+              style={{
+                marginLeft: 'auto',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 0,
+                color: isFav ? 'var(--accent)' : 'var(--text-muted)',
+              }}
+              aria-label={isFav ? 'Unfavorite source' : 'Favorite source'}
+            >
+              <Star size={16} filled={isFav} />
+            </button>
           )}
         </div>
 

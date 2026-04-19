@@ -259,3 +259,14 @@ export function Volume2(p: IconProps) {
     </Svg>
   );
 }
+
+export function Star({ filled, ...p }: IconProps) {
+  return (
+    <Svg {...p}>
+      <path
+        d="M12 2l2.9 6.2 6.8.6-5.1 4.4 1.6 6.6L12 16.9 5.8 19.8l1.6-6.6L2.3 8.8l6.8-.6L12 2z"
+        fill={filled ? 'currentColor' : 'none'}
+      />
+    </Svg>
+  );
+}

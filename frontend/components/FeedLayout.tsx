@@ -9,6 +9,7 @@ import AiSidePanel from './AiSidePanel';
 import MobileTabs from './MobileTabs';
 import { AUTH_CHANGED_EVENT, getStoredUser, startLogin, AuthUser } from '@/lib/auth';
 import { ChevronRight } from './Icons';
+import { setKnownSourcesFromItems } from '@/lib/sources';
 
 interface Props {
   title: string;
@@ -37,6 +38,10 @@ export default function FeedLayout({ title, items, loading, subtitle }: Props) {
   const [collapsedHeader, setCollapsedHeader] = useState(false);
 
   const groups = useMemo(() => groupBySource(items), [items]);
+
+  useEffect(() => {
+    setKnownSourcesFromItems(items);
+  }, [items]);
 
   // Keyboard nav (flat item list for j/k)
   useEffect(() => {

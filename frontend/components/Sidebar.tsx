@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { AUTH_CHANGED_EVENT, getStoredUser, startLogin, logout, AuthUser } from '@/lib/auth';
-import { Sun, List, Bookmark, Clock, ChevronLeft, ChevronRight, ChevronDown, LogIn } from './Icons';
+import { Sun, List, Bookmark, Clock, ChevronLeft, ChevronRight, ChevronDown, LogIn, Star } from './Icons';
 
 const LOCALITIES = [
   { id: '06252ca8-e5ad-4037-8068-b5b6d1097c55', name: 'Edinburg' },
@@ -17,6 +17,7 @@ const NAV_TOP: NavItem[] = [
   { href: '/all', Icon: List, label: 'All' },
   { href: '/read-later', Icon: Bookmark, label: 'Saved' },
   { href: '/recently-read', Icon: Clock, label: 'History' },
+  { href: '/profile', Icon: Star, label: 'Follow Sources' },
 ];
 
 export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: () => void }) {
