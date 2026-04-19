@@ -98,7 +98,7 @@ export default function SupportLocalPage() {
       <Sidebar open={sidebarOpen} onToggle={() => setSidebarOpen(v => !v)} />
 
       <main id="main-content" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <div style={{ padding: '34px 20px 16px', background: 'var(--main-bg)', flexShrink: 0 }}>
+        <div style={{ padding: '40px 20px 16px', background: 'var(--main-bg)', flexShrink: 0 }}>
           <div style={{ maxWidth: 860, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div>
               <h1 style={{ fontSize: 30, fontWeight: 850 as any, color: 'var(--text-primary)', letterSpacing: '-0.6px', lineHeight: 1.05, margin: 0 }}>

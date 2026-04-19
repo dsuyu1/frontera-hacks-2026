@@ -30,7 +30,7 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
         aria-modal="true"
         aria-labelledby={LABEL_ID}
         style={{
-          background: 'var(--reader-bg)', border: '1px solid var(--border)',
+          background: '#111113', border: '1px solid var(--border)',
           borderRadius: 14, padding: '32px 28px', width: 380,
           maxWidth: 'calc(100vw - 32px)', display: 'flex', flexDirection: 'column', gap: 18,
         }}

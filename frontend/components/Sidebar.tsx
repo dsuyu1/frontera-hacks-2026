@@ -84,7 +84,7 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--sidebar-hover-bg)'; (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)'; }}
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'none'; (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'; }}
         >
-          {open ? <ChevronLeft size={16} /> : null}
+          {open ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
         </button>
       </div>
 
@@ -306,7 +306,30 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
           </div>
         ) : (
           <div style={{ padding: open ? '10px 18px' : '10px 10px', display: 'flex', justifyContent: open ? 'flex-start' : 'center' }}>
-            <AccountMenu compact />
+            <button
+              onClick={() => setShowAuthModal(true)}
+              aria-label="Sign in / Create account"
+              style={{
+                display: 'flex', alignItems: 'center', gap: open ? 10 : 0,
+                justifyContent: open ? 'flex-start' : 'center',
+                width: open ? '100%' : 38,
+                padding: open ? '10px 12px' : '8px 0',
+                background: open ? 'var(--sidebar-hover-bg)' : 'none',
+                border: open ? '1px solid var(--sidebar-border)' : 'none',
+                borderRadius: 10,
+                color: 'var(--text-secondary)',
+                cursor: 'pointer',
+                fontSize: 12,
+                fontWeight: 700,
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)'; }}
+            >
+              <span style={{ width: 22, display: 'flex', justifyContent: 'center', alignItems: 'center', opacity: 0.85, flexShrink: 0 }}>
+                <LogIn size={18} />
+              </span>
+              {open && 'Sign in / Register'}
+            </button>
           </div>
         )}
         {open && (

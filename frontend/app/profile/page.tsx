@@ -110,7 +110,7 @@ export default function ProfilePage() {
       <div style={{ flex: 1, minWidth: 0, overflowY: 'auto' }}>
         {/* Header */}
         <div style={{
-          padding: '34px 28px 16px', borderBottom: '1px solid var(--border)',
+          padding: '40px 28px 16px', borderBottom: '1px solid var(--border)',
           position: 'sticky', top: 0, background: 'var(--main-bg)', zIndex: 5,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>

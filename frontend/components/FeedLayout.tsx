@@ -84,7 +84,7 @@ export default function FeedLayout({ title, items, loading, subtitle, headerActi
 
         {/* Page header */}
         <div style={{
-          padding: collapsedHeader ? '14px 20px' : '34px 20px 16px',
+          padding: collapsedHeader ? '14px 20px' : '40px 20px 16px',
           borderBottom: collapsedHeader ? '1px solid var(--border)' : 'none',
           background: 'var(--main-bg)',
           flexShrink: 0,
