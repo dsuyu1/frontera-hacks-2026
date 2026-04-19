@@ -429,7 +429,7 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
         borderBottom: '1px solid var(--border)',
         position: 'sticky', top: 0, background: 'var(--reader-bg)', zIndex: 1, flexShrink: 0,
       }}>
-        <button onClick={onClose} style={{ ...toolBtn, display: 'flex', alignItems: 'center', gap: 5 }}>
+        <button onClick={() => { stopReading(); onClose?.(); }} style={{ ...toolBtn, display: 'flex', alignItems: 'center', gap: 5 }}>
           <ArrowLeft size={14} /> Back
         </button>
         <div style={{ flex: 1 }} />
@@ -570,6 +570,17 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
 
         {/* Comments */}
         <CommentsSection item={item} user={user} />
+      </div>
+    </div>
+  );
+}
+
+const toolBtn: React.CSSProperties = {
+  padding: '5px 10px', background: 'none', border: '1px solid #333',
+  borderRadius: 4, cursor: 'pointer', fontSize: 12, color: 'var(--text-muted)',
+  transition: 'color 0.1s, border-color 0.1s',
+};
+    <CommentsSection item={item} user={user} />
       </div>
     </div>
   );
