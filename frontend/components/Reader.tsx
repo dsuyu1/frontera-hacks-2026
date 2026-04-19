@@ -183,10 +183,15 @@ function VideoSection({ item }: { item: FeedItem }) {
   const clips = statusData?.clips ?? [];
   const publishedClips = clips.filter(c => c.status === 'published');
 
-  // Derive YouTube embed URL for immediate playback: use video record's embed_url,
-  // or fall back to extracting the video ID from the feed item's source_url.
+  // Derive YouTube embed URL for immediate playback: use video record's embed_url only
+  // if it's a YouTube embed URL; otherwise fall back to extracting from source_url.
   const ytIdMatch = item.source_url.match(/[?&]v=([a-zA-Z0-9_-]{11})/) ?? item.source_url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
-  const immediateEmbedUrl = statusData?.embed_url ?? (ytIdMatch ? `https://www.youtube.com/embed/${ytIdMatch[1]}` : null);
+  const storedEmbed = statusData?.embed_url;
+  const isYouTubeEmbedUrl = (url: string | null | undefined): url is string =>
+    typeof url === 'string' && url.startsWith('https://www.youtube.com/embed/');
+  const immediateEmbedUrl = isYouTubeEmbedUrl(storedEmbed)
+    ? storedEmbed
+    : (ytIdMatch ? `https://www.youtube.com/embed/${ytIdMatch[1]}` : null);
 
   async function triggerPipeline() {
     setRunning(true);
@@ -213,6 +218,28 @@ function VideoSection({ item }: { item: FeedItem }) {
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
           />
+        </div>
+      )}
+
+      {/* External source link for non-YouTube videos (e.g. Swagit/Granicus archives) */}
+      {!immediateEmbedUrl && publishedClips.length === 0 && (
+        <div style={{ marginBottom: 20, padding: '16px', background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 8 }}>
+          <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 12 }}>
+            This video is hosted on an external platform and cannot be embedded directly.
+          </p>
+          <a
+            href={item.source_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '8px 16px', borderRadius: 6,
+              background: 'var(--accent)', color: '#fff',
+              fontSize: 13, fontWeight: 600, textDecoration: 'none',
+            }}
+          >
+            Watch on Source Site <ExternalLink size={12} color="#fff" />
+          </a>
         </div>
       )}
 

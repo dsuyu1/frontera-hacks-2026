@@ -54,6 +54,25 @@ function parseVideoIdsFromListing(html: string): Array<{ id: string; label: stri
   return out;
 }
 
+function extractEmbedUrl(html: string): string | null {
+  // og:video:url is the canonical video stream/embed URL
+  const ogVideoUrl =
+    /<meta[^>]+property=["']og:video:url["'][^>]+content=["']([^"']+)["']/i.exec(html)?.[1] ??
+    /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:video:url["']/i.exec(html)?.[1];
+  if (ogVideoUrl) return ogVideoUrl;
+
+  const ogVideo =
+    /<meta[^>]+property=["']og:video["'][^>]+content=["']([^"']+)["']/i.exec(html)?.[1] ??
+    /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:video["']/i.exec(html)?.[1];
+  if (ogVideo) return ogVideo;
+
+  // Some Granicus pages embed the player in an iframe
+  const iframeSrc = /<iframe[^>]+src=["']([^"']*(?:player|media|granicus|swagit)[^"']*)/i.exec(html)?.[1];
+  if (iframeSrc) return iframeSrc;
+
+  return null;
+}
+
 async function upsertVideoFromSwagit(client: PoolClient, source: SourceRow, videoId: string): Promise<boolean> {
   const dup = await client.query(
     'SELECT id FROM source_items WHERE source_id = $1 AND external_id = $2',
@@ -68,6 +87,9 @@ async function upsertVideoFromSwagit(client: PoolClient, source: SourceRow, vide
   const pageTitle = (/<title>([^<]+)<\/title>/i.exec(pageHtml) ?? [])[1];
   const title = decodeEntities(ogTitle || pageTitle || `Meeting ${videoId}`);
   const publishedAt = parseDateFromTitle(title);
+
+  // Try to extract a real embeddable URL from the page; don't store the page URL itself
+  const embedUrl = extractEmbedUrl(pageHtml);
 
   await client.query(
     `INSERT INTO source_items (source_id, external_id, raw_url, raw_title)
@@ -95,7 +117,7 @@ async function upsertVideoFromSwagit(client: PoolClient, source: SourceRow, vide
   await client.query(
     `INSERT INTO videos (feed_item_id, source_url, embed_url, status)
      VALUES ($1, $2, $3, 'published')`,
-    [feedItemId, videoUrl, videoUrl],
+    [feedItemId, videoUrl, embedUrl],
   );
 
   return true;

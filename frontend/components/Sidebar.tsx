@@ -36,7 +36,6 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
       className="sidebar-desktop"
       style={{
         width: open ? 'var(--sidebar-width)' : 0,
-        minWidth: open ? 'var(--sidebar-width)' : 0,
         flexShrink: 0,
         background: 'var(--sidebar-bg)',
         borderRight: open ? '1px solid var(--sidebar-border)' : 'none',
