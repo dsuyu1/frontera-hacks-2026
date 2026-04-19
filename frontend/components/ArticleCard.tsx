@@ -43,6 +43,7 @@ export default function ArticleCard({ item, selected, onSelect }: {
   })();
 
   const domain = sourceDomain(item.source_url);
+  const categories = (item.categories ?? []).slice(0, 4);
 
   return (
     <div
@@ -141,6 +142,27 @@ export default function ArticleCard({ item, selected, onSelect }: {
           } as React.CSSProperties}>
             {articleData.text.split('\n\n')[0] ?? ''}
           </p>
+        )}
+
+        {categories.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, rowGap: 8, marginBottom: 10 }}>
+            {categories.map(c => (
+              <span
+                key={c}
+                style={{
+                  fontSize: 10,
+                  color: 'var(--text-muted)',
+                  padding: '3px 10px',
+                  borderRadius: 999,
+                  background: '#111',
+                  border: '1px solid #222',
+                  letterSpacing: '0.02em',
+                }}
+              >
+                {c}
+              </span>
+            ))}
+          </div>
         )}
 
         {domain && (
