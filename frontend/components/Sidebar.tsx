@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { AUTH_CHANGED_EVENT, getStoredUser, logout, AuthUser } from '@/lib/auth';
 import { SOURCES_CHANGED_EVENT, getFeedFolders, createFeedFolder, deleteFeedFolder, type FeedFolder } from '@/lib/sources';
@@ -20,6 +20,7 @@ const NAV_TOP: NavItem[] = [
 
 export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: () => void }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [feedsOpen, setFeedsOpen] = useState(true);
   const [user, setUser] = useState<AuthUser | null>(() => getStoredUser());
   const [folders, setFolders] = useState<FeedFolder[]>(() => getFeedFolders());
@@ -181,7 +182,7 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
           {feedsOpen && (
             <div id="feeds-list">
               {folders.map(folder => {
-                const active = pathname === `/feed/${folder.id}`;
+                const active = pathname === '/feed' && searchParams.get('folderId') === folder.id;
                 return (
                   <div
                     key={folder.id}
@@ -191,7 +192,7 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
                     }}
                   >
                     <Link
-                      href={`/feed/${folder.id}`}
+                      href={`/feed?folderId=${folder.id}`}
                       aria-current={active ? 'page' : undefined}
                       style={{
                         flex: 1, display: 'flex', alignItems: 'center', gap: 10,

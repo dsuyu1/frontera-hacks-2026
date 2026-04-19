@@ -1,7 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, test, vi } from 'vitest';
 
-vi.mock('next/navigation', () => ({ usePathname: () => '/today' }));
+vi.mock('next/navigation', () => ({
+  usePathname: () => '/today',
+  useSearchParams: () => new URLSearchParams(),
+}));
 
 vi.mock('@/lib/auth', () => ({
   AUTH_CHANGED_EVENT: 'frontera_auth_changed',

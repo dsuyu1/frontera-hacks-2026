@@ -7,6 +7,7 @@ import { useFocusTrap } from '@/hooks/useFocusTrap';
 import {
   SOURCES_CHANGED_EVENT,
   getFeedFolders,
+  getFavoriteSources,
   getKnownSources,
   updateFeedFolder,
   type FeedFolder,
@@ -17,6 +18,7 @@ const PICKER_LABEL = 'source-picker-title';
 function SourcePicker({ folder, onClose }: { folder: FeedFolder; onClose: () => void }) {
   const containerRef = useFocusTrap(true);
   const [known, setKnown] = useState<string[]>(() => getKnownSources());
+  const [favorites, setFavorites] = useState<string[]>(() => getFavoriteSources());
   const [selected, setSelected] = useState<Set<string>>(new Set(folder.domains));
 
   useEffect(() => {
@@ -26,7 +28,7 @@ function SourcePicker({ folder, onClose }: { folder: FeedFolder; onClose: () => 
   }, [onClose]);
 
   useEffect(() => {
-    const sync = () => setKnown(getKnownSources());
+    const sync = () => { setKnown(getKnownSources()); setFavorites(getFavoriteSources()); };
     window.addEventListener(SOURCES_CHANGED_EVENT, sync);
     return () => window.removeEventListener(SOURCES_CHANGED_EVENT, sync);
   }, []);
@@ -43,6 +45,9 @@ function SourcePicker({ folder, onClose }: { folder: FeedFolder; onClose: () => 
     updateFeedFolder(folder.id, { domains: Array.from(selected).sort() });
     onClose();
   }
+
+  const favoritesInKnown = favorites.filter(d => known.includes(d));
+  const nonFavoriteKnown = known.filter(d => !favoritesInKnown.includes(d));
 
   return (
     <div
@@ -73,28 +78,61 @@ function SourcePicker({ folder, onClose }: { folder: FeedFolder; onClose: () => 
             No sources found yet. Browse a feed first so sources are discovered.
           </p>
         ) : (
-          <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {known.map(domain => (
-              <label
-                key={domain}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 10,
-                  padding: '8px 12px', borderRadius: 6, cursor: 'pointer',
-                  background: selected.has(domain) ? 'var(--sidebar-active-bg)' : 'transparent',
-                  transition: 'background 0.1s',
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={selected.has(domain)}
-                  onChange={() => toggle(domain)}
-                  style={{ accentColor: 'var(--accent)', width: 15, height: 15, cursor: 'pointer' }}
-                />
-                <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: selected.has(domain) ? 600 : 400 }}>
-                  {domain}
-                </span>
-              </label>
-            ))}
+          <div style={{ overflowY: 'auto', flex: 1 }}>
+            {favoritesInKnown.length > 0 && (
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', margin: '0 0 6px 2px' }}>
+                  Favorites
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {favoritesInKnown.map(domain => (
+                    <label
+                      key={domain}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 10,
+                        padding: '8px 12px', borderRadius: 6, cursor: 'pointer',
+                        background: selected.has(domain) ? 'var(--sidebar-active-bg)' : 'transparent',
+                        transition: 'background 0.1s',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selected.has(domain)}
+                        onChange={() => toggle(domain)}
+                        style={{ accentColor: 'var(--accent)', width: 15, height: 15, cursor: 'pointer' }}
+                      />
+                      <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: selected.has(domain) ? 600 : 400 }}>
+                        {domain}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {nonFavoriteKnown.map(domain => (
+                <label
+                  key={domain}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '8px 12px', borderRadius: 6, cursor: 'pointer',
+                    background: selected.has(domain) ? 'var(--sidebar-active-bg)' : 'transparent',
+                    transition: 'background 0.1s',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selected.has(domain)}
+                    onChange={() => toggle(domain)}
+                    style={{ accentColor: 'var(--accent)', width: 15, height: 15, cursor: 'pointer' }}
+                  />
+                  <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: selected.has(domain) ? 600 : 400 }}>
+                    {domain}
+                  </span>
+                </label>
+              ))}
+            </div>
           </div>
         )}
 
@@ -128,6 +166,7 @@ function SourcePicker({ folder, onClose }: { folder: FeedFolder; onClose: () => 
 export default function FolderFeedClient({ folderId }: { folderId: string }) {
   const [folder, setFolder] = useState<FeedFolder | null>(null);
   const [showPicker, setShowPicker] = useState(false);
+  const [autoOpened, setAutoOpened] = useState(false);
   const { data, isLoading } = useFeedItems({ limit: 200 });
 
   useEffect(() => {
@@ -139,6 +178,15 @@ export default function FolderFeedClient({ folderId }: { folderId: string }) {
     window.addEventListener(SOURCES_CHANGED_EVENT, sync);
     return () => window.removeEventListener(SOURCES_CHANGED_EVENT, sync);
   }, [folderId]);
+
+  useEffect(() => {
+    if (autoOpened) return;
+    if (!folder) return;
+    if (folder.domains.length === 0) {
+      setShowPicker(true);
+      setAutoOpened(true);
+    }
+  }, [autoOpened, folder]);
 
   if (!folder) {
     return (
