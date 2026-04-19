@@ -269,11 +269,13 @@ export class IngestStack extends cdk.Stack {
       bundling,
     });
 
+    articleFn.addToRolePolicy(bedrockPolicy);
+
     const articleUrl = articleFn.addFunctionUrl({
       authType: lambda.FunctionUrlAuthType.NONE,
       cors: {
         allowedOrigins: ['*'],
-        allowedMethods: [lambda.HttpMethod.GET],
+        allowedMethods: [lambda.HttpMethod.GET, lambda.HttpMethod.POST],
         allowedHeaders: ['*'],
         maxAge: cdk.Duration.hours(1),
       },

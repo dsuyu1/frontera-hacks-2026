@@ -5,10 +5,13 @@
  * reach external URLs without a NAT Gateway.
  */
 
+import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda';
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 import { buildArticleResponse } from './articleResponse';
+
+const bedrock = new BedrockRuntimeClient({ region: 'us-east-1' });
 
 function json(status: number, body: unknown): APIGatewayProxyResultV2 {
   return {
@@ -17,7 +20,7 @@ function json(status: number, body: unknown): APIGatewayProxyResultV2 {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-      'Access-Control-Allow-Methods': 'GET,OPTIONS',
+      'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
     },
     body: JSON.stringify(body),
   };
@@ -137,6 +140,40 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
       return json(200, { imageUrl });
     } catch {
       return json(200, { imageUrl: null });
+    }
+  }
+
+  // POST /ask — Bedrock Q&A; runs outside VPC so it can reach bedrock.us-east-1.amazonaws.com
+  if (method === 'POST' && path === '/ask') {
+    try {
+      const body = JSON.parse(event.body ?? '{}');
+      const { question, articleText, articleTitle, summary } = body;
+      if (!question) return json(400, { error: 'question required' });
+
+      const context = [
+        articleTitle ? `Title: ${articleTitle}` : '',
+        summary ? `Summary: ${summary}` : '',
+        articleText ? `Article:\n${String(articleText).slice(0, 8000)}` : '',
+      ].filter(Boolean).join('\n\n');
+
+      const res = await bedrock.send(new InvokeModelCommand({
+        modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
+        body: JSON.stringify({
+          anthropic_version: 'bedrock-2023-05-31',
+          max_tokens: 512,
+          system: 'You are a helpful assistant answering questions about a local news article from the Rio Grande Valley, Texas. Be concise and accurate.',
+          messages: [{ role: 'user', content: `${context}\n\nQuestion: ${question}` }],
+        }),
+        contentType: 'application/json',
+        accept: 'application/json',
+      }));
+
+      const bedrockResp = JSON.parse(new TextDecoder().decode(res.body));
+      const answer = bedrockResp.content[0].text.trim();
+      return json(200, { answer });
+    } catch (err) {
+      console.error('Ask error:', err);
+      return json(500, { error: 'Ask failed' });
     }
   }
 

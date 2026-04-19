@@ -1,3 +1,6 @@
+import { Readability } from '@mozilla/readability';
+import { parseHTML } from 'linkedom';
+
 function decodeEntities(text: string): string {
   return text
     .replace(/&amp;/g, '&')
@@ -19,39 +22,6 @@ function stripNoise(html: string): string {
     .replace(/<iframe\b[^>]*>[\s\S]*?<\/iframe>/gi, '');
 }
 
-function pickMainContent(html: string): string {
-  // Greedy matching for semantic block elements that are rarely nested — this ensures we
-  // capture the full container content rather than stopping at the first nested closing tag.
-  const greedySelectors: RegExp[] = [
-    /<[^>]+itemprop=["']articleBody["'][^>]*>([\s\S]*)<\/(?:div|section|article)>/i,
-    /<article\b[^>]*>([\s\S]*)<\/article>/i,
-    /<main\b[^>]*>([\s\S]*)<\/main>/i,
-  ];
-
-  for (const selector of greedySelectors) {
-    const match = html.match(selector);
-    if (match?.[1] && match[1].length > 50) return match[1];
-  }
-
-  // For div-based containers, regex cannot track nesting depth — find the opening tag and
-  // slice a generous chunk so nested divs don't cause early termination.
-  const divPatterns: RegExp[] = [
-    /<div[^>]+id=["'][^"']*(?:article|story|content|main)[^"']*["'][^>]*>/i,
-    /<div[^>]+class=["'][^"']*(?:article-body|article-content|entry-content|post-content|story-body|article-text|news-content|field-body|node-content)[^"']*["'][^>]*>/i,
-  ];
-
-  for (const pattern of divPatterns) {
-    const match = html.match(pattern);
-    if (match) {
-      const start = match.index! + match[0].length;
-      const chunk = html.slice(start, start + 60_000);
-      if (chunk.length > 50) return chunk;
-    }
-  }
-
-  return html;
-}
-
 function htmlToText(html: string): string {
   const withBreaks = html
     .replace(/<\s*br\s*\/?>/gi, '\n')
@@ -68,15 +38,60 @@ function htmlToText(html: string): string {
   );
 }
 
-export function extractArticleTextFromHtml(html: string): string {
+function regexFallback(html: string): string {
   const cleaned = stripNoise(html);
-  const main = pickMainContent(cleaned);
-  const text = htmlToText(main);
 
+  const greedySelectors: RegExp[] = [
+    /<[^>]+itemprop=["']articleBody["'][^>]*>([\s\S]*)<\/(?:div|section|article)>/i,
+    /<article\b[^>]*>([\s\S]*)<\/article>/i,
+    /<main\b[^>]*>([\s\S]*)<\/main>/i,
+  ];
+
+  for (const selector of greedySelectors) {
+    const match = cleaned.match(selector);
+    if (match?.[1] && match[1].length > 50) {
+      return htmlToText(match[1]);
+    }
+  }
+
+  const divPatterns: RegExp[] = [
+    /<div[^>]+id=["'][^"']*(?:article|story|content|main)[^"']*["'][^>]*>/i,
+    /<div[^>]+class=["'][^"']*(?:article-body|article-content|entry-content|post-content|story-body|article-text|news-content|field-body|node-content)[^"']*["'][^>]*>/i,
+  ];
+
+  for (const pattern of divPatterns) {
+    const match = cleaned.match(pattern);
+    if (match) {
+      const start = match.index! + match[0].length;
+      const chunk = cleaned.slice(start, start + 60_000);
+      if (chunk.length > 50) return htmlToText(chunk);
+    }
+  }
+
+  return htmlToText(cleaned);
+}
+
+export function extractArticleTextFromHtml(html: string, pageUrl?: string): string {
+  try {
+    const { document } = parseHTML(html, { url: pageUrl ?? 'https://example.com' });
+    const reader = new Readability(document as unknown as Document);
+    const article = reader.parse();
+    if (article?.textContent && article.textContent.trim().length > 100) {
+      const text = article.textContent
+        .replace(/[ \t]{2,}/g, ' ')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+      return text.slice(0, 14_000);
+    }
+  } catch {
+    // fall through to regex
+  }
+
+  const text = regexFallback(html);
   const paragraphs = text
     .split('\n\n')
     .map(p => p.trim())
     .filter(p => p.length > 40);
 
-  return paragraphs.join('\n\n').slice(0, 14000);
+  return paragraphs.join('\n\n').slice(0, 14_000);
 }

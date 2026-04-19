@@ -19,6 +19,6 @@ export async function buildArticleResponse(res: Response, targetUrl: string): Pr
   }
 
   const html = await res.text();
-  return { text: extractArticleTextFromHtml(html), content_type: ct, embed_url: null };
+  return { text: extractArticleTextFromHtml(html, targetUrl), content_type: ct, embed_url: null };
 }
 

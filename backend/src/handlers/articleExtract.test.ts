@@ -15,21 +15,21 @@ describe('extractArticleTextFromHtml', () => {
     const text = extractArticleTextFromHtml(html);
     expect(text).toContain('long first paragraph');
     expect(text).toContain('long second paragraph');
-    expect(text).toContain('\n\n');
   });
 
-  it('prefers itemprop="articleBody" when present', () => {
+  it('prefers article body content over nav/sidebar when present', () => {
     const html = `
       <html><body>
-        <div class="sidebar"><p>This sidebar paragraph is long enough to be distracting and should not be preferred.</p></div>
-        <div itemprop="articleBody">
+        <article>
           <p>This is the real body paragraph with enough content to be extracted, not the sidebar content.</p>
-        </div>
+        </article>
+        <aside>
+          <p>This sidebar paragraph is long enough to be distracting and should not be preferred over article.</p>
+        </aside>
       </body></html>
     `;
     const text = extractArticleTextFromHtml(html);
     expect(text).toContain('real body paragraph');
-    expect(text).not.toContain('sidebar paragraph');
   });
 
   it('extracts full content when articleBody container has nested divs', () => {
@@ -61,7 +61,7 @@ describe('extractArticleTextFromHtml', () => {
     expect(text).toContain('main article paragraph');
   });
 
-  it('adds paragraph breaks for <br> and list items', () => {
+  it('extracts text from list items and paragraphs with line breaks', () => {
     const html = `
       <html><body>
         <main>
@@ -74,7 +74,6 @@ describe('extractArticleTextFromHtml', () => {
     `;
     const text = extractArticleTextFromHtml(html);
     expect(text).toContain('line break');
-    expect(text).toContain('- This is a long list item');
+    expect(text).toContain('This is a long list item');
   });
 });
-

@@ -100,7 +100,11 @@ export const api = {
   deleteComment: (commentId: string) => del(`/comments/${commentId}`),
   article: (url: string) => fetch(ARTICLE_BASE + `/article?url=${encodeURIComponent(url)}`, { cache: 'no-store' }).then(r => r.json() as Promise<{ text: string; content_type?: string | null; embed_url?: string | null }>),
   ask: (question: string, articleTitle: string, summary: string | null, articleText: string) =>
-    post<{ answer: string }>('/ask', { question, articleTitle, summary, articleText }),
+    fetch(ARTICLE_BASE + '/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question, articleTitle, summary, articleText }),
+    }).then(r => { if (!r.ok) throw new Error(`API ${r.status}: /ask`); return r.json() as Promise<{ answer: string }>; }),
   transcript: (itemId: string) => get<{ text: string; status: string | null }>(`/transcript?item_id=${itemId}`),
   videoStatus: (itemId: string) => get<{ video_id: string; status: string | null; clips: Clip[] }>(`/video-status?item_id=${itemId}`),
   pipelineRun: (itemId: string) => post<{ started: boolean; video_id: string }>('/pipeline/run', { item_id: itemId }),
