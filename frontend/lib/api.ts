@@ -49,6 +49,13 @@ export interface Comment {
   created_at: string;
 }
 
+export interface SupportSource {
+  title: string;
+  url: string;
+  domain: string;
+  snippet: string | null;
+}
+
 function authHeaders(): Record<string, string> {
   try {
     const raw = typeof window !== 'undefined' && localStorage.getItem('frontera_auth');
@@ -108,4 +115,12 @@ export const api = {
   transcript: (itemId: string) => get<{ text: string; status: string | null }>(`/transcript?item_id=${itemId}`),
   videoStatus: (itemId: string) => get<{ video_id: string; status: string | null; embed_url: string | null; clips: Clip[] }>(`/video-status?item_id=${itemId}`),
   pipelineRun: (itemId: string) => post<{ started: boolean; video_id: string }>('/pipeline/run', { item_id: itemId }),
+  supportSources: (p: { q?: string; region?: string; city?: string }) => {
+    const qs = new URLSearchParams();
+    if (p.q) qs.set('q', p.q);
+    if (p.region) qs.set('region', p.region);
+    if (p.city) qs.set('city', p.city);
+    const q = qs.toString();
+    return get<{ sources: SupportSource[] }>(`/support/sources${q ? '?' + q : ''}`);
+  },
 };

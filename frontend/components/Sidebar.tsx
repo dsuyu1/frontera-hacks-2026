@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { AUTH_CHANGED_EVENT, getStoredUser, startLogin, logout, AuthUser } from '@/lib/auth';
 import { SOURCES_CHANGED_EVENT, getFeedFolders, createFeedFolder, deleteFeedFolder, type FeedFolder } from '@/lib/sources';
-import { Sun, List, Bookmark, Clock, ChevronLeft, ChevronRight, ChevronDown, LogIn, Star } from './Icons';
+import { Sun, List, Bookmark, Clock, ChevronLeft, ChevronRight, ChevronDown, LogIn, Star, Heart } from './Icons';
 import AuthModal from './AuthModal';
 
 type NavItem = { href: string; Icon: React.ComponentType<{ size?: number; color?: string }>; label: string };
@@ -14,6 +14,7 @@ const NAV_TOP: NavItem[] = [
   { href: '/read-later', Icon: Bookmark, label: 'Saved' },
   { href: '/recently-read', Icon: Clock, label: 'History' },
   { href: '/profile', Icon: Star, label: 'Follow Sources' },
+  { href: '/support-local', Icon: Heart, label: 'Support Local' },
 ];
 
 export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: () => void }) {
@@ -53,12 +54,12 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
     <aside
       className="sidebar-desktop"
       style={{
-        width: open ? 'var(--sidebar-width)' : 0,
-        minWidth: 0,
+        width: open ? 'var(--sidebar-width)' : 62,
+        minWidth: open ? 'var(--sidebar-width)' : 62,
         flexShrink: 0,
         background: 'var(--sidebar-bg)',
-        borderRight: open ? '1px solid var(--sidebar-border)' : 'none',
-        pointerEvents: open ? 'auto' : 'none',
+        borderRight: '1px solid var(--sidebar-border)',
+        pointerEvents: 'auto',
         display: 'flex',
         flexDirection: 'column',
         height: '100vh',
@@ -68,11 +69,11 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
         transition: 'width 0.22s cubic-bezier(0.4,0,0.2,1)',
       }}
     >
-      <div style={{ padding: '14px 14px 10px', display: 'flex', justifyContent: 'flex-end', flexShrink: 0 }}>
+      <div style={{ padding: open ? '14px 14px 10px' : '14px 10px 10px', display: 'flex', justifyContent: open ? 'flex-end' : 'center', flexShrink: 0 }}>
         <button
           onClick={onToggle}
-          title="Collapse sidebar"
-          aria-label="Collapse sidebar"
+          title={open ? 'Collapse sidebar' : 'Expand sidebar'}
+          aria-label={open ? 'Collapse sidebar' : 'Expand sidebar'}
           style={{
             padding: '6px 8px', background: 'none', border: 'none',
             cursor: 'pointer', color: 'var(--text-muted)', borderRadius: 6,
@@ -82,7 +83,7 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--sidebar-hover-bg)'; (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)'; }}
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'none'; (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'; }}
         >
-          <ChevronLeft size={16} />
+          {open ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
         </button>
       </div>
 
@@ -92,8 +93,9 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
           const active = pathname === n.href || (n.href === '/today' && pathname === '/');
           const isFollowSources = n.href === '/profile';
           const sharedStyle: React.CSSProperties = {
-            display: 'flex', alignItems: 'center', gap: 12,
-            padding: '12px 20px',
+            display: 'flex', alignItems: 'center', gap: open ? 12 : 0,
+            justifyContent: open ? 'flex-start' : 'center',
+            padding: open ? '12px 20px' : '12px 0',
             color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
             background: active ? 'var(--sidebar-active-bg)' : 'transparent',
             fontSize: 14, fontWeight: active ? 650 : 450,
@@ -117,7 +119,7 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
               >
                 {iconEl}
-                {n.label}
+                {open && n.label}
               </button>
             );
           }
@@ -132,12 +134,13 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
               onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
             >
               {iconEl}
-              {n.label}
+              {open && n.label}
             </Link>
           );
         })}
 
         {/* Feeds section */}
+        {open && (
         <div style={{ marginTop: 22 }}>
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -264,12 +267,13 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
             </div>
           )}
         </div>
+        )}
       </nav>
 
       {/* Footer */}
       <div style={{ borderTop: '1px solid var(--sidebar-border)', flexShrink: 0 }}>
         {user ? (
-          <div style={{ padding: '10px 18px', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ padding: open ? '10px 18px' : '10px 10px', display: 'flex', alignItems: 'center', gap: 8, justifyContent: open ? 'flex-start' : 'center' }}>
             <div style={{
               width: 26, height: 26, borderRadius: '50%',
               background: 'var(--accent-dim)', border: '1px solid var(--accent)',
@@ -278,33 +282,41 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
             }}>
               {user.username?.[0]?.toUpperCase() ?? '?'}
             </div>
+            {open && (
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {user.username}
               </div>
             </div>
-            <button onClick={logout} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: 'var(--text-muted)', padding: 0, whiteSpace: 'nowrap' }}>
-              Sign out
+            )}
+            <button
+              onClick={logout}
+              title="Sign out"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: 'var(--text-muted)', padding: 0, whiteSpace: 'nowrap' }}
+            >
+              {open ? 'Sign out' : '⎋'}
             </button>
           </div>
         ) : (
           <button
             onClick={startLogin}
             style={{
-              width: '100%', padding: '12px 20px', background: 'none', border: 'none',
-              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
+              width: '100%', padding: open ? '12px 20px' : '12px 0', background: 'none', border: 'none',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: open ? 'flex-start' : 'center', gap: open ? 8 : 0,
               color: 'var(--accent)', fontSize: 14, fontWeight: 700, transition: 'background 0.1s',
               whiteSpace: 'nowrap',
             }}
             onMouseEnter={e => { (e.currentTarget.style.background = 'var(--sidebar-hover-bg)'); }}
             onMouseLeave={e => { (e.currentTarget.style.background = 'none'); }}
           >
-            <LogIn size={16} /> Sign in
+            <LogIn size={16} /> {open && 'Sign in'}
           </button>
         )}
-        <div style={{ padding: '6px 20px 12px', fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-          Updates daily · 3 AM UTC
-        </div>
+        {open && (
+          <div style={{ padding: '6px 20px 12px', fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+            Updates daily · 3 AM UTC
+          </div>
+        )}
       </div>
 
       {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}

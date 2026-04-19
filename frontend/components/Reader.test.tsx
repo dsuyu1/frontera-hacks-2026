@@ -147,7 +147,7 @@ describe('Reader (text)', () => {
 
     cancel.mockClear();
 
-    const listen = getByRole('button', { name: 'Listen' });
+    const listen = getByRole('button', { name: 'Read article aloud' });
     listen.click();
 
     expect(cancel).toHaveBeenCalledTimes(1);

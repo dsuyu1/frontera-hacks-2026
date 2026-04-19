@@ -13,6 +13,36 @@ const s3 = new S3Client({});
 const sfnClient = new SFNClient({});
 const BUCKET = process.env.S3_BUCKET ?? '';
 
+function decodeHtmlEntities(s: string): string {
+  return s
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+}
+
+export function parseDuckDuckGoHtml(html: string): Array<{ title: string; url: string; snippet: string | null }> {
+  const results: Array<{ title: string; url: string; snippet: string | null }> = [];
+  const anchorRe = /<a[^>]+class="result__a"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g;
+
+  let match: RegExpExecArray | null;
+  while ((match = anchorRe.exec(html)) !== null) {
+    const url = decodeHtmlEntities(match[1]);
+    const rawTitle = match[2].replace(/<[^>]+>/g, '').trim();
+    const title = decodeHtmlEntities(rawTitle);
+
+    const after = html.slice(match.index, Math.min(html.length, match.index + 1800));
+    const snippetMatch = after.match(/class="result__snippet"[^>]*>([\s\S]*?)<\/a>/);
+    const snippetRaw = snippetMatch ? snippetMatch[1].replace(/<[^>]+>/g, '').trim() : '';
+    const snippet = snippetRaw ? decodeHtmlEntities(snippetRaw).replace(/\s+/g, ' ').trim() : null;
+
+    if (url && title) results.push({ title, url, snippet });
+    if (results.length >= 12) break;
+  }
+  return results;
+}
+
 function parseVttToText(vtt: string): string {
   const lines = vtt.split('\n');
   const textLines: string[] = [];
@@ -229,6 +259,36 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
           params,
         );
         return json(200, { items: rows, limit, offset });
+      }
+
+      // GET /support/sources
+      if (method === 'GET' && path === '/support/sources') {
+        const q = (qs.q ?? '').trim();
+        const region = (qs.region ?? '').trim();
+        const city = (qs.city ?? '').trim();
+        const base = [city, region].filter(Boolean).join(' ').trim() || 'Rio Grande Valley';
+        const query = q || `${base} nonprofit volunteer opportunities humanitarian aid donate`;
+        const url = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+        const res = await fetchSafe(url, {
+          headers: {
+            'User-Agent': 'CivicWatchSupportLocal/0.1',
+            'Accept': 'text/html,application/xhtml+xml',
+          },
+          signal: AbortSignal.timeout(12_000),
+        });
+        if (!res.ok) return json(502, { error: 'search_failed', status: res.status });
+        const html = await res.text();
+        const found = parseDuckDuckGoHtml(html);
+        const sources = found.map(r => {
+          const u = new URL(r.url);
+          return {
+            title: r.title,
+            url: r.url,
+            domain: u.hostname.replace(/^www\./, ''),
+            snippet: r.snippet,
+          };
+        });
+        return json(200, { sources });
       }
 
       // GET /feed/:id
