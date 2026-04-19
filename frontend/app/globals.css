@@ -2,7 +2,7 @@
 
 :root {
   /* shadcn/ui zinc-dark palette */
-  --sidebar-bg: #111113;
+  --sidebar-bg: #151518;
   --sidebar-border: #27272a;
   --sidebar-active-bg: #1c1c1f;
   --sidebar-hover-bg: #18181b;
@@ -25,7 +25,7 @@
   --thumb-radius: 6px;
   --row-radius: 0px;
 
-  --sidebar-width: 240px;
+  --sidebar-width: 270px;
   --reader-width: 780px;
 }
 

@@ -48,15 +48,15 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
       }}
     >
       {/* Logo + collapse button */}
-      <div style={{ padding: '18px 16px 14px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexShrink: 0 }}>
+      <div style={{ padding: '20px 18px 16px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexShrink: 0 }}>
         <div>
           <div style={{
-            fontWeight: 700, fontSize: 22, color: 'var(--accent)',
+            fontWeight: 800, fontSize: 24, color: 'var(--accent)',
             letterSpacing: '-0.5px', fontFamily: 'Georgia, serif', whiteSpace: 'nowrap',
           }}>
             frontera
           </div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2, letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3, letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
             RGV Local Government
           </div>
         </div>
@@ -77,63 +77,63 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
       </div>
 
       {/* Nav */}
-      <nav style={{ flex: 1, padding: '4px 0', overflowY: 'auto' }}>
-        {NAV_TOP.map(n => {
-          const active = pathname === n.href || (n.href === '/today' && pathname === '/');
-          return (
-            <Link
-              key={n.href}
-              href={n.href}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 12,
-                padding: '10px 18px',
-                color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
-                background: active ? 'var(--sidebar-active-bg)' : 'transparent',
-                fontSize: 13, fontWeight: active ? 600 : 400,
-                borderLeft: `3px solid ${active ? 'var(--accent)' : 'transparent'}`,
-                transition: 'all 0.1s', whiteSpace: 'nowrap',
-              }}
+        <nav style={{ flex: 1, padding: '6px 0', overflowY: 'auto' }}>
+          {NAV_TOP.map(n => {
+            const active = pathname === n.href || (n.href === '/today' && pathname === '/');
+            return (
+              <Link
+                key={n.href}
+                href={n.href}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '12px 20px',
+                  color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
+                  background: active ? 'var(--sidebar-active-bg)' : 'transparent',
+                  fontSize: 14, fontWeight: active ? 650 : 450,
+                  borderLeft: `3px solid ${active ? 'var(--accent)' : 'transparent'}`,
+                  transition: 'all 0.1s', whiteSpace: 'nowrap',
+                }}
               onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--sidebar-hover-bg)'; }}
               onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
             >
-              <span style={{ width: 22, display: 'flex', justifyContent: 'center', alignItems: 'center', opacity: active ? 1 : 0.65, flexShrink: 0 }}>
-                <n.Icon size={18} />
-              </span>
-              {n.label}
-            </Link>
-          );
-        })}
+                <span style={{ width: 22, display: 'flex', justifyContent: 'center', alignItems: 'center', opacity: active ? 1 : 0.65, flexShrink: 0 }}>
+                  <n.Icon size={20} />
+                </span>
+                {n.label}
+              </Link>
+            );
+          })}
 
         {/* Feeds section */}
-        <div style={{ marginTop: 20 }}>
-          <button
-            onClick={() => setFeedsOpen(v => !v)}
-            style={{
-              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '6px 18px', background: 'none', border: 'none', cursor: 'pointer',
-              color: 'var(--text-muted)', fontSize: 10, fontWeight: 700,
-              textTransform: 'uppercase', letterSpacing: '0.08em',
-            }}
-          >
+          <div style={{ marginTop: 22 }}>
+            <button
+              onClick={() => setFeedsOpen(v => !v)}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '8px 20px', background: 'none', border: 'none', cursor: 'pointer',
+                color: 'var(--text-muted)', fontSize: 10, fontWeight: 700,
+                textTransform: 'uppercase', letterSpacing: '0.08em',
+              }}
+            >
             <span style={{ whiteSpace: 'nowrap' }}>Feeds</span>
             {feedsOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
           </button>
 
-          {feedsOpen && LOCALITIES.map(loc => {
-            const active = pathname === `/locality/${loc.id}`;
-            return (
-              <Link
-                key={loc.id}
-                href={`/locality/${loc.id}`}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 10,
-                  padding: '8px 18px 8px 28px',
-                  color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
-                  background: active ? 'var(--sidebar-active-bg)' : 'transparent',
-                  fontSize: 13, fontWeight: active ? 600 : 400,
-                  borderLeft: `3px solid ${active ? 'var(--accent)' : 'transparent'}`,
-                  transition: 'all 0.1s', whiteSpace: 'nowrap',
-                }}
+            {feedsOpen && LOCALITIES.map(loc => {
+              const active = pathname === `/locality/${loc.id}`;
+              return (
+                <Link
+                  key={loc.id}
+                  href={`/locality/${loc.id}`}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '9px 20px 9px 34px',
+                    color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
+                    background: active ? 'var(--sidebar-active-bg)' : 'transparent',
+                    fontSize: 14, fontWeight: active ? 650 : 450,
+                    borderLeft: `3px solid ${active ? 'var(--accent)' : 'transparent'}`,
+                    transition: 'all 0.1s', whiteSpace: 'nowrap',
+                  }}
                 onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--sidebar-hover-bg)'; }}
                 onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
               >
@@ -150,7 +150,7 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
       </nav>
 
       {/* Footer */}
-      <div style={{ borderTop: '1px solid var(--sidebar-border)', flexShrink: 0 }}>
+        <div style={{ borderTop: '1px solid var(--sidebar-border)', flexShrink: 0 }}>
         {user ? (
           <div style={{ padding: '10px 18px', display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{
@@ -174,9 +174,9 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
           <button
             onClick={startLogin}
             style={{
-              width: '100%', padding: '10px 18px', background: 'none', border: 'none',
+              width: '100%', padding: '12px 20px', background: 'none', border: 'none',
               cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
-              color: 'var(--accent)', fontSize: 13, fontWeight: 600, transition: 'background 0.1s',
+              color: 'var(--accent)', fontSize: 14, fontWeight: 700, transition: 'background 0.1s',
               whiteSpace: 'nowrap',
             }}
             onMouseEnter={e => { (e.currentTarget.style.background = 'var(--sidebar-hover-bg)'); }}
@@ -185,7 +185,7 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
             <LogIn size={16} /> Sign in
           </button>
         )}
-        <div style={{ padding: '6px 18px 10px', fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+        <div style={{ padding: '6px 20px 12px', fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
           Updates daily · 3 AM UTC
         </div>
       </div>
