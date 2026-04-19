@@ -407,11 +407,24 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
   const articleText = articleData?.text ?? '';
   const ttsText = [item.title, item.summary ?? '', articleText].filter(Boolean).join('\n\n');
 
+  function stopReading() {
+    if (!ttsSupported) return;
+    window.speechSynthesis.cancel();
+    setSpeaking(false);
+  }
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') stopReading();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [ttsSupported, item?.id]);
+
   function toggleReadAloud() {
     if (!ttsSupported) return;
     if (speaking) {
-      window.speechSynthesis.cancel();
-      setSpeaking(false);
+      stopReading();
       return;
     }
     const utter = new SpeechSynthesisUtterance(ttsText);
