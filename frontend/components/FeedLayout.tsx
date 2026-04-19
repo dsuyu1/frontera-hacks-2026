@@ -16,6 +16,7 @@ interface Props {
   items: FeedItem[];
   loading?: boolean;
   subtitle?: string;
+  headerAction?: React.ReactNode;
 }
 
 function groupBySource(items: FeedItem[]): { domain: string; items: FeedItem[] }[] {
@@ -30,7 +31,7 @@ function groupBySource(items: FeedItem[]): { domain: string; items: FeedItem[] }
     .map(([domain, items]) => ({ domain, items }));
 }
 
-export default function FeedLayout({ title, items, loading, subtitle }: Props) {
+export default function FeedLayout({ title, items, loading, subtitle, headerAction }: Props) {
   const [selected, setSelected] = useState<FeedItem | null>(null);
   const [user, setUser] = useState<AuthUser | null>(() => getStoredUser());
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -130,21 +131,22 @@ export default function FeedLayout({ title, items, loading, subtitle }: Props) {
                 </div>
               )}
             </div>
-            <div style={{ marginLeft: 'auto' }}>
-            {!user && (
-              <button
-                onClick={startLogin}
-                style={{
-                  padding: '8px 16px', background: 'var(--accent)', color: '#fff',
-                  border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700,
-                  cursor: 'pointer', transition: 'background 0.15s',
-                }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--accent-hover)'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--accent)'; }}
-              >
-                Sign in
-              </button>
-            )}
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+              {headerAction}
+              {!user && (
+                <button
+                  onClick={startLogin}
+                  style={{
+                    padding: '8px 16px', background: 'var(--accent)', color: '#fff',
+                    border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700,
+                    cursor: 'pointer', transition: 'background 0.15s',
+                  }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--accent-hover)'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--accent)'; }}
+                >
+                  Sign in
+                </button>
+              )}
             </div>
           </div>
         </div>

@@ -1,6 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useMemo, useState } from 'react';
+import type { FeedItem } from '@/lib/api';
+import { api } from '@/lib/api';
 
 function Button({ href, variant, children }: { href: string; variant: 'primary' | 'ghost'; children: React.ReactNode }) {
   const base: React.CSSProperties = {
@@ -94,7 +97,7 @@ function SidebarPreview() {
       }}
     >
       <div style={{ padding: '18px 16px 14px' }}>
-        <div style={{ fontWeight: 850 as any, fontSize: 20, letterSpacing: '-0.6px', color: 'var(--accent)' }}>frontera</div>
+        <div style={{ fontWeight: 850 as any, fontSize: 20, letterSpacing: '-0.6px', color: 'var(--accent)' }}>CivicWatch</div>
         <div style={{ marginTop: 5, fontSize: 11, color: 'var(--text-muted)' }}>RGV government feed</div>
       </div>
 
@@ -136,12 +139,69 @@ function SidebarPreview() {
 }
 
 function ListPreview() {
-  const rows = [
-    { title: 'City Commission approves road contract', source: 'mcallentx.gov', meta: '2h ago', active: true },
-    { title: 'Agenda posted: Planning & Zoning', source: 'edinburgtx.gov', meta: 'Today', active: false },
-    { title: 'Special meeting: Budget amendment', source: 'hidalgocountytx.gov', meta: 'Yesterday', active: false },
-    { title: 'Commission meeting highlights (video)', source: 'cameroncountytx', meta: 'Yesterday', active: false },
-  ];
+  type Row = { id?: string; title: string; source: string; meta: string; active: boolean; snippet: string };
+  const [items, setItems] = useState<FeedItem[] | null>(null);
+  const [selectedIdx, setSelectedIdx] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      api.feed({ limit: 12 }),
+      api.feed({ type: 'video', limit: 12 }),
+    ]).then(([text, video]) => {
+      if (cancelled) return;
+      const seen = new Set<string>();
+      const merged = [...(text.items ?? []), ...(video.items ?? [])]
+        .filter((it) => {
+          if (seen.has(it.id)) return false;
+          seen.add(it.id);
+          return true;
+        })
+        .sort((a, b) => {
+          const da = new Date(a.published_at ?? a.created_at).getTime();
+          const db = new Date(b.published_at ?? b.created_at).getTime();
+          return db - da;
+        })
+        .slice(0, 8);
+      setItems(merged);
+      setSelectedIdx(0);
+    }).catch(() => {
+      if (!cancelled) setItems([]);
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    if (!items?.length) return;
+    const t = setInterval(() => {
+      setSelectedIdx((i) => (items.length ? (i + 1) % items.length : 0));
+    }, 4500);
+    return () => clearInterval(t);
+  }, [items]);
+
+  const fallback: Row[] = useMemo(() => ([
+    { title: 'City Commission approves road contract', source: 'mcallentx.new.swagit.com', meta: 'recent', active: true, snippet: 'Key decisions, timeline, and relevant context—summarized fast.' },
+    { title: 'Agenda posted: Planning & Zoning', source: 'edinburgtx.new.swagit.com', meta: 'recent', active: false, snippet: 'What’s being voted on and what to watch.' },
+    { title: 'Special meeting: Budget amendment', source: 'hidalgocountytx.new.swagit.com', meta: 'recent', active: false, snippet: 'Summary of changes and implications.' },
+    { title: 'Commission meeting highlights (video)', source: 'cameroncountytx.new.swagit.com', meta: 'recent', active: false, snippet: 'Watch the key moments without the full replay.' },
+  ]), []);
+
+  const derived: Row[] = items && items.length
+    ? items.map((it, idx): Row => {
+      const url = new URL(it.source_url);
+      const host = url.hostname.replace(/^www\./, '');
+      const date = new Date(it.published_at ?? it.created_at);
+      const meta = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      return {
+        id: it.id,
+        title: it.title,
+        source: host,
+        meta,
+        active: idx === selectedIdx,
+        snippet: it.summary ?? (it.type === 'video' ? 'Meeting video from an official archive.' : 'Headline summary from an official source.'),
+      };
+    })
+    : fallback;
 
   return (
     <div style={{ flex: 1, minWidth: 340, borderRight: '1px solid var(--border)' }}>
@@ -171,14 +231,15 @@ function ListPreview() {
       </div>
 
       <div style={{ padding: '10px 0' }}>
-        {rows.map((r) => (
+        {derived.map((r) => (
           <div
-            key={r.title}
+            key={(r.id ?? r.title) + ':' + r.source}
             style={{
               padding: '12px 16px',
               background: r.active ? 'var(--row-selected)' : 'transparent',
               borderLeft: `2px solid ${r.active ? 'var(--accent)' : 'transparent'}`,
               borderBottom: '1px solid var(--border)',
+              transition: 'background 0.25s, border-color 0.25s',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
@@ -189,7 +250,7 @@ function ListPreview() {
               {r.title}
             </div>
             <div style={{ marginTop: 6, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-              Key decisions, timeline, and relevant context—summarized fast.
+              {r.snippet}
             </div>
           </div>
         ))}
@@ -198,7 +259,7 @@ function ListPreview() {
   );
 }
 
-function ReaderPreview() {
+function ReaderPreview({ title, source }: { title: string; source: string }) {
   return (
     <div style={{ width: 460, background: 'var(--reader-bg)' }}>
       <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -211,10 +272,10 @@ function ReaderPreview() {
 
       <div style={{ padding: 18 }}>
         <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-          McAllen · Commission
+          {source}
         </div>
         <div style={{ marginTop: 10, fontSize: 18, fontWeight: 900, letterSpacing: '-0.4px', lineHeight: 1.2 }}>
-          City Commission approves road contract
+          {title}
         </div>
         <div style={{ marginTop: 10, fontSize: 12, color: 'var(--text-muted)' }}>Summary</div>
         <div style={{ marginTop: 6, padding: '12px 12px', borderRadius: 12, border: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)' }}>
@@ -252,7 +313,70 @@ function ReaderPreview() {
   );
 }
 
+function LiveReaderCarousel({ items, selectedIdx }: { items: Array<{ title: string; source: string }>; selectedIdx: number }) {
+  const current = items[selectedIdx] ?? items[0];
+  return (
+    <div style={{ position: 'relative' }}>
+      <div
+        key={`${selectedIdx}:${current?.title}`}
+        style={{
+          animation: 'fadeIn 450ms ease',
+        }}
+      >
+        <ReaderPreview title={current?.title ?? 'Loading…'} source={current?.source ?? ''} />
+      </div>
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(6px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 export default function LandingPage() {
+  const [liveItems, setLiveItems] = useState<Array<{ title: string; source: string }> | null>(null);
+  const [idx, setIdx] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      api.feed({ limit: 10 }),
+      api.feed({ type: 'video', limit: 10 }),
+    ]).then(([text, video]) => {
+      if (cancelled) return;
+      const seen = new Set<string>();
+      const merged = [...(text.items ?? []), ...(video.items ?? [])]
+        .filter((it) => {
+          if (seen.has(it.id)) return false;
+          seen.add(it.id);
+          return true;
+        })
+        .sort((a, b) => {
+          const da = new Date(a.published_at ?? a.created_at).getTime();
+          const db = new Date(b.published_at ?? b.created_at).getTime();
+          return db - da;
+        })
+        .slice(0, 6)
+        .map((it) => {
+          const host = new URL(it.source_url).hostname.replace(/^www\./, '');
+          return { title: it.title, source: host };
+        });
+      setLiveItems(merged);
+      setIdx(0);
+    }).catch(() => {
+      if (!cancelled) setLiveItems([]);
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    if (!liveItems?.length) return;
+    const t = setInterval(() => setIdx((i) => (i + 1) % liveItems.length), 4500);
+    return () => clearInterval(t);
+  }, [liveItems]);
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--main-bg)', color: 'var(--text-primary)' }}>
       <header
@@ -277,7 +401,7 @@ export default function LandingPage() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ fontWeight: 900, letterSpacing: '-0.6px', fontSize: 15 }}>frontera</div>
+            <div style={{ fontWeight: 900, letterSpacing: '-0.6px', fontSize: 15 }}>CivicWatch</div>
             <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>Feedly‑style local government reader</span>
           </div>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -339,7 +463,10 @@ export default function LandingPage() {
           <div style={{ display: 'flex', alignItems: 'stretch', minHeight: 520 }}>
             <SidebarPreview />
             <ListPreview />
-            <ReaderPreview />
+            <LiveReaderCarousel
+              items={liveItems?.length ? liveItems : [{ title: 'City Commission approves road contract', source: 'mcallentx.new.swagit.com' }]}
+              selectedIdx={idx}
+            />
           </div>
         </div>
 

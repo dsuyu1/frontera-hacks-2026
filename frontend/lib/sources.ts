@@ -86,3 +86,10 @@ export function deleteFeedFolder(id: string) {
   emitChange();
 }
 
+export function updateFeedFolder(id: string, updates: Partial<Omit<FeedFolder, 'id'>>) {
+  if (typeof window === 'undefined') return;
+  const next = getFeedFolders().map(f => f.id === id ? { ...f, ...updates } : f);
+  localStorage.setItem(FEEDS_KEY, JSON.stringify(next));
+  emitChange();
+}
+

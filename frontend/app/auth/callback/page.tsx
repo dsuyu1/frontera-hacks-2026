@@ -29,7 +29,7 @@ function CallbackInner() {
     }}>
       {status === 'loading' ? (
         <>
-          <div style={{ fontSize: 24, color: '#f97316' }}>frontera</div>
+          <div style={{ fontSize: 24, color: '#f97316' }}>CivicWatch</div>
           <div style={{ fontSize: 14, color: '#666' }}>Signing you in…</div>
         </>
       ) : (
