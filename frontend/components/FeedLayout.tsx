@@ -70,7 +70,7 @@ export default function FeedLayout({ title, items, loading, subtitle }: Props) {
 
         {/* Page header */}
         <div style={{
-          padding: collapsedHeader ? '10px 20px' : '20px 20px 14px',
+          padding: collapsedHeader ? '12px 20px' : '26px 20px 14px',
           borderBottom: collapsedHeader ? '1px solid var(--border)' : 'none',
           background: 'var(--main-bg)',
           flexShrink: 0,
