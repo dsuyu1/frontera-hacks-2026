@@ -1,4 +1,8 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://wn6j71l493.execute-api.us-east-1.amazonaws.com';
+// Article-fetch Lambda lives outside the VPC so it can reach external URLs.
+// Set NEXT_PUBLIC_ARTICLE_URL to the ArticleUrl CDK output (without trailing slash).
+// Falls back to API_BASE so local dev still works without a second Lambda deployed.
+const ARTICLE_BASE = process.env.NEXT_PUBLIC_ARTICLE_URL ?? API_BASE;
 
 export interface Locality { id: string; region: string; county: string | null; city: string; name: string }
 export interface Category { id: string; slug: string; name: string }
@@ -90,11 +94,11 @@ export const api = {
   },
   feedItem: (id: string) => get<FeedItem>(`/feed/${id}`),
   trending: () => get<{ topics: TrendingTopic[] }>('/trending'),
-  og: (url: string) => get<{ imageUrl: string | null }>(`/og?url=${encodeURIComponent(url)}`),
+  og: (url: string) => fetch(ARTICLE_BASE + `/og?url=${encodeURIComponent(url)}`, { cache: 'no-store' }).then(r => r.json() as Promise<{ imageUrl: string | null }>),
   comments: (itemId: string) => get<{ comments: Comment[] }>(`/comments?item_id=${itemId}`),
   postComment: (itemId: string, text: string) => post<Comment>('/comments', { item_id: itemId, text }),
   deleteComment: (commentId: string) => del(`/comments/${commentId}`),
-  article: (url: string) => get<{ text: string; content_type?: string | null; embed_url?: string | null }>(`/article?url=${encodeURIComponent(url)}`),
+  article: (url: string) => fetch(ARTICLE_BASE + `/article?url=${encodeURIComponent(url)}`, { cache: 'no-store' }).then(r => r.json() as Promise<{ text: string; content_type?: string | null; embed_url?: string | null }>),
   ask: (question: string, articleTitle: string, summary: string | null, articleText: string) =>
     post<{ answer: string }>('/ask', { question, articleTitle, summary, articleText }),
   transcript: (itemId: string) => get<{ text: string; status: string | null }>(`/transcript?item_id=${itemId}`),

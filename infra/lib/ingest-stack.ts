@@ -234,6 +234,8 @@ export class IngestStack extends cdk.Stack {
       environment: {
         CLIPS_CDN_DOMAIN: f.cdnDomain,
         PIPELINE_SM_ARN: pipeline.stateMachineArn,
+        // Reuse the same state machine for per-video manual triggers
+        PIPELINE_VIDEO_SM_ARN: pipeline.stateMachineArn,
       },
     });
     secret.grantRead(apiFn);
@@ -251,10 +253,40 @@ export class IngestStack extends cdk.Stack {
       },
     });
 
+    // ── Article-fetch Lambda (NOT in VPC — needs public internet access) ───────
+    // The API Lambda lives in private subnets for DB access; without a NAT Gateway
+    // it cannot reach external URLs.  This separate Lambda has no VPC attachment so
+    // it can freely fetch article HTML and OG images from news sites.
+    const articleFn = new nodejs.NodejsFunction(this, 'ArticleFunction', {
+      entry: path.join(backendRoot, 'src', 'handlers', 'article.ts'),
+      handler: 'handler',
+      projectRoot: backendRoot,
+      depsLockFilePath: path.join(backendRoot, 'package-lock.json'),
+      runtime: lambda.Runtime.NODEJS_20_X,
+      timeout: cdk.Duration.seconds(29),
+      memorySize: 512,
+      // No vpcConfig — intentionally public so it can reach external URLs
+      bundling,
+    });
+
+    const articleUrl = articleFn.addFunctionUrl({
+      authType: lambda.FunctionUrlAuthType.NONE,
+      cors: {
+        allowedOrigins: ['*'],
+        allowedMethods: [lambda.HttpMethod.GET],
+        allowedHeaders: ['*'],
+        maxAge: cdk.Duration.hours(1),
+      },
+    });
+
     // ── Outputs ───────────────────────────────────────────────────────────────
     new cdk.CfnOutput(this, 'ApiUrl', {
       value: apiUrl.url,
       description: 'Set NEXT_PUBLIC_API_URL to this value (without trailing slash)',
+    });
+    new cdk.CfnOutput(this, 'ArticleUrl', {
+      value: articleUrl.url,
+      description: 'Set NEXT_PUBLIC_ARTICLE_URL to this value (without trailing slash)',
     });
     new cdk.CfnOutput(this, 'PipelineArn', {
       value: pipeline.stateMachineArn,

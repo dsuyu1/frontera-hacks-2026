@@ -151,7 +151,7 @@ const CLIP_SELECT = `json_build_object(
   'id', c.id, 's3_key', c.s3_key, 'embed_url', c.embed_url,
   'title', c.title, 'summary', c.summary,
   'start_time_s', c.start_time_s, 'end_time_s', c.end_time_s,
-  'categories', c.categories
+  'categories', c.categories, 'status', c.status
 )`;
 
 export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> => {
@@ -482,12 +482,18 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
         if (!video) return json(200, { status: null, clips: [] });
 
         const { rows: clips } = await db.query(
-          `SELECT id, status, title, summary, start_time_s, end_time_s, embed_url
+          `SELECT id, status, title, summary, start_time_s, end_time_s, embed_url, s3_key
            FROM clips WHERE video_id = $1 ORDER BY start_time_s`,
           [video.id],
         );
 
-        return json(200, { video_id: video.id, status: video.status, clips });
+        const cdnDomain = process.env.CLIPS_CDN_DOMAIN;
+        const clipsWithPlayback = clips.map(c => ({
+          ...c,
+          playback_url: c.s3_key ? `https://${cdnDomain}/${c.s3_key}` : c.embed_url,
+        }));
+
+        return json(200, { video_id: video.id, status: video.status, clips: clipsWithPlayback });
       }
 
       // POST /pipeline/run — manually trigger per-video pipeline
