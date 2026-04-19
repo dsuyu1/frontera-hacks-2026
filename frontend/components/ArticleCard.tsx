@@ -10,10 +10,11 @@ export function sourceDomain(url: string): string {
   try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return ''; }
 }
 
-export default function ArticleCard({ item, selected, onSelect }: {
+export default function ArticleCard({ item, selected, onSelect, style }: {
   item: FeedItem;
   selected: boolean;
   onSelect: () => void;
+  style?: React.CSSProperties;
 }) {
   const { readIds } = useFeedStore();
   const isRead = readIds.has(item.id);
@@ -61,6 +62,7 @@ export default function ArticleCard({ item, selected, onSelect }: {
         borderLeft: selected ? '2px solid var(--accent)' : '2px solid transparent',
         borderRadius: 6,
         overflow: 'hidden',
+        ...style,
       }}
       onMouseEnter={e => { if (!selected) (e.currentTarget as HTMLElement).style.background = 'var(--row-hover)'; }}
       onMouseLeave={e => { if (!selected) (e.currentTarget as HTMLElement).style.background = 'var(--row-bg)'; }}

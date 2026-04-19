@@ -52,8 +52,6 @@ describe('FeedLayout sections', () => {
     );
 
     expect(screen.getByText('Trending')).toBeInTheDocument();
-    expect(screen.getByText('Politics')).toBeInTheDocument();
-    expect(screen.getByText('Finance')).toBeInTheDocument();
 
     const ids = articleCardMock.mock.calls.map(c => (c[0] as any).item.id);
     expect(ids).toContain('tr1');
@@ -62,4 +60,3 @@ describe('FeedLayout sections', () => {
     expect(ids).toContain('r1');
   });
 });
-

@@ -16,16 +16,8 @@ interface Props {
   loading?: boolean;
 }
 
-function groupBySource(items: FeedItem[]): { domain: string; items: FeedItem[] }[] {
-  const map = new Map<string, FeedItem[]>();
-  for (const item of items) {
-    const domain = sourceDomain(item.source_url) || 'Unknown';
-    if (!map.has(domain)) map.set(domain, []);
-    map.get(domain)!.push(item);
-  }
-  return Array.from(map.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([domain, items]) => ({ domain, items }));
+function stableKey(item: FeedItem) {
+  return `${item.id}:${sourceDomain(item.source_url)}`;
 }
 
 export default function FeedLayout({ title, items, loading }: Props) {
@@ -42,20 +34,9 @@ export default function FeedLayout({ title, items, loading }: Props) {
     const trending = items.filter(i => trendingIds.has(i.id) && !used.has(i.id)).slice(0, 6);
     trending.forEach(i => used.add(i.id));
 
-    const politicsSlugs = new Set(['politics-elections', 'city-council', 'planning-zoning']);
-    const financeSlugs = new Set(['budget-taxes', 'economic-development', 'business']);
-
-    const politics = items.filter(i => !used.has(i.id) && i.categories?.some(c => politicsSlugs.has(c))).slice(0, 8);
-    politics.forEach(i => used.add(i.id));
-
-    const finance = items.filter(i => !used.has(i.id) && i.categories?.some(c => financeSlugs.has(c))).slice(0, 8);
-    finance.forEach(i => used.add(i.id));
-
     const rest = items.filter(i => !used.has(i.id));
-    return { trending, politics, finance, rest };
+    return { trending, rest };
   }, [items, trendingData]);
-
-  const groups = groupBySource(sectioned.rest);
 
   // Keyboard nav (flat item list for j/k)
   useEffect(() => {
@@ -160,91 +141,59 @@ export default function FeedLayout({ title, items, loading }: Props) {
             )}
 
             <div style={{ maxWidth: 1180, margin: '0 auto', padding: '24px 20px 48px' }}>
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-                gap: 18,
-                marginBottom: 42,
-              }}>
-                {(
-                  [
-                    { title: 'Trending', items: sectioned.trending },
-                    { title: 'Politics', items: sectioned.politics },
-                    { title: 'Finance', items: sectioned.finance },
-                  ] as const
-                ).map(section => (
-                  <div
-                    key={section.title}
-                    style={{
-                      border: '1px solid var(--border)',
-                      borderRadius: 12,
-                      background: 'var(--row-bg)',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <div style={{
-                      padding: '14px 14px 10px',
-                      borderBottom: '1px solid var(--border)',
-                      display: 'flex',
-                      alignItems: 'baseline',
-                      gap: 10,
-                    }}>
-                      <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.4px' }}>
-                        {section.title}
-                      </div>
-                      <div style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text-muted)' }}>
-                        {section.items.length}
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: 14 }}>
-                      {section.items.map(item => (
-                        <ArticleCard
-                          key={item.id}
-                          item={item}
-                          selected={selected?.id === item.id}
-                          onSelect={() => setSelected(item)}
-                        />
-                      ))}
-                      {section.items.length === 0 && (
-                        <div style={{ fontSize: 13, color: 'var(--text-muted)', padding: '18px 6px' }}>
-                          Nothing yet.
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {groups.map(({ domain, items: groupItems }) => (
-                <div key={domain} style={{ marginBottom: 40 }}>
-                  {/* Source header */}
+              {sectioned.trending.length > 0 && (
+                <>
                   <div style={{
-                    display: 'flex', alignItems: 'center', gap: 10,
+                    display: 'flex', alignItems: 'center', gap: 12,
                     marginBottom: 14,
                   }}>
-                    <span style={{
-                      fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
-                      letterSpacing: '0.08em', color: 'var(--text-muted)',
-                    }}>
-                      {domain}
-                    </span>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.4px' }}>
+                      Trending
+                    </div>
                     <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
-                    <span style={{ fontSize: 11, color: '#3f3f46' }}>{groupItems.length}</span>
                   </div>
 
-                  {/* Cards */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    {groupItems.map(item => (
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: 16,
+                      overflowX: 'auto',
+                      paddingBottom: 12,
+                      marginBottom: 18,
+                      scrollSnapType: 'x mandatory',
+                    }}
+                  >
+                    {sectioned.trending.map(item => (
                       <ArticleCard
-                        key={item.id}
+                        key={stableKey(item)}
                         item={item}
                         selected={selected?.id === item.id}
                         onSelect={() => setSelected(item)}
+                        style={{ width: 320, flexShrink: 0, scrollSnapAlign: 'start' }}
                       />
                     ))}
                   </div>
-                </div>
-              ))}
+
+                  <div style={{ height: 1, background: 'var(--border)', margin: '12px 0 22px' }} />
+                </>
+              )}
+
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                  gap: 18,
+                }}
+              >
+                {sectioned.rest.map(item => (
+                  <ArticleCard
+                    key={stableKey(item)}
+                    item={item}
+                    selected={selected?.id === item.id}
+                    onSelect={() => setSelected(item)}
+                  />
+                ))}
+              </div>
             </div>
           </div>
 
