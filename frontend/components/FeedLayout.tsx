@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FeedItem } from '@/lib/api';
 import Sidebar from './Sidebar';
 import ArticleCard, { sourceDomain } from './ArticleCard';
@@ -8,6 +8,7 @@ import AiSidePanel from './AiSidePanel';
 import MobileTabs from './MobileTabs';
 import { getStoredUser, startLogin, AuthUser } from '@/lib/auth';
 import { ChevronRight } from './Icons';
+import { useTrending } from '@/hooks/useFeed';
 
 interface Props {
   title: string;
@@ -32,7 +33,29 @@ export default function FeedLayout({ title, items, loading }: Props) {
   const [user] = useState<AuthUser | null>(() => getStoredUser());
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  const groups = groupBySource(items);
+  const { data: trendingData } = useTrending();
+
+  const sectioned = useMemo(() => {
+    const trendingIds = new Set((trendingData?.topics ?? []).flatMap(t => t.articles.map(a => a.id)));
+    const used = new Set<string>();
+
+    const trending = items.filter(i => trendingIds.has(i.id) && !used.has(i.id)).slice(0, 6);
+    trending.forEach(i => used.add(i.id));
+
+    const politicsSlugs = new Set(['politics-elections', 'city-council', 'planning-zoning']);
+    const financeSlugs = new Set(['budget-taxes', 'economic-development', 'business']);
+
+    const politics = items.filter(i => !used.has(i.id) && i.categories?.some(c => politicsSlugs.has(c))).slice(0, 8);
+    politics.forEach(i => used.add(i.id));
+
+    const finance = items.filter(i => !used.has(i.id) && i.categories?.some(c => financeSlugs.has(c))).slice(0, 8);
+    finance.forEach(i => used.add(i.id));
+
+    const rest = items.filter(i => !used.has(i.id));
+    return { trending, politics, finance, rest };
+  }, [items, trendingData]);
+
+  const groups = groupBySource(sectioned.rest);
 
   // Keyboard nav (flat item list for j/k)
   useEffect(() => {
@@ -138,6 +161,81 @@ export default function FeedLayout({ title, items, loading }: Props) {
 
             {/* Single-column feed grouped by source */}
             <div style={{ maxWidth: 680, margin: '0 auto', padding: '24px 20px 48px' }}>
+              <div style={{ marginBottom: 40 }}>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  marginBottom: 14,
+                }}>
+                  <span style={{
+                    fontSize: 11, fontWeight: 800, textTransform: 'uppercase',
+                    letterSpacing: '0.08em', color: 'var(--text-muted)',
+                  }}>
+                    Trending
+                  </span>
+                  <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {sectioned.trending.map(item => (
+                    <ArticleCard
+                      key={item.id}
+                      item={item}
+                      selected={selected?.id === item.id}
+                      onSelect={() => setSelected(item)}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ marginBottom: 40 }}>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  marginBottom: 14,
+                }}>
+                  <span style={{
+                    fontSize: 11, fontWeight: 800, textTransform: 'uppercase',
+                    letterSpacing: '0.08em', color: 'var(--text-muted)',
+                  }}>
+                    Politics
+                  </span>
+                  <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {sectioned.politics.map(item => (
+                    <ArticleCard
+                      key={item.id}
+                      item={item}
+                      selected={selected?.id === item.id}
+                      onSelect={() => setSelected(item)}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ marginBottom: 40 }}>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  marginBottom: 14,
+                }}>
+                  <span style={{
+                    fontSize: 11, fontWeight: 800, textTransform: 'uppercase',
+                    letterSpacing: '0.08em', color: 'var(--text-muted)',
+                  }}>
+                    Finance
+                  </span>
+                  <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {sectioned.finance.map(item => (
+                    <ArticleCard
+                      key={item.id}
+                      item={item}
+                      selected={selected?.id === item.id}
+                      onSelect={() => setSelected(item)}
+                    />
+                  ))}
+                </div>
+              </div>
+
               {groups.map(({ domain, items: groupItems }) => (
                 <div key={domain} style={{ marginBottom: 40 }}>
                   {/* Source header */}
