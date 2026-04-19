@@ -7,7 +7,7 @@ import ArticleRow from './ArticleRow';
 import Reader from './Reader';
 import AiSidePanel from './AiSidePanel';
 import MobileTabs from './MobileTabs';
-import { getStoredUser, startLogin, AuthUser } from '@/lib/auth';
+import { AUTH_CHANGED_EVENT, getStoredUser, startLogin, AuthUser } from '@/lib/auth';
 import { ChevronRight } from './Icons';
 
 interface Props {
@@ -31,7 +31,7 @@ function groupBySource(items: FeedItem[]): { domain: string; items: FeedItem[] }
 
 export default function FeedLayout({ title, items, loading, subtitle }: Props) {
   const [selected, setSelected] = useState<FeedItem | null>(null);
-  const [user] = useState<AuthUser | null>(() => getStoredUser());
+  const [user, setUser] = useState<AuthUser | null>(() => getStoredUser());
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const [collapsedHeader, setCollapsedHeader] = useState(false);
@@ -61,6 +61,12 @@ export default function FeedLayout({ title, items, loading, subtitle }: Props) {
     return () => el.removeEventListener('scroll', onScroll);
   }, []);
 
+  useEffect(() => {
+    const sync = () => setUser(getStoredUser());
+    window.addEventListener(AUTH_CHANGED_EVENT, sync);
+    return () => window.removeEventListener(AUTH_CHANGED_EVENT, sync);
+  }, []);
+
   return (
     <div style={{ display: 'flex', height: '100vh', background: 'var(--main-bg)', overflow: 'hidden' }}>
       <Sidebar open={sidebarOpen} onToggle={() => setSidebarOpen(v => !v)} />
@@ -70,7 +76,7 @@ export default function FeedLayout({ title, items, loading, subtitle }: Props) {
 
         {/* Page header */}
         <div style={{
-          padding: collapsedHeader ? '12px 20px' : '26px 20px 14px',
+          padding: collapsedHeader ? '14px 20px' : '34px 20px 16px',
           borderBottom: collapsedHeader ? '1px solid var(--border)' : 'none',
           background: 'var(--main-bg)',
           flexShrink: 0,
