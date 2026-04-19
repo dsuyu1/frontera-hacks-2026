@@ -6,6 +6,7 @@ import ArticleCard, { sourceDomain } from './ArticleCard';
 import Reader from './Reader';
 import MobileTabs from './MobileTabs';
 import { getStoredUser, startLogin, AuthUser } from '@/lib/auth';
+import { ChevronRight } from './Icons';
 
 interface Props {
   title: string;
@@ -77,7 +78,7 @@ export default function FeedLayout({ title, items, loading }: Props) {
               onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.color = 'var(--text-primary)'; el.style.borderColor = 'var(--text-muted)'; }}
               onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.color = 'var(--text-muted)'; el.style.borderColor = 'var(--border)'; }}
             >
-              →
+              <ChevronRight size={16} />
             </button>
           )}
           <h1 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>

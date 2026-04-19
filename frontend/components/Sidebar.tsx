@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { getStoredUser, startLogin, logout, AuthUser } from '@/lib/auth';
+import { Sun, List, Bookmark, Clock, ChevronLeft, ChevronRight, ChevronDown, LogIn } from './Icons';
 
 const LOCALITIES = [
   { id: '06252ca8-e5ad-4037-8068-b5b6d1097c55', name: 'Edinburg' },
@@ -10,11 +11,12 @@ const LOCALITIES = [
   { id: '210f6afb-eaf1-48e5-ab8a-38c624a6fb47', name: 'Mission' },
 ];
 
-const NAV_TOP = [
-  { href: '/today', icon: '☀', label: 'Today' },
-  { href: '/all', icon: '≡', label: 'All' },
-  { href: '/read-later', icon: '⊡', label: 'Saved' },
-  { href: '/recently-read', icon: '◷', label: 'History' },
+type NavItem = { href: string; Icon: React.ComponentType<{ size?: number; color?: string }>; label: string };
+const NAV_TOP: NavItem[] = [
+  { href: '/today', Icon: Sun, label: 'Today' },
+  { href: '/all', Icon: List, label: 'All' },
+  { href: '/read-later', Icon: Bookmark, label: 'Saved' },
+  { href: '/recently-read', Icon: Clock, label: 'History' },
 ];
 
 export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: () => void }) {
@@ -60,13 +62,13 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
           style={{
             marginTop: 2, padding: '4px 6px', background: 'none', border: 'none',
             cursor: 'pointer', color: 'var(--text-muted)', borderRadius: 4,
-            fontSize: 16, lineHeight: 1, flexShrink: 0,
+            lineHeight: 1, flexShrink: 0,
             transition: 'color 0.1s, background 0.1s',
           }}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--sidebar-hover-bg)'; (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)'; }}
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'none'; (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'; }}
         >
-          ←
+          <ChevronLeft size={16} />
         </button>
       </div>
 
@@ -90,8 +92,8 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
               onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--sidebar-hover-bg)'; }}
               onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
             >
-              <span style={{ width: 22, textAlign: 'center', fontSize: 20, opacity: active ? 1 : 0.65, flexShrink: 0, lineHeight: 1 }}>
-                {n.icon}
+              <span style={{ width: 22, display: 'flex', justifyContent: 'center', alignItems: 'center', opacity: active ? 1 : 0.65, flexShrink: 0 }}>
+                <n.Icon size={18} />
               </span>
               {n.label}
             </Link>
@@ -110,7 +112,7 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
             }}
           >
             <span style={{ whiteSpace: 'nowrap' }}>Feeds</span>
-            <span style={{ fontSize: 9 }}>{feedsOpen ? '▾' : '▸'}</span>
+            {feedsOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
           </button>
 
           {feedsOpen && LOCALITIES.map(loc => {
@@ -176,7 +178,7 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
             onMouseEnter={e => { (e.currentTarget.style.background = 'var(--sidebar-hover-bg)'); }}
             onMouseLeave={e => { (e.currentTarget.style.background = 'none'); }}
           >
-            <span style={{ fontSize: 16 }}>→</span> Sign in
+            <LogIn size={16} /> Sign in
           </button>
         )}
         <div style={{ padding: '6px 18px 10px', fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>

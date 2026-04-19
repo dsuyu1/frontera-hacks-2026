@@ -1,12 +1,14 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Sun, List, Bookmark, Clock } from './Icons';
 
-const TABS = [
-  { href: '/today', icon: '☀', label: 'Today' },
-  { href: '/all', icon: '≡', label: 'All' },
-  { href: '/read-later', icon: '⊡', label: 'Saved' },
-  { href: '/recently-read', icon: '◷', label: 'History' },
+type Tab = { href: string; Icon: React.ComponentType<{ size?: number }>; label: string };
+const TABS: Tab[] = [
+  { href: '/today', Icon: Sun, label: 'Today' },
+  { href: '/all', Icon: List, label: 'All' },
+  { href: '/read-later', Icon: Bookmark, label: 'Saved' },
+  { href: '/recently-read', Icon: Clock, label: 'History' },
 ];
 
 export default function MobileTabs() {
@@ -21,7 +23,7 @@ export default function MobileTabs() {
             href={t.href}
             className={`mobile-tab-btn${active ? ' active' : ''}`}
           >
-            <span className="mobile-tab-icon">{t.icon}</span>
+            <span className="mobile-tab-icon"><t.Icon size={20} /></span>
             <span>{t.label}</span>
           </Link>
         );

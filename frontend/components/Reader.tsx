@@ -6,6 +6,7 @@ import { useFeedStore } from '@/lib/store';
 import { getStoredUser, startLogin, AuthUser } from '@/lib/auth';
 import { formatDistanceToNow } from 'date-fns';
 import VideoPlayer from './VideoPlayer';
+import { ArrowLeft, Circle, CheckCircle, Bookmark, ExternalLink, Sparkles, ChevronUp, ChevronDown, RefreshCw } from './Icons';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -18,7 +19,7 @@ function renderSummary(text: string, sourceUrl: string) {
       {hadTruncation && (
         <a href={sourceUrl} target="_blank" rel="noopener noreferrer"
           style={{ color: 'var(--accent)', marginLeft: 4 }}>
-          … read more ↗
+          … read more
         </a>
       )}
     </>
@@ -206,15 +207,17 @@ function AskAIPanel({ item, contextText }: { item: FeedItem; contextText: string
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           width: 28, height: 28, borderRadius: 6,
           background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-          fontSize: 13, flexShrink: 0,
-        }}>✦</span>
+          flexShrink: 0,
+        }}><Sparkles size={14} color="#fff" strokeWidth={0} /></span>
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           Ask AI
         </span>
         <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 4 }}>
           · {isVideo ? 'Ask about this meeting' : 'Ask about this article'}
         </span>
-        <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text-muted)' }}>{open ? '▲' : '▼'}</span>
+        <span style={{ marginLeft: 'auto', color: 'var(--text-muted)' }}>
+          {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+        </span>
       </button>
 
       {open && (
@@ -260,8 +263,8 @@ function AskAIPanel({ item, contextText }: { item: FeedItem; contextText: string
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   width: 20, height: 20, borderRadius: 4,
                   background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                  fontSize: 10, flexShrink: 0, marginTop: 2,
-                }}>✦</span>
+                  flexShrink: 0, marginTop: 2,
+                }}><Sparkles size={11} color="#fff" strokeWidth={0} /></span>
                 <p style={{ fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.7, margin: 0 }}>
                   {answer}
                 </p>
@@ -373,7 +376,9 @@ function VideoSection({ item }: { item: FeedItem }) {
                 fontSize: 11, fontWeight: 600, transition: 'all 0.15s',
               }}
             >
-              {running ? 'Starting…' : 'Process Now'}
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                {running ? '…' : <RefreshCw size={11} />} {running ? 'Starting…' : 'Process Now'}
+              </span>
             </button>
             {runError && <span style={{ fontSize: 11, color: '#ef4444' }}>{runError}</span>}
           </>
@@ -450,7 +455,9 @@ function TranscriptView({ text }: { text: string }) {
             padding: 0,
           }}
         >
-          {expanded ? 'Show less ▲' : 'Show full transcript ▼'}
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            {expanded ? <><ChevronUp size={12} /> Show less</> : <><ChevronDown size={12} /> Show full transcript</>}
+          </span>
         </button>
       )}
     </div>
@@ -491,19 +498,22 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
         borderBottom: '1px solid var(--border)',
         position: 'sticky', top: 0, background: 'var(--reader-bg)', zIndex: 1, flexShrink: 0,
       }}>
-        <button onClick={onClose} style={toolBtn}>← Back</button>
+        <button onClick={onClose} style={{ ...toolBtn, display: 'flex', alignItems: 'center', gap: 5 }}>
+          <ArrowLeft size={14} /> Back
+        </button>
         <div style={{ flex: 1 }} />
         <button
           onClick={() => isRead ? markUnread(item.id) : markRead(item.id)}
-          style={{ ...toolBtn, color: isRead ? 'var(--accent)' : 'var(--text-muted)' }}
+          style={{ ...toolBtn, display: 'flex', alignItems: 'center', gap: 5, color: isRead ? 'var(--accent)' : 'var(--text-muted)' }}
         >
-          {isRead ? '● Read' : '○ Unread'}
+          {isRead ? <CheckCircle size={14} /> : <Circle size={14} />}
+          {isRead ? 'Read' : 'Unread'}
         </button>
         <button
           onClick={() => toggleSaved(item.id)}
-          style={{ ...toolBtn, color: isSaved ? '#f59e0b' : 'var(--text-muted)' }}
+          style={{ ...toolBtn, display: 'flex', alignItems: 'center', color: isSaved ? '#f59e0b' : 'var(--text-muted)' }}
         >
-          {isSaved ? '★' : '☆'}
+          <Bookmark size={14} filled={isSaved} />
         </button>
         {user ? (
           <span style={{ fontSize: 11, color: 'var(--text-muted)', padding: '5px 8px', border: '1px solid #333', borderRadius: 4 }}>
@@ -547,9 +557,9 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
                 href={item.source_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ fontSize: 11, color: 'var(--accent)', textDecoration: 'none' }}
+                style={{ fontSize: 11, color: 'var(--accent)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 3 }}
               >
-                View source ↗
+                View source <ExternalLink size={11} />
               </a>
             </div>
             <p style={{ fontSize: 14, color: '#b0b0b0', lineHeight: 1.7, margin: 0 }}>
@@ -575,8 +585,8 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
                   Full Article
                 </span>
                 {!item.summary && (
-                  <a href={item.source_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: 'var(--accent)', textDecoration: 'none' }}>
-                    View source ↗
+                  <a href={item.source_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: 'var(--accent)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 3 }}>
+                    View source <ExternalLink size={11} />
                   </a>
                 )}
               </div>
@@ -596,8 +606,8 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
               {!articleLoading && !articleText && (
                 <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>
                   Could not load article content.{' '}
-                  <a href={item.source_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)' }}>
-                    Read on source site ↗
+                  <a href={item.source_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                    Read on source site <ExternalLink size={11} />
                   </a>
                 </p>
               )}

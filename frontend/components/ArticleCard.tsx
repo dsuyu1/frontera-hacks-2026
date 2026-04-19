@@ -4,6 +4,7 @@ import { useFeedStore } from '@/lib/store';
 import { formatDistanceToNow } from 'date-fns';
 import { useState } from 'react';
 import useSWR from 'swr';
+import { PlayCircle } from './Icons';
 
 export function sourceDomain(url: string): string {
   try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return ''; }
@@ -76,13 +77,7 @@ export default function ArticleCard({ item, selected, onSelect }: {
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6,
           }}>
             {isVideo ? (
-              <div style={{
-                width: 44, height: 44, borderRadius: '50%',
-                background: 'rgba(255,255,255,0.08)', border: '2px solid rgba(255,255,255,0.18)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <span style={{ fontSize: 16, color: '#fff', marginLeft: 3 }}>▶</span>
-              </div>
+              <PlayCircle size={44} color="rgba(255,255,255,0.5)" strokeWidth={1.25} />
             ) : (
               <>
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3f3f46" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

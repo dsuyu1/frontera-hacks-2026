@@ -1,5 +1,6 @@
 'use client';
 import { Clip } from '@/lib/api';
+import { ExternalLink } from './Icons';
 
 function fmt(s: number) {
   const m = Math.floor(s / 60), sec = Math.floor(s % 60);
@@ -39,9 +40,9 @@ export default function VideoPlayer({ clip }: { clip: Clip }) {
           <a
             href={embedUrl.replace('/embed/', '/watch?v=').replace('?start=', '&t=')}
             target="_blank" rel="noopener noreferrer"
-            style={{ fontSize: 12, color: '#3b82f6' }}
+            style={{ fontSize: 12, color: '#3b82f6', display: 'flex', alignItems: 'center', gap: 4 }}
           >
-            Watch on YouTube ↗
+            Watch on YouTube <ExternalLink size={12} color="#3b82f6" />
           </a>
         )}
       </div>
