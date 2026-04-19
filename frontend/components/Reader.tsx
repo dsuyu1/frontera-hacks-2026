@@ -580,14 +580,3 @@ const toolBtn: React.CSSProperties = {
   borderRadius: 4, cursor: 'pointer', fontSize: 12, color: 'var(--text-muted)',
   transition: 'color 0.1s, border-color 0.1s',
 };
-    <CommentsSection item={item} user={user} />
-      </div>
-    </div>
-  );
-}
-
-const toolBtn: React.CSSProperties = {
-  padding: '5px 10px', background: 'none', border: '1px solid #333',
-  borderRadius: 4, cursor: 'pointer', fontSize: 12, color: 'var(--text-muted)',
-  transition: 'color 0.1s, border-color 0.1s',
-};
