@@ -3,7 +3,7 @@ import './globals.css';
 import Providers from '@/components/Providers';
 
 export const metadata: Metadata = {
-  title: 'Frontera — RGV Local Government Feed',
+  title: 'CivicWatch — RGV Local Government Feed',
   description: 'Daily feed of local government news and meeting clips for the Rio Grande Valley',
 };
 

@@ -238,7 +238,7 @@ export default function LandingPage() {
           </div>
         </div>
         <div style={{ maxWidth: 1152, margin: '28px auto 0', paddingTop: 20, borderTop: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-          <span style={{ fontSize: 12, color: C.textMuted }}>© 2025 Frontera — Frontera Hacks</span>
+          <span style={{ fontSize: 12, color: C.textMuted }}>© 2025 CivicWatch — CivicWatch Hacks</span>
           <span style={{ fontSize: 12, color: C.border }}>Built for the Rio Grande Valley</span>
         </div>
       </footer>

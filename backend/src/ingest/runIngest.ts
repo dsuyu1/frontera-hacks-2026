@@ -3,6 +3,7 @@ import { getPool } from '../db/client';
 import { fetchRssXml, ingestRssSource } from './rss';
 import { putRawRssSnapshot } from './s3RawSnapshot';
 import { ingestYouTubeSource } from './youtube';
+import { ingestSwagitSource } from './swagit';
 import { refreshElectionSnapshots } from './elections';
 import type { IngestResult, SourceRow } from './types';
 
@@ -36,6 +37,9 @@ export async function runIngest(pool?: Pool): Promise<IngestResult> {
         const { inserted, videoIds } = await ingestYouTubeSource(p, source);
         itemsInserted += inserted;
         newVideoIds.push(...videoIds);
+      } else if (source.type === 'swagit') {
+        const n = await ingestSwagitSource(p, source);
+        itemsInserted += n;
       } else {
         errors.push(`skipped unsupported source type "${source.type}" (${source.id})`);
       }
