@@ -1,5 +1,5 @@
 # frontera-hacks-2026
-Our hackathon project for Frontera Hacks.
+Our hackathon project for Frontera Hacks. You can demo the project [here](https://main.d1fqkvr9egy0i4.amplifyapp.com/) for a short time.
 
 # Introduction
 The Rio Grande Valley is one of the most politically active, fastest-growing regions in Texas — yet local journalism is fragmented across dozens of small outlets most residents never find. CivicWatch is a civic news aggregator that surfaces, organizes, and contextualizes RGV local news using AI — and gives residents a way to support the outlets keeping democracy accountable.                                                                                                                      
