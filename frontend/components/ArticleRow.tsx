@@ -1,7 +1,9 @@
 'use client';
-import { FeedItem } from '@/lib/api';
+import { FeedItem, api } from '@/lib/api';
 import { useFeedStore } from '@/lib/store';
 import { formatDistanceToNow } from 'date-fns';
+import { useState } from 'react';
+import useSWR from 'swr';
 
 export default function ArticleRow({ item, selected, onSelect }: {
   item: FeedItem; selected: boolean; onSelect: () => void;
@@ -9,54 +11,65 @@ export default function ArticleRow({ item, selected, onSelect }: {
   const { readIds } = useFeedStore();
   const isRead = readIds.has(item.id);
   const date = item.published_at ?? item.created_at;
+  const [storedFailed, setStoredFailed] = useState(false);
+
+  const isVideo = item.type === 'video';
+  const needsOgFetch = (!item.thumbnail_url || storedFailed) && !isVideo;
+  const { data: ogData } = useSWR(
+    needsOgFetch ? `og:${item.source_url}` : null,
+    () => api.og(item.source_url),
+    { revalidateOnFocus: false, dedupingInterval: 3_600_000 },
+  );
+
+  const thumbUrl = (!storedFailed && item.thumbnail_url) ? item.thumbnail_url : (ogData?.imageUrl ?? null);
 
   return (
     <div onClick={onSelect} style={{
       display: 'flex', gap: 12, padding: '12px 14px', cursor: 'pointer',
-      background: selected ? '#1f1f1f' : 'transparent',
+      background: selected ? 'var(--row-selected)' : 'transparent',
       borderBottom: '1px solid var(--border)',
-      borderLeft: selected ? '2px solid #3b82f6' : '2px solid transparent',
+      borderLeft: selected ? '2px solid var(--accent)' : '2px solid transparent',
       transition: 'background 0.1s',
       opacity: isRead && !selected ? 0.55 : 1,
     }}>
       {/* Thumbnail */}
-      {item.thumbnail_url ? (
-        <img src={item.thumbnail_url} alt="" style={{
+      {thumbUrl ? (
+        <img src={thumbUrl} alt="" onError={() => setStoredFailed(true)} style={{
           width: 72, height: 48, objectFit: 'cover', borderRadius: 4,
-          flexShrink: 0, background: '#222',
+          flexShrink: 0, background: 'var(--surface, #18181b)',
         }} />
       ) : (
         <div style={{
           width: 72, height: 48, borderRadius: 4, flexShrink: 0,
-          background: item.type === 'video' ? '#1a1f2e' : '#1a1a1a',
+          background: isVideo ? '#0f1623' : '#18181b',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 18, color: '#333',
+          fontSize: 16, color: '#3f3f46',
         }}>
-          {item.type === 'video' ? '▶' : ''}
+          {isVideo ? '▶' : ''}
         </div>
       )}
 
       {/* Text */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 4, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 11, color: '#52525b' }}>{item.city}</span>
-          {item.type === 'video' && (
-            <span style={{ fontSize: 10, padding: '1px 5px', borderRadius: 3, background: '#1a1f2e', color: '#3b82f6' }}>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{item.city}</span>
+          {isVideo && (
+            <span style={{ fontSize: 10, padding: '1px 5px', borderRadius: 3, background: '#0f1623', color: '#3b82f6' }}>
               VIDEO
             </span>
           )}
           {!isRead && (
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#3b82f6', flexShrink: 0 }} />
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent)', flexShrink: 0 }} />
           )}
         </div>
         <div style={{
-          fontSize: 13, fontWeight: 500, color: '#e4e4e7',
+          fontSize: 13, fontWeight: 500, color: 'var(--text-primary)',
           display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
           lineHeight: 1.4, marginBottom: 4,
-        }}>
+        } as React.CSSProperties}>
           {item.title}
         </div>
-        <div style={{ fontSize: 11, color: '#52525b' }}>
+        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
           {date ? formatDistanceToNow(new Date(date), { addSuffix: true }) : ''}
         </div>
       </div>

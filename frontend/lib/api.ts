@@ -88,6 +88,7 @@ export const api = {
   },
   feedItem: (id: string) => get<FeedItem>(`/feed/${id}`),
   trending: () => get<{ topics: TrendingTopic[] }>('/trending'),
+  og: (url: string) => get<{ imageUrl: string | null }>(`/og?url=${encodeURIComponent(url)}`),
   comments: (itemId: string) => get<{ comments: Comment[] }>(`/comments?item_id=${itemId}`),
   postComment: (itemId: string, text: string) => post<Comment>('/comments', { item_id: itemId, text }),
   deleteComment: (commentId: string) => del(`/comments/${commentId}`),

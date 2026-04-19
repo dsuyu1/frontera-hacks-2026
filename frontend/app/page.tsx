@@ -100,7 +100,7 @@ export default function LandingPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
             <span style={{ fontWeight: 700, fontSize: 17, color: C.textPrimary, letterSpacing: '-0.5px' }}>frontera</span>
             <nav style={{ display: 'flex', gap: 2 }}>
-              {[{ href: '/today', label: 'Today' }, { href: '/all', label: 'All' }, { href: '/videos', label: 'Videos' }].map(n => (
+              {[{ href: '/today', label: 'Today' }, { href: '/all', label: 'All' }].map(n => (
                 <Link key={n.href} href={n.href} style={{ padding: '5px 12px', borderRadius: 6, fontSize: 13, color: C.textMuted, transition: 'color 0.1s, background 0.1s' }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = C.textPrimary; (e.currentTarget as HTMLElement).style.background = C.surface; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = C.textMuted; (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>

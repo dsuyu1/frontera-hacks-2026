@@ -23,13 +23,20 @@ function extractThumbnail(item: any): string | null {
   return m?.[1] ?? null;
 }
 
+const BROWSER_UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+
 async function fetchOgImage(url: string): Promise<string | null> {
   try {
     const ctrl = new AbortController();
     setTimeout(() => ctrl.abort(), 6000);
     const res = await fetch(url, {
       signal: ctrl.signal,
-      headers: { 'User-Agent': 'FronteraIngest/0.1' },
+      headers: {
+        'User-Agent': BROWSER_UA,
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Cache-Control': 'no-cache',
+      },
     });
     if (!res.ok) return null;
     const html = await res.text();
@@ -61,7 +68,10 @@ export async function fetchRssXml(url: string): Promise<string> {
   try {
     const res = await fetch(url, {
       signal: ctrl.signal,
-      headers: { 'User-Agent': 'FronteraIngest/0.1' },
+      headers: {
+        'User-Agent': BROWSER_UA,
+        'Accept': 'application/rss+xml,application/xml,text/xml,*/*',
+      },
     });
     if (!res.ok) {
       throw new Error(`RSS fetch failed: ${res.status} ${res.statusText}`);

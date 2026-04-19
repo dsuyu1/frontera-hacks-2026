@@ -5,6 +5,7 @@ import Sidebar from './Sidebar';
 import ArticleCard from './ArticleCard';
 import Reader from './Reader';
 import MobileTabs from './MobileTabs';
+import { getStoredUser, startLogin, AuthUser } from '@/lib/auth';
 
 interface Props {
   title: string;
@@ -14,6 +15,8 @@ interface Props {
 
 export default function FeedLayout({ title, items, loading }: Props) {
   const [selected, setSelected] = useState<FeedItem | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  useEffect(() => { setUser(getStoredUser()); }, []);
 
   // Keyboard nav
   useEffect(() => {
@@ -60,12 +63,28 @@ export default function FeedLayout({ title, items, loading }: Props) {
             </span>
           )}
 
-          {/* Mark all read button */}
-          {!loading && items.length > 0 && (
-            <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
-              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>j/k to navigate · Esc to close</span>
-            </div>
-          )}
+          <div style={{ marginLeft: 'auto' }}>
+            {!user && (
+              <button
+                onClick={startLogin}
+                style={{
+                  padding: '6px 14px',
+                  background: 'var(--accent)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 6,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--accent-hover)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--accent)'; }}
+              >
+                Sign in
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Feed body */}

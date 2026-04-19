@@ -254,6 +254,41 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
         return json(200, { saved: true, locality_ids, included_categories, excluded_categories });
       }
 
+      // GET /og?url=... — server-side OG image resolver (bypasses bot blocks & hotlink protection)
+      if (method === 'GET' && path === '/og') {
+        const targetUrl = qs.url;
+        if (!targetUrl) return json(400, { error: 'url required' });
+        try {
+          const ctrl = new AbortController();
+          setTimeout(() => ctrl.abort(), 8000);
+          const res = await fetch(targetUrl, {
+            signal: ctrl.signal,
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+              'Accept-Language': 'en-US,en;q=0.9',
+              'Cache-Control': 'no-cache',
+            },
+          });
+          if (!res.ok) return json(200, { imageUrl: null });
+          const html = await res.text();
+          const m =
+            html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ??
+            html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i) ??
+            html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i) ??
+            html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i);
+          let imageUrl = m?.[1] ?? null;
+          // Resolve relative URLs
+          if (imageUrl && !imageUrl.startsWith('http')) {
+            const base = new URL(targetUrl);
+            imageUrl = new URL(imageUrl, base.origin).href;
+          }
+          return json(200, { imageUrl });
+        } catch {
+          return json(200, { imageUrl: null });
+        }
+      }
+
       // GET /stats
       if (method === 'GET' && path === '/stats') {
         const { rows: [stats] } = await db.query(`
