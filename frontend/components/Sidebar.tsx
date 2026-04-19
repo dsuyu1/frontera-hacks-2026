@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { getStoredUser, startLogin, logout, AuthUser } from '@/lib/auth';
-import { Sun, List, Bookmark, Clock, ChevronLeft, ChevronRight, ChevronDown, LogIn, Zap } from './Icons';
+import { Sun, List, Bookmark, Clock, ChevronLeft, ChevronRight, ChevronDown, LogIn } from './Icons';
 
 const LOCALITIES = [
   { id: '06252ca8-e5ad-4037-8068-b5b6d1097c55', name: 'Edinburg' },
@@ -14,7 +14,6 @@ const LOCALITIES = [
 type NavItem = { href: string; Icon: React.ComponentType<{ size?: number; color?: string }>; label: string };
 const NAV_TOP: NavItem[] = [
   { href: '/today', Icon: Sun, label: 'Today' },
-  { href: '/explore', Icon: Zap, label: 'Explore' },
   { href: '/all', Icon: List, label: 'All' },
   { href: '/read-later', Icon: Bookmark, label: 'Saved' },
   { href: '/recently-read', Icon: Clock, label: 'History' },

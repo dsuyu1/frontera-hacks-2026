@@ -87,20 +87,20 @@ export default function FeedLayout({ title, items, loading, subtitle }: Props) {
             </button>
           )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <div style={{ fontSize: 30, fontWeight: 850 as any, color: 'var(--text-primary)', letterSpacing: '-0.6px', lineHeight: 1.05 }}>
+            <div style={{ fontSize: 30, fontWeight: 850 as any, color: 'var(--text-primary)', letterSpacing: '-0.6px', lineHeight: 1.05, textAlign: 'center' }}>
               {title}
             </div>
             {subtitle && (
-              <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: -4 }}>
+              <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: -4, textAlign: 'center' }}>
                 {subtitle}
               </div>
             )}
             {!loading && items.length > 0 && (
-              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: -2 }}>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: -2, textAlign: 'center' }}>
                 {items.length} articles
               </div>
             )}
-            <div style={{ display: 'flex', gap: 16, marginTop: 2 }}>
+            <div style={{ display: 'flex', gap: 16, marginTop: 2, justifyContent: 'center' }}>
               {(
                 [
                   { href: '/today', label: 'Me' },
