@@ -81,7 +81,7 @@ export default function FeedLayout({ title, items, loading }: Props) {
               <ChevronRight size={16} />
             </button>
           )}
-          <h1 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
+          <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.4px' }}>
             {title}
           </h1>
           {!loading && items.length > 0 && (
