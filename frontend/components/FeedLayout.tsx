@@ -94,23 +94,6 @@ export default function FeedLayout({ title, items, loading, subtitle, headerActi
           transition: 'padding 0.18s ease, border-color 0.18s ease',
         }}>
           <div style={{ maxWidth: 720, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 12 }}>
-            {!sidebarOpen && (
-              <button
-                onClick={() => setSidebarOpen(true)}
-                title="Open sidebar"
-                aria-label="Open sidebar"
-                style={{
-                  padding: '5px 8px', background: 'none', border: '1px solid var(--border)',
-                  borderRadius: 4, cursor: 'pointer', color: 'var(--text-muted)',
-                  fontSize: 15, lineHeight: 1, flexShrink: 0,
-                  transition: 'color 0.1s, border-color 0.1s',
-                }}
-                onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.color = 'var(--text-primary)'; el.style.borderColor = 'var(--text-muted)'; }}
-                onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.color = 'var(--text-muted)'; el.style.borderColor = 'var(--border)'; }}
-              >
-                Open
-              </button>
-            )}
             <div style={{ flex: 1, minWidth: 0 }}>
               <h1
                 style={{
