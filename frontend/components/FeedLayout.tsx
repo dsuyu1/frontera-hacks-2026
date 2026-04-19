@@ -16,6 +16,7 @@ interface Props {
 export default function FeedLayout({ title, items, loading }: Props) {
   const [selected, setSelected] = useState<FeedItem | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   useEffect(() => { setUser(getStoredUser()); }, []);
 
   // Keyboard nav
@@ -34,7 +35,7 @@ export default function FeedLayout({ title, items, loading }: Props) {
 
   return (
     <div style={{ display: 'flex', height: '100vh', background: 'var(--main-bg)', overflow: 'hidden' }}>
-      <Sidebar />
+      <Sidebar open={sidebarOpen} onToggle={() => setSidebarOpen(v => !v)} />
 
       {/* Main column */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
@@ -49,6 +50,22 @@ export default function FeedLayout({ title, items, loading }: Props) {
           alignItems: 'baseline',
           gap: 12,
         }}>
+          {!sidebarOpen && (
+            <button
+              onClick={() => setSidebarOpen(true)}
+              title="Open sidebar"
+              style={{
+                padding: '5px 8px', background: 'none', border: '1px solid var(--border)',
+                borderRadius: 4, cursor: 'pointer', color: 'var(--text-muted)',
+                fontSize: 15, lineHeight: 1, flexShrink: 0,
+                transition: 'color 0.1s, border-color 0.1s',
+              }}
+              onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.color = 'var(--text-primary)'; el.style.borderColor = 'var(--text-muted)'; }}
+              onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.color = 'var(--text-muted)'; el.style.borderColor = 'var(--border)'; }}
+            >
+              →
+            </button>
+          )}
           <h1 style={{
             fontSize: 18,
             fontWeight: 700,

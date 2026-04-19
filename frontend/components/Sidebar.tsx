@@ -13,11 +13,11 @@ const LOCALITIES = [
 const NAV_TOP = [
   { href: '/today', icon: '☀', label: 'Today' },
   { href: '/all', icon: '≡', label: 'All' },
-  { href: '/read-later', icon: '⊡', label: 'Saved for Later' },
-  { href: '/recently-read', icon: '◷', label: 'Read History' },
+  { href: '/read-later', icon: '⊡', label: 'Saved' },
+  { href: '/recently-read', icon: '◷', label: 'History' },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: () => void }) {
   const pathname = usePathname();
   const [feedsOpen, setFeedsOpen] = useState(true);
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -28,36 +28,50 @@ export default function Sidebar() {
     <aside
       className="sidebar-desktop"
       style={{
-        width: 'var(--sidebar-width)',
+        width: open ? 'var(--sidebar-width)' : 0,
         flexShrink: 0,
         background: 'var(--sidebar-bg)',
-        borderRight: '1px solid var(--sidebar-border)',
+        borderRight: open ? '1px solid var(--sidebar-border)' : 'none',
         display: 'flex',
         flexDirection: 'column',
         height: '100vh',
         position: 'sticky',
         top: 0,
-        overflowY: 'auto',
+        overflow: 'hidden',
+        transition: 'width 0.22s cubic-bezier(0.4,0,0.2,1)',
       }}
     >
-      {/* Logo */}
-      <div style={{ padding: '20px 18px 16px' }}>
-        <div style={{
-          fontWeight: 700,
-          fontSize: 22,
-          color: 'var(--accent)',
-          letterSpacing: '-0.5px',
-          fontFamily: 'Georgia, serif',
-        }}>
-          frontera
+      {/* Logo + collapse button */}
+      <div style={{ padding: '18px 16px 14px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexShrink: 0 }}>
+        <div>
+          <div style={{
+            fontWeight: 700, fontSize: 22, color: 'var(--accent)',
+            letterSpacing: '-0.5px', fontFamily: 'Georgia, serif', whiteSpace: 'nowrap',
+          }}>
+            frontera
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2, letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
+            RGV Local Government
+          </div>
         </div>
-        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2, letterSpacing: '0.02em' }}>
-          RGV Local Government
-        </div>
+        <button
+          onClick={onToggle}
+          title="Collapse sidebar"
+          style={{
+            marginTop: 2, padding: '4px 6px', background: 'none', border: 'none',
+            cursor: 'pointer', color: 'var(--text-muted)', borderRadius: 4,
+            fontSize: 16, lineHeight: 1, flexShrink: 0,
+            transition: 'color 0.1s, background 0.1s',
+          }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--sidebar-hover-bg)'; (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)'; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'none'; (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'; }}
+        >
+          ←
+        </button>
       </div>
 
       {/* Nav */}
-      <nav style={{ flex: 1, padding: '4px 0' }}>
+      <nav style={{ flex: 1, padding: '4px 0', overflowY: 'auto' }}>
         {NAV_TOP.map(n => {
           const active = pathname === n.href || (n.href === '/today' && pathname === '/');
           return (
@@ -65,21 +79,18 @@ export default function Sidebar() {
               key={n.href}
               href={n.href}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '8px 18px',
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '10px 18px',
                 color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
                 background: active ? 'var(--sidebar-active-bg)' : 'transparent',
-                fontSize: 13,
-                fontWeight: active ? 600 : 400,
+                fontSize: 13, fontWeight: active ? 600 : 400,
                 borderLeft: `3px solid ${active ? 'var(--accent)' : 'transparent'}`,
-                transition: 'all 0.1s',
+                transition: 'all 0.1s', whiteSpace: 'nowrap',
               }}
               onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--sidebar-hover-bg)'; }}
               onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
             >
-              <span style={{ width: 16, textAlign: 'center', fontSize: 13, opacity: active ? 1 : 0.6, flexShrink: 0 }}>
+              <span style={{ width: 22, textAlign: 'center', fontSize: 20, opacity: active ? 1 : 0.65, flexShrink: 0, lineHeight: 1 }}>
                 {n.icon}
               </span>
               {n.label}
@@ -92,22 +103,13 @@ export default function Sidebar() {
           <button
             onClick={() => setFeedsOpen(v => !v)}
             style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '6px 18px',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'var(--text-muted)',
-              fontSize: 10,
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '6px 18px', background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--text-muted)', fontSize: 10, fontWeight: 700,
+              textTransform: 'uppercase', letterSpacing: '0.08em',
             }}
           >
-            <span>Feeds</span>
+            <span style={{ whiteSpace: 'nowrap' }}>Feeds</span>
             <span style={{ fontSize: 9 }}>{feedsOpen ? '▾' : '▸'}</span>
           </button>
 
@@ -118,16 +120,13 @@ export default function Sidebar() {
                 key={loc.id}
                 href={`/locality/${loc.id}`}
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  padding: '7px 18px 7px 28px',
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '8px 18px 8px 28px',
                   color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
                   background: active ? 'var(--sidebar-active-bg)' : 'transparent',
-                  fontSize: 13,
-                  fontWeight: active ? 600 : 400,
+                  fontSize: 13, fontWeight: active ? 600 : 400,
                   borderLeft: `3px solid ${active ? 'var(--accent)' : 'transparent'}`,
-                  transition: 'all 0.1s',
+                  transition: 'all 0.1s', whiteSpace: 'nowrap',
                 }}
                 onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--sidebar-hover-bg)'; }}
                 onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
@@ -145,7 +144,7 @@ export default function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div style={{ borderTop: '1px solid var(--sidebar-border)' }}>
+      <div style={{ borderTop: '1px solid var(--sidebar-border)', flexShrink: 0 }}>
         {user ? (
           <div style={{ padding: '10px 18px', display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{
@@ -161,7 +160,7 @@ export default function Sidebar() {
                 {user.username}
               </div>
             </div>
-            <button onClick={logout} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: 'var(--text-muted)', padding: 0 }}>
+            <button onClick={logout} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: 'var(--text-muted)', padding: 0, whiteSpace: 'nowrap' }}>
               Sign out
             </button>
           </div>
@@ -169,19 +168,18 @@ export default function Sidebar() {
           <button
             onClick={startLogin}
             style={{
-              width: '100%', padding: '10px 18px',
-              background: 'none', border: 'none', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: 8,
-              color: 'var(--accent)', fontSize: 13, fontWeight: 600,
-              transition: 'background 0.1s',
+              width: '100%', padding: '10px 18px', background: 'none', border: 'none',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
+              color: 'var(--accent)', fontSize: 13, fontWeight: 600, transition: 'background 0.1s',
+              whiteSpace: 'nowrap',
             }}
             onMouseEnter={e => { (e.currentTarget.style.background = 'var(--sidebar-hover-bg)'); }}
             onMouseLeave={e => { (e.currentTarget.style.background = 'none'); }}
           >
-            <span style={{ fontSize: 15 }}>→</span> Sign in
+            <span style={{ fontSize: 16 }}>→</span> Sign in
           </button>
         )}
-        <div style={{ padding: '6px 18px 10px', fontSize: 10, color: 'var(--text-muted)' }}>
+        <div style={{ padding: '6px 18px 10px', fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
           Updates daily · 3 AM UTC
         </div>
       </div>
