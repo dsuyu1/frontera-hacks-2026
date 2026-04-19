@@ -38,7 +38,7 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
       >
         <div>
           <h2 id={LABEL_ID} style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 8, margin: 0 }}>
-            Sign in to Frontera
+            Sign in to CivicWatch
           </h2>
           <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, marginTop: 8 }}>
             Create a free account or sign in to follow sources, save articles, and personalize your feed.
