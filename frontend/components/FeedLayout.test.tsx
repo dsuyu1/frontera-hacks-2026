@@ -1,6 +1,11 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, test, vi } from 'vitest';
 
+vi.mock('next/navigation', () => ({ usePathname: () => '/today' }));
+vi.mock('next/link', () => ({
+  default: (props: any) => <a href={props.href}>{props.children}</a>,
+}));
+
 const articleCardMock = vi.fn();
 vi.mock('./ArticleCard', () => ({
   default: (props: unknown) => {

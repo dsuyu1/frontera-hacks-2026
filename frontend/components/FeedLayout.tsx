@@ -1,5 +1,7 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { FeedItem } from '@/lib/api';
 import Sidebar from './Sidebar';
 import ArticleCard, { sourceDomain } from './ArticleCard';
@@ -24,6 +26,7 @@ export default function FeedLayout({ title, items, loading }: Props) {
   const [selected, setSelected] = useState<FeedItem | null>(null);
   const [user] = useState<AuthUser | null>(() => getStoredUser());
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const pathname = usePathname();
 
   const { data: trendingData } = useTrending();
 
@@ -88,6 +91,37 @@ export default function FeedLayout({ title, items, loading }: Props) {
           <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.4px' }}>
             {title}
           </h1>
+
+          <div style={{ display: 'flex', gap: 6, marginLeft: 6 }}>
+            {(
+              [
+                { href: '/today', label: 'Today' },
+                { href: '/explore', label: 'Explore' },
+              ] as const
+            ).map(t => {
+              const active = pathname === t.href || (t.href === '/today' && pathname === '/');
+              return (
+                <Link
+                  key={t.href}
+                  href={t.href}
+                  style={{
+                    padding: '5px 10px',
+                    borderRadius: 8,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    letterSpacing: '-0.01em',
+                    color: active ? 'var(--text-primary)' : 'var(--text-muted)',
+                    background: active ? 'rgba(255,255,255,0.06)' : 'transparent',
+                    border: active ? '1px solid var(--border)' : '1px solid transparent',
+                    transition: 'all 0.12s',
+                    lineHeight: 1.1,
+                  }}
+                >
+                  {t.label}
+                </Link>
+              );
+            })}
+          </div>
           {!loading && items.length > 0 && (
             <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
               {items.length} articles
