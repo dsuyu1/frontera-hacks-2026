@@ -487,6 +487,8 @@ function TranscriptView({ text }: { text: string }) {
 export default function Reader({ item, onClose }: { item: FeedItem | null; onClose?: () => void }) {
   const { readIds, savedIds, markRead, markUnread, toggleSaved } = useFeedStore();
   const [user] = useState<AuthUser | null>(() => getStoredUser());
+  const [speaking, setSpeaking] = useState(false);
+  const ttsSupported = typeof window !== 'undefined' && typeof window.speechSynthesis !== 'undefined';
 
   // For text articles: fetch full article content
   const isVideo = item?.type === 'video';
@@ -495,6 +497,12 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
     () => api.article(item!.source_url),
     { revalidateOnFocus: false, dedupingInterval: 3_600_000 },
   );
+
+  useEffect(() => {
+    if (!ttsSupported) return;
+    window.speechSynthesis.cancel();
+    setSpeaking(false);
+  }, [item?.id, ttsSupported]);
 
   useEffect(() => {
     if (item && !readIds.has(item.id)) markRead(item.id);
@@ -506,6 +514,22 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
   const isSaved = savedIds.has(item.id);
   const date = item.published_at ?? item.created_at;
   const articleText = articleData?.text ?? '';
+  const ttsText = [item.title, item.summary ?? '', articleText].filter(Boolean).join('\n\n');
+
+  function toggleReadAloud() {
+    if (!ttsSupported) return;
+    if (speaking) {
+      window.speechSynthesis.cancel();
+      setSpeaking(false);
+      return;
+    }
+    const utter = new SpeechSynthesisUtterance(ttsText);
+    utter.onend = () => setSpeaking(false);
+    utter.onerror = () => setSpeaking(false);
+    setSpeaking(true);
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utter);
+  }
   const articleEmbedUrl = articleData?.embed_url ?? null;
 
   return (
@@ -533,6 +557,19 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
         >
           <Bookmark size={14} filled={isSaved} />
         </button>
+        {!isVideo && (
+          <button
+            onClick={toggleReadAloud}
+            disabled={!ttsSupported || (!articleLoading && !ttsText)}
+            style={{
+              ...toolBtn,
+              color: speaking ? 'var(--accent)' : 'var(--text-muted)',
+              opacity: !ttsSupported ? 0.5 : 1,
+            }}
+          >
+            {speaking ? 'Stop' : 'Listen'}
+          </button>
+        )}
         {user ? (
           <span style={{ fontSize: 11, color: 'var(--text-muted)', padding: '5px 8px', border: '1px solid #333', borderRadius: 4 }}>
             {user.username}

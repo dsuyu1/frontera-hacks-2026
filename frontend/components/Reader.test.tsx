@@ -34,6 +34,13 @@ vi.mock('swr', () => ({
   default: (key: string | null) => {
     if (!key) return { data: undefined, mutate: async () => {} };
 
+    if (key.startsWith('article:')) {
+      return {
+        data: { text: 'First paragraph with enough content to be displayed properly in the reader view.\n\nSecond paragraph with enough content to verify paragraph splitting.' },
+        isLoading: false,
+      };
+    }
+
     if (key.startsWith('video-status:')) {
       return {
         data: {
@@ -63,13 +70,6 @@ vi.mock('swr', () => ({
 
     if (key.startsWith('comments:')) {
       return { data: { comments: [] }, mutate: async () => {} };
-    }
-
-    if (key.startsWith('article:')) {
-      return {
-        data: { text: 'First paragraph with enough content to be displayed properly in the reader view.\n\nSecond paragraph with enough content to verify paragraph splitting.' },
-        isLoading: false,
-      };
     }
 
     return { data: undefined, mutate: async () => {} };
@@ -109,6 +109,48 @@ describe('Reader (video)', () => {
 });
 
 describe('Reader (text)', () => {
+  test('uses Web Speech API to read the article aloud', async () => {
+    const speak = vi.fn();
+    const cancel = vi.fn();
+    (globalThis as any).speechSynthesis = { speak, cancel };
+    (globalThis as any).SpeechSynthesisUtterance = function (text: string) {
+      this.text = text;
+      this.onend = null;
+      this.onerror = null;
+    };
+
+    const { getByRole } = render(
+      <Reader
+        item={{
+          id: 'item-2',
+          locality_id: 'loc',
+          locality_name: 'Loc',
+          city: 'Edinburg',
+          type: 'text',
+          title: 'Article Title',
+          summary: 'Summary',
+          thumbnail_url: null,
+          categories: [],
+          jurisdiction: null,
+          source_url: 'https://example.com',
+          published_at: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+        }}
+      />,
+    );
+
+    cancel.mockClear();
+
+    const listen = getByRole('button', { name: 'Listen' });
+    listen.click();
+
+    expect(cancel).toHaveBeenCalledTimes(1);
+    expect(speak).toHaveBeenCalledTimes(1);
+    const utter = speak.mock.calls[0][0] as { text: string };
+    expect(utter.text).toContain('Article Title');
+    expect(utter.text).toContain('First paragraph with enough content');
+  });
+
   test('renders full article content split into paragraphs', () => {
     render(
       <Reader
@@ -131,7 +173,7 @@ describe('Reader (text)', () => {
     );
 
     expect(screen.getByText('Text Item')).toBeInTheDocument();
-    expect(screen.getByText(/First paragraph with enough content/i)).toBeInTheDocument();
-    expect(screen.getByText(/Second paragraph with enough content/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/First paragraph with enough content/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Second paragraph with enough content/i).length).toBeGreaterThan(0);
   });
 });
