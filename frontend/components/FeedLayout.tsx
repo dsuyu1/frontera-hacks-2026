@@ -186,7 +186,7 @@ export default function FeedLayout({ title, items, loading, subtitle, headerActi
           {/* Slide-in reader panel */}
           <div
             style={{
-              position: 'fixed',
+              position: 'absolute',
               inset: 0,
               display: 'flex',
               justifyContent: 'flex-end',
