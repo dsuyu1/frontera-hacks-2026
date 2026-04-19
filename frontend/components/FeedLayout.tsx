@@ -66,27 +66,25 @@ export default function FeedLayout({ title, items, loading, subtitle }: Props) {
           borderBottom: '1px solid var(--border)',
           background: 'var(--main-bg)',
           flexShrink: 0,
-          display: 'flex',
-          alignItems: 'flex-start',
-          gap: 12,
         }}>
-          {!sidebarOpen && (
-            <button
-              onClick={() => setSidebarOpen(true)}
-              title="Open sidebar"
-              style={{
-                padding: '5px 8px', background: 'none', border: '1px solid var(--border)',
-                borderRadius: 4, cursor: 'pointer', color: 'var(--text-muted)',
-                fontSize: 15, lineHeight: 1, flexShrink: 0,
-                transition: 'color 0.1s, border-color 0.1s',
-              }}
-              onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.color = 'var(--text-primary)'; el.style.borderColor = 'var(--text-muted)'; }}
-              onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.color = 'var(--text-muted)'; el.style.borderColor = 'var(--border)'; }}
-            >
-              <ChevronRight size={16} />
-            </button>
-          )}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ maxWidth: 920, margin: '0 auto', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+            {!sidebarOpen && (
+              <button
+                onClick={() => setSidebarOpen(true)}
+                title="Open sidebar"
+                style={{
+                  padding: '5px 8px', background: 'none', border: '1px solid var(--border)',
+                  borderRadius: 4, cursor: 'pointer', color: 'var(--text-muted)',
+                  fontSize: 15, lineHeight: 1, flexShrink: 0,
+                  transition: 'color 0.1s, border-color 0.1s',
+                }}
+                onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.color = 'var(--text-primary)'; el.style.borderColor = 'var(--text-muted)'; }}
+                onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.color = 'var(--text-muted)'; el.style.borderColor = 'var(--border)'; }}
+              >
+                <ChevronRight size={16} />
+              </button>
+            )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1 }}>
             <div style={{ fontSize: 30, fontWeight: 850 as any, color: 'var(--text-primary)', letterSpacing: '-0.6px', lineHeight: 1.05, textAlign: 'center' }}>
               {title}
             </div>
@@ -128,7 +126,7 @@ export default function FeedLayout({ title, items, loading, subtitle }: Props) {
               })}
             </div>
           </div>
-          <div style={{ marginLeft: 'auto' }}>
+            <div style={{ marginLeft: 'auto' }}>
             {!user && (
               <button
                 onClick={startLogin}
@@ -143,6 +141,7 @@ export default function FeedLayout({ title, items, loading, subtitle }: Props) {
                 Sign in
               </button>
             )}
+            </div>
           </div>
         </div>
 
