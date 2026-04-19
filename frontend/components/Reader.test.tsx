@@ -112,7 +112,12 @@ describe('Reader (text)', () => {
   test('uses Web Speech API to read the article aloud', async () => {
     const speak = vi.fn();
     const cancel = vi.fn();
-    (globalThis as any).speechSynthesis = { speak, cancel };
+    (globalThis as any).speechSynthesis = {
+      speak,
+      cancel,
+      getVoices: () => [{ name: 'Google US English', lang: 'en-US' }],
+      onvoiceschanged: null,
+    };
     (globalThis as any).SpeechSynthesisUtterance = function (text: string) {
       this.text = text;
       this.onend = null;

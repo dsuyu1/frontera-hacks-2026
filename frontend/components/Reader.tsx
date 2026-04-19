@@ -6,7 +6,7 @@ import { useFeedStore } from '@/lib/store';
 import { getStoredUser, startLogin, AuthUser } from '@/lib/auth';
 import { formatDistanceToNow } from 'date-fns';
 import VideoPlayer from './VideoPlayer';
-import { ArrowLeft, Circle, CheckCircle, Bookmark, ExternalLink, ChevronUp, ChevronDown, RefreshCw } from './Icons';
+import { ArrowLeft, Circle, CheckCircle, Bookmark, ExternalLink, ChevronUp, ChevronDown, RefreshCw, Volume2 } from './Icons';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -345,6 +345,7 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
   const [user] = useState<AuthUser | null>(() => getStoredUser());
   const [speaking, setSpeaking] = useState(false);
   const ttsSupported = typeof window !== 'undefined' && typeof window.speechSynthesis !== 'undefined';
+  const [ttsVoice, setTtsVoice] = useState<SpeechSynthesisVoice | null>(null);
 
   // For text articles: fetch full article content
   const isVideo = item?.type === 'video';
@@ -359,6 +360,34 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
     window.speechSynthesis.cancel();
     setSpeaking(false);
   }, [item?.id, ttsSupported]);
+
+  useEffect(() => {
+    if (!ttsSupported) return;
+    const synth = window.speechSynthesis;
+    const pick = () => {
+      const voices = synth.getVoices();
+      if (!voices.length) return;
+      const preferred = [
+        /google\s+us\s+english/i,
+        /samantha/i,
+        /victoria/i,
+        /ava/i,
+        /allison/i,
+        /daniel/i,
+      ];
+      const byName = preferred
+        .map(rx => voices.find(v => rx.test(v.name)))
+        .find(Boolean);
+
+      const en = voices.find(v => (v.lang ?? '').toLowerCase().startsWith('en'));
+      setTtsVoice(byName ?? en ?? voices[0] ?? null);
+    };
+    pick();
+    synth.onvoiceschanged = pick;
+    return () => {
+      if (synth.onvoiceschanged === pick) synth.onvoiceschanged = null;
+    };
+  }, [ttsSupported]);
 
   useEffect(() => {
     if (item && !readIds.has(item.id)) markRead(item.id);
@@ -380,6 +409,10 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
       return;
     }
     const utter = new SpeechSynthesisUtterance(ttsText);
+    if (ttsVoice) utter.voice = ttsVoice;
+    utter.rate = 1.02;
+    utter.pitch = 1.0;
+    utter.volume = 1.0;
     utter.onend = () => setSpeaking(false);
     utter.onerror = () => setSpeaking(false);
     setSpeaking(true);
@@ -419,11 +452,14 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
             disabled={!ttsSupported || (!articleLoading && !ttsText)}
             style={{
               ...toolBtn,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
               color: speaking ? 'var(--accent)' : 'var(--text-muted)',
               opacity: !ttsSupported ? 0.5 : 1,
             }}
           >
-            {speaking ? 'Stop' : 'Listen'}
+            <Volume2 size={14} /> {speaking ? 'Stop' : 'Listen'}
           </button>
         )}
         {user ? (
