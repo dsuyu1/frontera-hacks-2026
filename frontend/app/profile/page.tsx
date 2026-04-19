@@ -53,7 +53,7 @@ export default function ProfilePage() {
               onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.color = 'var(--text-primary)'; el.style.borderColor = 'var(--text-muted)'; }}
               onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.color = 'var(--text-muted)'; el.style.borderColor = 'var(--border)'; }}
             >
-              <ChevronRight size={16} />
+              Open
             </button>
           )}
           <h1 style={{ fontSize: 28, fontWeight: 850, color: 'var(--text-primary)', letterSpacing: '-0.5px', margin: 0 }}>

@@ -84,7 +84,7 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--sidebar-hover-bg)'; (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)'; }}
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'none'; (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'; }}
         >
-          {open ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+          {open ? <ChevronLeft size={16} /> : null}
         </button>
       </div>
 
@@ -159,7 +159,7 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
               }}
             >
               <span style={{ whiteSpace: 'nowrap' }}>Feeds</span>
-              {feedsOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+              {feedsOpen ? <ChevronDown size={12} /> : null}
             </button>
             <button
               onClick={() => { setFeedsOpen(true); setAddingFeed(true); }}

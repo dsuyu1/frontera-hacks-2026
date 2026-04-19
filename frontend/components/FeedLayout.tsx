@@ -108,7 +108,7 @@ export default function FeedLayout({ title, items, loading, subtitle, headerActi
                 onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.color = 'var(--text-primary)'; el.style.borderColor = 'var(--text-muted)'; }}
                 onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.color = 'var(--text-muted)'; el.style.borderColor = 'var(--border)'; }}
               >
-                <ChevronRight size={16} />
+                Open
               </button>
             )}
             <div style={{ flex: 1, minWidth: 0 }}>
