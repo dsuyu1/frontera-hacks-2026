@@ -543,7 +543,7 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
         </div>
 
         {/* Title */}
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.3, marginBottom: 16, letterSpacing: '-0.3px', fontFamily: 'var(--font-serif)' }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.3, marginBottom: 16, letterSpacing: '-0.3px' }}>
           {item.title}
         </h1>
 
@@ -567,7 +567,7 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
                 View source <ExternalLink size={11} />
               </a>
             </div>
-            <p style={{ fontSize: 14, color: '#b0b0b0', lineHeight: 1.7, margin: 0, fontFamily: 'var(--font-serif)' }}>
+            <p style={{ fontSize: 14, color: '#b0b0b0', lineHeight: 1.7, margin: 0 }}>
               {renderSummary(item.summary, item.source_url)}
             </p>
           </div>
@@ -598,7 +598,7 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
             )}
 
             {!articleLoading && articleText && (
-              <div style={{ fontSize: 15, color: 'var(--text-primary)', lineHeight: 1.85, fontFamily: 'var(--font-serif)' }}>
+              <div style={{ fontSize: 15, color: 'var(--text-primary)', lineHeight: 1.8 }}>
                 {articleText.split('\n\n').map((para, i) =>
                   para.trim() ? <p key={i} style={{ marginBottom: 16 }}>{para.trim()}</p> : null
                 )}

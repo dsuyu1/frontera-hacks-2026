@@ -72,7 +72,7 @@ function SidebarPreview() {
       }}
     >
       <div style={{ padding: '18px 16px 14px' }}>
-        <div style={{ fontWeight: 850 as any, fontSize: 20, letterSpacing: '-0.6px', color: 'var(--accent)' }}>CivicWatch</div>
+        <div style={{ fontWeight: 850 as any, fontSize: 20, letterSpacing: '-0.6px', color: 'var(--accent)', fontFamily: 'var(--font-headings)' }}>CivicWatch</div>
         <div style={{ marginTop: 5, fontSize: 11, color: 'var(--text-muted)' }}>RGV government feed</div>
       </div>
 
@@ -184,7 +184,7 @@ function ListPreview() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 28, fontWeight: 850 as any, color: 'var(--text-primary)', letterSpacing: '-0.6px', lineHeight: 1.05 }}>
+            <div style={{ fontSize: 28, fontWeight: 850 as any, color: 'var(--text-primary)', letterSpacing: '-0.6px', lineHeight: 1.05, fontFamily: 'var(--font-headings)' }}>
               Today
             </div>
             <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 6 }}>
@@ -429,7 +429,7 @@ export default function LandingPage() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ fontWeight: 900, letterSpacing: '-0.6px', fontSize: 15 }}>CivicWatch</div>
+            <div style={{ fontWeight: 900, letterSpacing: '-0.6px', fontSize: 15, fontFamily: 'var(--font-headings)' }}>CivicWatch</div>
             <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>Feedly‑style local government reader</span>
           </div>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>

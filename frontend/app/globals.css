@@ -1,8 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-headings: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
 
   /* shadcn/ui zinc-dark palette */
   --sidebar-bg: #151518;
@@ -38,11 +37,15 @@ html, body {
   height: 100%;
   background: var(--main-bg);
   color: var(--text-primary);
-  font-family: var(--font-sans);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   font-size: 14px;
-  line-height: 1.55;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-headings);
 }
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
