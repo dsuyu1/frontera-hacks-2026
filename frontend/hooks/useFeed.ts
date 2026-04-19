@@ -28,3 +28,13 @@ export function useFeedItems(opts?: { localityIds?: string[]; type?: string; lim
 export function useTrending() {
   return useSWR('trending', () => api.trending(), { refreshInterval: 300_000 });
 }
+
+export function useExploreFeedItems(opts?: { type?: string; limit?: number }) {
+  const key = `explore:${opts?.type ?? ''}`;
+  return useSWR(key, () =>
+    api.feed({
+      type: opts?.type,
+      limit: opts?.limit ?? 100,
+    }),
+  );
+}
