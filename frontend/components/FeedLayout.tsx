@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { FeedItem } from '@/lib/api';
 import Sidebar from './Sidebar';
 import ArticleCard, { sourceDomain } from './ArticleCard';
@@ -28,9 +28,8 @@ function groupBySource(items: FeedItem[]): { domain: string; items: FeedItem[] }
 
 export default function FeedLayout({ title, items, loading }: Props) {
   const [selected, setSelected] = useState<FeedItem | null>(null);
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [user] = useState<AuthUser | null>(() => getStoredUser());
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  useEffect(() => { setUser(getStoredUser()); }, []);
 
   const groups = groupBySource(items);
 

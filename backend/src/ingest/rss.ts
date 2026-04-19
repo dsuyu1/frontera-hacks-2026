@@ -14,7 +14,7 @@ const parser = new Parser({
 });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function extractThumbnail(item: any): string | null {
+export function extractThumbnail(item: any): string | null {
   if (item.enclosure?.url && item.enclosure.type?.startsWith('image/')) return item.enclosure.url;
   if (item.mediaThumbnail?.$.url) return item.mediaThumbnail.$.url;
   if (item.mediaContent?.$.url && item.mediaContent.$.medium !== 'audio' && item.mediaContent.$.medium !== 'video') return item.mediaContent.$.url;
@@ -25,7 +25,7 @@ function extractThumbnail(item: any): string | null {
 
 const BROWSER_UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
-async function fetchOgImage(url: string): Promise<string | null> {
+export async function fetchOgImage(url: string): Promise<string | null> {
   try {
     const ctrl = new AbortController();
     setTimeout(() => ctrl.abort(), 6000);
@@ -50,12 +50,12 @@ async function fetchOgImage(url: string): Promise<string | null> {
   }
 }
 
-function externalIdForItem(guid: string | undefined, link: string): string {
+export function externalIdForItem(guid: string | undefined, link: string): string {
   if (guid && guid.trim()) return guid.trim();
   return createHash('sha256').update(link).digest('hex');
 }
 
-function jurisdictionLabel(row: SourceRow): string {
+export function jurisdictionLabel(row: SourceRow): string {
   if (row.county) {
     return `${row.locality_name}, ${row.county} County (${row.region})`;
   }

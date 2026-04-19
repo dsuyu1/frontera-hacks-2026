@@ -71,7 +71,8 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 }
 
 async function del(path: string): Promise<void> {
-  await fetch(API_BASE + path, { method: 'DELETE', headers: authHeaders() });
+  const res = await fetch(API_BASE + path, { method: 'DELETE', headers: authHeaders() });
+  if (!res.ok) throw new Error(`API ${res.status}: ${path}`);
 }
 
 export const api = {

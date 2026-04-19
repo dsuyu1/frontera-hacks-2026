@@ -136,7 +136,7 @@ export default function LandingPage() {
         </p>
 
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Btn href="/today">Read Today's Feed</Btn>
+          <Btn href="/today">Read Today&apos;s Feed</Btn>
           <Btn href="/videos" variant="outline">Watch Meeting Clips</Btn>
         </div>
       </section>

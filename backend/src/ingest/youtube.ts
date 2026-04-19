@@ -6,7 +6,7 @@ const THUMB = (id: string) => `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
 const EMBED = (id: string) => `https://www.youtube.com/embed/${id}`;
 const WATCH = (id: string) => `https://www.youtube.com/watch?v=${id}`;
 
-function parseYouTubeRss(xml: string): Array<{ videoId: string; title: string; description: string; published: string }> {
+export function parseYouTubeRss(xml: string): Array<{ videoId: string; title: string; description: string; published: string }> {
   const items: Array<{ videoId: string; title: string; description: string; published: string }> = [];
   const entryRegex = /<entry>([\s\S]*?)<\/entry>/g;
   let match;
@@ -23,7 +23,7 @@ function parseYouTubeRss(xml: string): Array<{ videoId: string; title: string; d
   return items;
 }
 
-function decodeEntities(str: string): string {
+export function decodeEntities(str: string): string {
   return str
     .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"').replace(/&#39;/g, "'");

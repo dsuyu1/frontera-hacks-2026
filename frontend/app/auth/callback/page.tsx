@@ -8,13 +8,12 @@ import { Suspense } from 'react';
 function CallbackInner() {
   const router = useRouter();
   const params = useSearchParams();
-  const [status, setStatus] = useState<'loading' | 'error'>('loading');
+  const code = params.get('code');
+  const state = params.get('state');
+  const [status, setStatus] = useState<'loading' | 'error'>(() => (code && state ? 'loading' : 'error'));
 
   useEffect(() => {
-    const code = params.get('code');
-    const state = params.get('state');
-    if (!code || !state) { setStatus('error'); return; }
-
+    if (!code || !state) return;
     handleCallback(code, state).then(user => {
       if (user) {
         router.replace('/today');
@@ -22,7 +21,7 @@ function CallbackInner() {
         setStatus('error');
       }
     });
-  }, []);
+  }, [code, state, router]);
 
   return (
     <div style={{

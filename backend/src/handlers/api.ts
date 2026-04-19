@@ -2,6 +2,9 @@ import { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda';
 import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { SFNClient, StartExecutionCommand } from '@aws-sdk/client-sfn';
+import { createPublicKey, createVerify } from 'node:crypto';
+import { lookup } from 'node:dns/promises';
+import { isIP } from 'node:net';
 import { withClient } from '../lib/db';
 
 const s3 = new S3Client({});
@@ -28,6 +31,7 @@ function parseVttToText(vtt: string): string {
 const bedrock = new BedrockRuntimeClient({ region: 'us-east-1' });
 
 const COGNITO_ISSUER = 'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_m6Fn4fuAH';
+const COGNITO_CLIENT_ID = process.env.COGNITO_CLIENT_ID;
 let jwksCache: { keys: { kid: string; n: string; e: string }[] } | null = null;
 
 async function getJwks() {
@@ -37,29 +41,90 @@ async function getJwks() {
   return jwksCache!;
 }
 
-// Lightweight JWT decode — we verify signature via Cognito's JWKS
-function decodeJwtPayload(token: string): Record<string, unknown> | null {
+function decodeBase64UrlJson(part: string): Record<string, unknown> | null {
   try {
-    const parts = token.split('.');
-    if (parts.length !== 3) return null;
-    const payload = Buffer.from(parts[1], 'base64url').toString('utf8');
-    return JSON.parse(payload);
-  } catch { return null; }
+    return JSON.parse(Buffer.from(part, 'base64url').toString('utf8')) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
+function isPrivateIp(ip: string): boolean {
+  const v = isIP(ip);
+  if (v === 4) {
+    const [a, b] = ip.split('.').map(n => Number(n));
+    if (a === 10) return true;
+    if (a === 127) return true;
+    if (a === 169 && b === 254) return true;
+    if (a === 192 && b === 168) return true;
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    return false;
+  }
+  if (v === 6) {
+    const norm = ip.toLowerCase();
+    if (norm === '::1') return true;
+    if (norm.startsWith('fc') || norm.startsWith('fd')) return true;
+    if (norm.startsWith('fe80:')) return true;
+    return false;
+  }
+  return true;
+}
+
+async function assertSafeExternalUrl(rawUrl: string): Promise<URL> {
+  const url = new URL(rawUrl);
+  if (!['http:', 'https:'].includes(url.protocol)) throw new Error('invalid protocol');
+  const host = url.hostname;
+  if (host === 'localhost') throw new Error('blocked host');
+  if (isIP(host) && isPrivateIp(host)) throw new Error('blocked host');
+  const { address } = await lookup(host);
+  if (isPrivateIp(address)) throw new Error('blocked host');
+  return url;
+}
+
+async function fetchSafe(rawUrl: string, init: RequestInit, maxRedirects = 3): Promise<Response> {
+  let current = await assertSafeExternalUrl(rawUrl);
+  for (let i = 0; i <= maxRedirects; i++) {
+    const res = await fetch(current.href, { ...init, redirect: 'manual' });
+    if (res.status >= 300 && res.status < 400) {
+      const location = res.headers.get('location');
+      if (!location) return res;
+      const next = new URL(location, current);
+      current = await assertSafeExternalUrl(next.href);
+      continue;
+    }
+    return res;
+  }
+  throw new Error('too many redirects');
 }
 
 async function verifyToken(authHeader: string | undefined): Promise<{ sub: string; email: string; username: string } | null> {
   if (!authHeader?.startsWith('Bearer ')) return null;
   const token = authHeader.slice(7);
-  const payload = decodeJwtPayload(token);
-  if (!payload) return null;
-  // Verify issuer and expiry (signature trust via Cognito + HTTPS fetch of JWKS)
+  const parts = token.split('.');
+  if (parts.length !== 3) return null;
+
+  const header = decodeBase64UrlJson(parts[0]);
+  const payload = decodeBase64UrlJson(parts[1]);
+  if (!header || !payload) return null;
+
   if (payload.iss !== COGNITO_ISSUER) return null;
   if (typeof payload.exp === 'number' && payload.exp < Date.now() / 1000) return null;
-  // Fetch JWKS to confirm key exists (lightweight check)
+  if (payload.token_use && payload.token_use !== 'id') return null;
+  if (COGNITO_CLIENT_ID && payload.aud && payload.aud !== COGNITO_CLIENT_ID) return null;
+
+  if (header.alg !== 'RS256' || typeof header.kid !== 'string') return null;
   const jwks = await getJwks();
-  const header = JSON.parse(Buffer.from(token.split('.')[0], 'base64url').toString());
-  const key = jwks.keys.find(k => k.kid === header.kid);
-  if (!key) return null;
+  const jwk = (jwks.keys as Array<Record<string, unknown>>).find(k => k.kid === header.kid);
+  if (!jwk) return null;
+
+  const publicKey = createPublicKey({ key: jwk as any, format: 'jwk' });
+  const signature = Buffer.from(parts[2], 'base64url');
+  const signingInput = `${parts[0]}.${parts[1]}`;
+  const verifier = createVerify('RSA-SHA256');
+  verifier.update(signingInput);
+  verifier.end();
+  if (!verifier.verify(publicKey, signature)) return null;
+
   return {
     sub: String(payload.sub),
     email: String(payload.email ?? ''),
@@ -284,7 +349,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
         try {
           const ctrl = new AbortController();
           setTimeout(() => ctrl.abort(), 8000);
-          const res = await fetch(targetUrl, {
+          const res = await fetchSafe(targetUrl, {
             signal: ctrl.signal,
             headers: {
               'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
@@ -319,7 +384,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
         try {
           const ctrl = new AbortController();
           setTimeout(() => ctrl.abort(), 12000);
-          const res = await fetch(targetUrl, {
+          const res = await fetchSafe(targetUrl, {
             signal: ctrl.signal,
             headers: {
               'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',

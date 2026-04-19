@@ -35,7 +35,7 @@ export default function ExploreTab() {
     <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
       <h2 style={{ fontSize: 18, fontWeight: 700, color: '#e4e4e7', marginBottom: 4 }}>Trending in RGV</h2>
       <p style={{ fontSize: 13, color: '#52525b', marginBottom: 24 }}>
-        AI-identified civic topics from this week's coverage
+        AI-identified civic topics from this week&apos;s coverage
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

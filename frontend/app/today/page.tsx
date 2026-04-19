@@ -2,20 +2,20 @@
 import FeedLayout from '@/components/FeedLayout';
 import { useFeedItems } from '@/hooks/useFeed';
 
+const CUTOFF = new Date(Date.now() - 48 * 60 * 60 * 1000);
+
 export default function TodayPage() {
   const { data: textData, isLoading: textLoading } = useFeedItems({ limit: 100 });
   const { data: videoData, isLoading: videoLoading } = useFeedItems({ type: 'video', limit: 100 });
 
-  const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
-
   const textItems = (textData?.items ?? []).filter(item => {
     const d = new Date(item.published_at ?? item.created_at);
-    return d >= cutoff;
+    return d >= CUTOFF;
   });
 
   const videoItems = (videoData?.items ?? []).filter(item => {
     const d = new Date(item.published_at ?? item.created_at);
-    return d >= cutoff;
+    return d >= CUTOFF;
   });
 
   // Merge and deduplicate by id, interleaving videos with text articles

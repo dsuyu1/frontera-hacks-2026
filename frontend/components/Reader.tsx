@@ -468,7 +468,7 @@ function TranscriptView({ text }: { text: string }) {
 
 export default function Reader({ item, onClose }: { item: FeedItem | null; onClose?: () => void }) {
   const { readIds, savedIds, markRead, markUnread, toggleSaved } = useFeedStore();
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [user] = useState<AuthUser | null>(() => getStoredUser());
 
   // For text articles: fetch full article content
   const isVideo = item?.type === 'video';
@@ -478,7 +478,6 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
     { revalidateOnFocus: false, dedupingInterval: 3_600_000 },
   );
 
-  useEffect(() => { setUser(getStoredUser()); }, []);
   useEffect(() => {
     if (item && !readIds.has(item.id)) markRead(item.id);
   }, [item?.id]);

@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { getStoredUser, startLogin, logout, AuthUser } from '@/lib/auth';
 import { Sun, List, Bookmark, Clock, ChevronLeft, ChevronRight, ChevronDown, LogIn } from './Icons';
 
@@ -22,9 +22,7 @@ const NAV_TOP: NavItem[] = [
 export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: () => void }) {
   const pathname = usePathname();
   const [feedsOpen, setFeedsOpen] = useState(true);
-  const [user, setUser] = useState<AuthUser | null>(null);
-
-  useEffect(() => { setUser(getStoredUser()); }, []);
+  const [user] = useState<AuthUser | null>(() => getStoredUser());
 
   return (
     <aside
