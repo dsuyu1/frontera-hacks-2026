@@ -1,5 +1,5 @@
 import { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda';
-import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
+import { BedrockRuntimeClient, ConverseCommand } from '@aws-sdk/client-bedrock-runtime';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { SFNClient, StartExecutionCommand } from '@aws-sdk/client-sfn';
 import { createPublicKey, createVerify } from 'node:crypto';
@@ -277,22 +277,16 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
 
         const titlesText = rows.map(r => `- ${r.title} (${r.city})`).join('\n');
 
-        const res = await bedrock.send(new InvokeModelCommand({
-          modelId: process.env.BEDROCK_HAIKU_MODEL_ID ?? 'anthropic.claude-3-haiku-20240307-v1:0',
-          body: JSON.stringify({
-            anthropic_version: 'bedrock-2023-05-31',
-            max_tokens: 600,
-            messages: [{
-              role: 'user',
-              content: `You are analyzing local RGV (Rio Grande Valley, TX) news headlines. Identify the top 5 trending civic topics from these recent articles:\n\n${titlesText}\n\nReturn JSON array of 5 objects: [{"topic": "<2-4 word topic>", "description": "<1 sentence>", "category": "<one of: public-safety,infrastructure,education,economic-development,health,politics-elections,environment>"}]. Return ONLY valid JSON.`,
-            }],
-          }),
-          contentType: 'application/json',
-          accept: 'application/json',
+        const res = await bedrock.send(new ConverseCommand({
+          modelId: process.env.BEDROCK_HAIKU_MODEL_ID ?? 'amazon.nova-lite-v1:0',
+          messages: [{
+            role: 'user',
+            content: [{ text: `You are analyzing local RGV (Rio Grande Valley, TX) news headlines. Identify the top 5 trending civic topics from these recent articles:\n\n${titlesText}\n\nReturn JSON array of 5 objects: [{"topic": "<2-4 word topic>", "description": "<1 sentence>", "category": "<one of: public-safety,infrastructure,education,economic-development,health,politics-elections,environment>"}]. Return ONLY valid JSON.` }],
+          }],
+          inferenceConfig: { maxTokens: 600 },
         }));
 
-        const bedrockResp = JSON.parse(new TextDecoder().decode(res.body));
-        const text = bedrockResp.content[0].text.trim();
+        const text = res.output?.message?.content?.[0]?.text?.trim() ?? '';
         const jsonMatch = text.match(/\[[\s\S]*\]/);
         const topics = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
 
@@ -351,6 +345,61 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
         const body = JSON.parse(event.body ?? '{}');
         const { locality_ids = [], included_categories = [], excluded_categories = [] } = body;
         return json(200, { saved: true, locality_ids, included_categories, excluded_categories });
+      }
+
+      // GET /users/profile
+      if (method === 'GET' && path === '/users/profile') {
+        const user = await verifyToken(event.headers?.authorization ?? event.headers?.Authorization);
+        if (!user) return json(401, { error: 'Authentication required' });
+        const { rows: [profile] } = await db.query(
+          'SELECT display_name FROM user_profiles WHERE user_id = $1',
+          [user.sub],
+        );
+        const { rows: followedRows } = await db.query(
+          'SELECT domain FROM user_followed_sources WHERE user_id = $1 ORDER BY domain',
+          [user.sub],
+        );
+        return json(200, {
+          user_id: user.sub,
+          email: user.email,
+          username: user.username,
+          display_name: profile?.display_name ?? null,
+          followed_sources: followedRows.map((r: { domain: string }) => r.domain),
+        });
+      }
+
+      // PUT /users/profile
+      if (method === 'PUT' && path === '/users/profile') {
+        const user = await verifyToken(event.headers?.authorization ?? event.headers?.Authorization);
+        if (!user) return json(401, { error: 'Authentication required' });
+        const body = JSON.parse(event.body ?? '{}');
+        const display_name = typeof body.display_name === 'string' ? body.display_name.trim().slice(0, 80) : null;
+        await db.query(
+          `INSERT INTO user_profiles (user_id, display_name, updated_at)
+           VALUES ($1, $2, now())
+           ON CONFLICT (user_id) DO UPDATE SET display_name = EXCLUDED.display_name, updated_at = now()`,
+          [user.sub, display_name || null],
+        );
+        return json(200, { user_id: user.sub, display_name: display_name || null });
+      }
+
+      // PUT /users/followed-sources — sync all followed sources from client
+      if (method === 'PUT' && path === '/users/followed-sources') {
+        const user = await verifyToken(event.headers?.authorization ?? event.headers?.Authorization);
+        if (!user) return json(401, { error: 'Authentication required' });
+        const body = JSON.parse(event.body ?? '{}');
+        const domains: string[] = Array.isArray(body.domains)
+          ? body.domains.filter((d: unknown) => typeof d === 'string' && d.trim()).map((d: string) => d.trim().toLowerCase()).slice(0, 200)
+          : [];
+        await db.query('DELETE FROM user_followed_sources WHERE user_id = $1', [user.sub]);
+        if (domains.length > 0) {
+          const values = domains.map((d, i) => `($1, $${i + 2})`).join(', ');
+          await db.query(
+            `INSERT INTO user_followed_sources (user_id, domain) VALUES ${values} ON CONFLICT DO NOTHING`,
+            [user.sub, ...domains],
+          );
+        }
+        return json(200, { saved: true, domains });
       }
 
       // GET /og?url=... — server-side OG image resolver (bypasses bot blocks & hotlink protection)
@@ -427,27 +476,15 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
           articleText ? `Article:\n${String(articleText).slice(0, 8000)}` : '',
         ].filter(Boolean).join('\n\n');
 
-        const res = await bedrock.send(new InvokeModelCommand({
-          modelId: process.env.BEDROCK_HAIKU_MODEL_ID ?? 'anthropic.claude-3-haiku-20240307-v1:0',
-          body: JSON.stringify({
-            anthropic_version: 'bedrock-2023-05-31',
-            max_tokens: 512,
-            system: 'You are a helpful assistant answering questions about a local news article from the Rio Grande Valley, Texas. Be concise and accurate.',
-            messages: [{ role: 'user', content: `${context}\n\nQuestion: ${question}` }],
-          }),
-          contentType: 'application/json',
-          accept: 'application/json',
+        const res = await bedrock.send(new ConverseCommand({
+          modelId: process.env.BEDROCK_HAIKU_MODEL_ID ?? 'amazon.nova-lite-v1:0',
+          system: [{ text: 'You are a helpful assistant answering questions about a local news article from the Rio Grande Valley, Texas. Be concise and accurate.' }],
+          messages: [{ role: 'user', content: [{ text: `${context}\n\nQuestion: ${question}` }] }],
+          inferenceConfig: { maxTokens: 512 },
         }));
 
-        try {
-          const bedrockResp = JSON.parse(new TextDecoder().decode(res.body));
-          const answer = bedrockResp.content[0].text.trim();
-          return json(200, { answer });
-        } catch (err) {
-          console.error('Ask parse error:', err);
-          const detail = err instanceof Error ? err.message : String(err);
-          return json(500, { error: 'Ask failed', detail });
-        }
+        const answer = res.output?.message?.content?.[0]?.text?.trim() ?? '';
+        return json(200, { answer });
       }
 
       // GET /transcript?item_id=X — return readable caption text for a video feed item

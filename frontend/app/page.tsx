@@ -51,30 +51,6 @@ function Button({ href, variant, children }: { href: string; variant: 'primary' 
   );
 }
 
-function Chip({ children }: { children: React.ReactNode }) {
-  return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 8,
-        padding: '6px 10px',
-        borderRadius: 999,
-        border: '1px solid rgba(255,255,255,0.10)',
-        background: 'rgba(255,255,255,0.03)',
-        fontSize: 11,
-        fontWeight: 800,
-        letterSpacing: '0.08em',
-        textTransform: 'uppercase',
-        color: 'var(--text-muted)',
-      }}
-    >
-      <span style={{ width: 6, height: 6, borderRadius: 999, background: 'var(--accent)' }} />
-      {children}
-    </span>
-  );
-}
-
 function SidebarPreview() {
   const nav = [
     { label: 'Today', active: true },
@@ -83,7 +59,6 @@ function SidebarPreview() {
     { label: 'Follow Sources', active: false },
   ];
 
-  const feeds = ['Edinburg', 'McAllen', 'Mission', 'Hidalgo County', 'Cameron County'];
 
   return (
     <div
@@ -126,13 +101,7 @@ function SidebarPreview() {
         <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 10 }}>
           Feeds
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-          {feeds.map((f) => (
-            <div key={f} style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-              {f}
-            </div>
-          ))}
-        </div>
+        <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Your sources</div>
       </div>
     </div>
   );
@@ -204,53 +173,100 @@ function ListPreview() {
     : fallback;
 
   return (
-    <div style={{ flex: 1, minWidth: 340, borderRight: '1px solid var(--border)' }}>
-      <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)', background: 'rgba(255,255,255,0.01)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-          <div style={{ fontSize: 13, fontWeight: 900 }}>Today</div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Newest first</div>
-        </div>
-        <div style={{ marginTop: 10 }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              padding: '10px 12px',
-              borderRadius: 10,
-              border: '1px solid var(--border)',
-              background: 'rgba(0,0,0,0.2)',
-              color: 'var(--text-muted)',
-              fontSize: 12,
-            }}
-          >
-            <span style={{ opacity: 0.6 }}>⌕</span>
-            Search sources, topics, and meetings…
+    <div style={{ flex: 1, minWidth: 340, borderRight: '1px solid var(--border)', background: 'var(--main-bg)' }}>
+      <div style={{
+        padding: '22px 20px 14px',
+        background: 'var(--main-bg)',
+        flexShrink: 0,
+        position: 'sticky',
+        top: 0,
+        zIndex: 5,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 28, fontWeight: 850 as any, color: 'var(--text-primary)', letterSpacing: '-0.6px', lineHeight: 1.05 }}>
+              Today
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 6 }}>
+              The insights you need to keep ahead
+            </div>
           </div>
         </div>
       </div>
 
-      <div style={{ padding: '10px 0' }}>
+      <div style={{ padding: '0 20px 0' }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          padding: '10px 12px', borderRadius: 10,
+          border: '1px solid var(--border)',
+          background: 'rgba(0,0,0,0.15)',
+          color: 'var(--text-muted)', fontSize: 12,
+          marginBottom: 10,
+        }}>
+          <span style={{ opacity: 0.6 }}>⌕</span>
+          Search sources, topics, and meetings…
+        </div>
+      </div>
+
+      <div style={{ padding: '0 20px 20px' }}>
         {derived.map((r) => (
           <div
             key={(r.id ?? r.title) + ':' + r.source}
             style={{
-              padding: '12px 16px',
+              display: 'flex',
+              gap: 14,
+              padding: '16px 0',
               background: r.active ? 'var(--row-selected)' : 'transparent',
-              borderLeft: `2px solid ${r.active ? 'var(--accent)' : 'transparent'}`,
               borderBottom: '1px solid var(--border)',
+              borderLeft: `2px solid ${r.active ? 'var(--accent)' : '2px solid transparent'}`,
               transition: 'background 0.25s, border-color 0.25s',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 700 }}>{r.source}</div>
-              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{r.meta}</div>
-            </div>
-            <div style={{ marginTop: 6, fontSize: 14, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.2px' }}>
-              {r.title}
-            </div>
-            <div style={{ marginTop: 6, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-              {r.snippet}
+            <div style={{
+              width: 104,
+              height: 64,
+              borderRadius: 8,
+              background: 'var(--sidebar-hover-bg)',
+              flexShrink: 0,
+              border: '1px solid rgba(255,255,255,0.06)',
+            }} />
+
+            <div style={{ flex: 1, minWidth: 0, paddingRight: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>{r.source}</span>
+                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{r.meta}</span>
+              </div>
+
+              <div
+                style={{
+                  fontSize: 15,
+                  fontWeight: 800,
+                  color: 'var(--text-primary)',
+                  lineHeight: 1.35,
+                  marginTop: 6,
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                } as React.CSSProperties}
+              >
+                {r.title}
+              </div>
+
+              <div
+                style={{
+                  fontSize: 13,
+                  color: 'var(--text-muted)',
+                  lineHeight: 1.5,
+                  marginTop: 6,
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                } as React.CSSProperties}
+              >
+                {r.snippet}
+              </div>
             </div>
           </div>
         ))}
@@ -262,19 +278,31 @@ function ListPreview() {
 function ReaderPreview({ title, source }: { title: string; source: string }) {
   return (
     <div style={{ width: 460, background: 'var(--reader-bg)' }}>
-      <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Reader</div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <div style={{ width: 30, height: 30, borderRadius: 8, border: '1px solid var(--border)', background: 'rgba(255,255,255,0.03)' }} />
-          <div style={{ width: 30, height: 30, borderRadius: 8, border: '1px solid var(--border)', background: 'rgba(255,255,255,0.03)' }} />
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px',
+        borderBottom: '1px solid var(--border)',
+        position: 'sticky', top: 0, background: 'var(--reader-bg)', zIndex: 1, flexShrink: 0,
+      }}>
+        <div style={{
+          padding: '6px 10px',
+          borderRadius: 6,
+          border: '1px solid var(--border)',
+          fontSize: 12,
+          color: 'var(--text-muted)',
+        }}>
+          Back
         </div>
+        <div style={{ flex: 1 }} />
+        <div style={{ width: 30, height: 30, borderRadius: 8, border: '1px solid var(--border)', background: 'rgba(255,255,255,0.03)' }} />
+        <div style={{ width: 30, height: 30, borderRadius: 8, border: '1px solid var(--border)', background: 'rgba(255,255,255,0.03)' }} />
       </div>
 
       <div style={{ padding: 18 }}>
-        <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-          {source}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>{source}</div>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Just now</div>
         </div>
-        <div style={{ marginTop: 10, fontSize: 18, fontWeight: 900, letterSpacing: '-0.4px', lineHeight: 1.2 }}>
+        <div style={{ marginTop: 10, fontSize: 18, fontWeight: 900, letterSpacing: '-0.4px', lineHeight: 1.2, color: 'var(--text-primary)' }}>
           {title}
         </div>
         <div style={{ marginTop: 10, fontSize: 12, color: 'var(--text-muted)' }}>Summary</div>
@@ -414,7 +442,6 @@ export default function LandingPage() {
       <section style={{ maxWidth: 1180, margin: '0 auto', padding: '26px 18px 0' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
           <div style={{ maxWidth: 560 }}>
-            <Chip>RGV · Updated daily</Chip>
             <h1 style={{ marginTop: 14, fontSize: 'clamp(28px, 3.6vw, 42px)', letterSpacing: '-1.2px', lineHeight: 1.1, fontWeight: 950 as any }}>
               A calm, Feedly‑style view
               <br />
@@ -428,24 +455,6 @@ export default function LandingPage() {
               <Button href="/videos" variant="ghost">Watch clips</Button>
               <Button href="/explore" variant="ghost">Explore</Button>
             </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 6 }}>
-            {['McAllen', 'Edinburg', 'Mission', 'Hidalgo County', 'Cameron County'].map((t) => (
-              <span
-                key={t}
-                style={{
-                  fontSize: 11,
-                  color: 'var(--text-muted)',
-                  border: '1px solid rgba(255,255,255,0.10)',
-                  padding: '6px 10px',
-                  borderRadius: 999,
-                  background: 'rgba(255,255,255,0.02)',
-                }}
-              >
-                {t}
-              </span>
-            ))}
           </div>
         </div>
       </section>
@@ -472,7 +481,6 @@ export default function LandingPage() {
 
         <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, color: 'var(--text-muted)', fontSize: 12 }}>
           <div>Keyboard friendly · Read state · Saved · Follow sources</div>
-          <div>Updated daily · 3 AM UTC</div>
         </div>
       </section>
     </div>

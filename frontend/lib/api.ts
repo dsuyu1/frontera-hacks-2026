@@ -56,6 +56,14 @@ export interface SupportSource {
   snippet: string | null;
 }
 
+export interface UserProfile {
+  user_id: string;
+  email: string;
+  username: string;
+  display_name: string | null;
+  followed_sources: string[];
+}
+
 function authHeaders(): Record<string, string> {
   try {
     const raw = typeof window !== 'undefined' && localStorage.getItem('frontera_auth');
@@ -126,6 +134,18 @@ export const api = {
   transcript: (itemId: string) => get<{ text: string; status: string | null }>(`/transcript?item_id=${itemId}`),
   videoStatus: (itemId: string) => get<{ video_id: string; status: string | null; embed_url: string | null; clips: Clip[] }>(`/video-status?item_id=${itemId}`),
   pipelineRun: (itemId: string) => post<{ started: boolean; video_id: string }>('/pipeline/run', { item_id: itemId }),
+  getProfile: () => fetch(API_BASE + '/users/profile', { cache: 'no-store', headers: authHeaders() })
+    .then(r => { if (!r.ok) throw new Error(`API ${r.status}`); return r.json() as Promise<UserProfile>; }),
+  updateProfile: (display_name: string | null) => fetch(API_BASE + '/users/profile', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify({ display_name }),
+  }).then(r => { if (!r.ok) throw new Error(`API ${r.status}`); return r.json() as Promise<{ user_id: string; display_name: string | null }>; }),
+  syncFollowedSources: (domains: string[]) => fetch(API_BASE + '/users/followed-sources', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify({ domains }),
+  }).then(r => { if (!r.ok) throw new Error(`API ${r.status}`); return r.json() as Promise<{ saved: boolean; domains: string[] }>; }),
   supportSources: (p: { q?: string; region?: string; city?: string }) => {
     const qs = new URLSearchParams();
     if (p.q) qs.set('q', p.q);

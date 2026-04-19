@@ -1,4 +1,4 @@
-import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
+import { BedrockRuntimeClient, ConverseCommand } from '@aws-sdk/client-bedrock-runtime';
 import { withClient } from '../lib/db';
 
 const bedrock = new BedrockRuntimeClient({ region: 'us-east-1' });
@@ -46,21 +46,15 @@ export const handler = async (event: Event) => {
 
 async function refineSummary(title: string, draftSummary: string): Promise<string> {
   try {
-    const res = await bedrock.send(new InvokeModelCommand({
-      modelId: process.env.BEDROCK_SONNET_MODEL_ID ?? 'anthropic.claude-3-5-sonnet-20241022-v2:0',
-      body: JSON.stringify({
-        anthropic_version: 'bedrock-2023-05-31',
-        max_tokens: 200,
-        messages: [{
-          role: 'user',
-          content: `Write a 2-sentence factual summary for this local government meeting clip. Be specific and informative. Title: "${title}". Draft summary: "${draftSummary}". Return only the summary text.`,
-        }],
-      }),
-      contentType: 'application/json',
-      accept: 'application/json',
+    const res = await bedrock.send(new ConverseCommand({
+      modelId: process.env.BEDROCK_SONNET_MODEL_ID ?? 'amazon.nova-pro-v1:0',
+      messages: [{
+        role: 'user',
+        content: [{ text: `Write a 2-sentence factual summary for this local government meeting clip. Be specific and informative. Title: "${title}". Draft summary: "${draftSummary}". Return only the summary text.` }],
+      }],
+      inferenceConfig: { maxTokens: 200 },
     }));
-    const resp = JSON.parse(new TextDecoder().decode(res.body));
-    return resp.content[0].text.trim();
+    return res.output?.message?.content?.[0]?.text?.trim() ?? draftSummary;
   } catch {
     return draftSummary;
   }

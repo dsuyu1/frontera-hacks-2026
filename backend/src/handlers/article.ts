@@ -5,7 +5,7 @@
  * reach external URLs and Bedrock without a NAT Gateway.
  */
 
-import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
+import { BedrockRuntimeClient, ConverseCommand } from '@aws-sdk/client-bedrock-runtime';
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda';
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
@@ -121,20 +121,14 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
         articleText ? `Article:\n${String(articleText).slice(0, 8000)}` : '',
       ].filter(Boolean).join('\n\n');
 
-      const res = await bedrock.send(new InvokeModelCommand({
-        modelId: process.env.BEDROCK_HAIKU_MODEL_ID ?? 'anthropic.claude-3-haiku-20240307-v1:0',
-        body: JSON.stringify({
-          anthropic_version: 'bedrock-2023-05-31',
-          max_tokens: 512,
-          system: 'You are a helpful assistant answering questions about a local news article from the Rio Grande Valley, Texas. Be concise and accurate.',
-          messages: [{ role: 'user', content: `${context}\n\nQuestion: ${question}` }],
-        }),
-        contentType: 'application/json',
-        accept: 'application/json',
+      const res = await bedrock.send(new ConverseCommand({
+        modelId: process.env.BEDROCK_HAIKU_MODEL_ID ?? 'amazon.nova-lite-v1:0',
+        system: [{ text: 'You are a helpful assistant answering questions about a local news article from the Rio Grande Valley, Texas. Be concise and accurate.' }],
+        messages: [{ role: 'user', content: [{ text: `${context}\n\nQuestion: ${question}` }] }],
+        inferenceConfig: { maxTokens: 512 },
       }));
 
-      const bedrockResp = JSON.parse(new TextDecoder().decode(res.body));
-      const answer = bedrockResp.content[0].text.trim();
+      const answer = res.output?.message?.content?.[0]?.text?.trim() ?? '';
       return json(200, { answer });
     } catch (err) {
       console.error('Ask error:', err);

@@ -1,4 +1,4 @@
-import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
+import { BedrockRuntimeClient, ConverseCommand } from '@aws-sdk/client-bedrock-runtime';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { withClient } from '../lib/db';
 import { normalizeSegments, type Segment } from '../segmenting/selectSegments';
@@ -170,18 +170,12 @@ Allowed category slugs:
 politics-elections,city-council,planning-zoning,infrastructure,public-safety,education,transportation,utilities-water,economic-development,business,environment,budget-taxes,health`;
 
   try {
-    const res = await bedrock.send(new InvokeModelCommand({
-      modelId: process.env.BEDROCK_HAIKU_MODEL_ID ?? 'anthropic.claude-3-haiku-20240307-v1:0',
-      body: JSON.stringify({
-        anthropic_version: 'bedrock-2023-05-31',
-        max_tokens: 700,
-        messages: [{ role: 'user', content: prompt }],
-      }),
-      contentType: 'application/json',
-      accept: 'application/json',
+    const res = await bedrock.send(new ConverseCommand({
+      modelId: process.env.BEDROCK_HAIKU_MODEL_ID ?? 'amazon.nova-lite-v1:0',
+      messages: [{ role: 'user', content: [{ text: prompt }] }],
+      inferenceConfig: { maxTokens: 700 },
     }));
-    const response = JSON.parse(new TextDecoder().decode(res.body));
-    const text = response.content[0].text.trim();
+    const text = res.output?.message?.content?.[0]?.text?.trim() ?? '';
     const jsonMatch = text.match(/\[[\s\S]*\]/);
     if (!jsonMatch) throw new Error('No JSON');
     const parsed = JSON.parse(jsonMatch[0]);
@@ -202,28 +196,22 @@ politics-elections,city-council,planning-zoning,infrastructure,public-safety,edu
 
 async function generateSegmentFromMeta(title: string, description: string): Promise<Segment> {
   try {
-    const res = await bedrock.send(new InvokeModelCommand({
-      modelId: process.env.BEDROCK_HAIKU_MODEL_ID ?? 'anthropic.claude-3-haiku-20240307-v1:0',
-      body: JSON.stringify({
-        anthropic_version: 'bedrock-2023-05-31',
-        max_tokens: 300,
-        messages: [{
-          role: 'user',
-          content: `You are a local government reporter. Create a SHORT, SPECIFIC newspaper headline (5-9 words) for this government meeting video. The headline should describe the most likely civic action, not just repeat the video title.
+    const res = await bedrock.send(new ConverseCommand({
+      modelId: process.env.BEDROCK_HAIKU_MODEL_ID ?? 'amazon.nova-lite-v1:0',
+      messages: [{
+        role: 'user',
+        content: [{ text: `You are a local government reporter. Create a SHORT, SPECIFIC newspaper headline (5-9 words) for this government meeting video. The headline should describe the most likely civic action, not just repeat the video title.
 
 Video title: "${title}"
 Description: "${description}"
 
 Examples of good headlines: "City Council Reviews Annual Infrastructure Budget", "McAllen Approves New Drainage Improvement Plan"
 
-Return ONLY valid JSON: {"start":60,"end":180,"title":"<specific 5-9 word headline>","summary":"<2 sentences about what this meeting likely covers and why it matters to residents>","categories":["city-council"]}`,
-        }],
-      }),
-      contentType: 'application/json',
-      accept: 'application/json',
+Return ONLY valid JSON: {"start":60,"end":180,"title":"<specific 5-9 word headline>","summary":"<2 sentences about what this meeting likely covers and why it matters to residents>","categories":["city-council"]}` }],
+      }],
+      inferenceConfig: { maxTokens: 300 },
     }));
-    const response = JSON.parse(new TextDecoder().decode(res.body));
-    const text = response.content[0].text.trim();
+    const text = res.output?.message?.content?.[0]?.text?.trim() ?? '';
     const parsed = JSON.parse(text.match(/\{[\s\S]*\}/)![0]);
     return { start: 60, end: 180, title: parsed.title ?? title, summary: parsed.summary ?? description, categories: parsed.categories ?? ['city-council'] };
   } catch {
