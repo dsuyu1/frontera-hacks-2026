@@ -33,8 +33,9 @@ export default function AskAIPanel({ item, contextText }: { item: FeedItem; cont
     try {
       const data = await api.ask(question.trim(), item.title, item.summary, contextText);
       setAnswer(data.answer);
-    } catch {
-      setError('Could not get a response. Try again.');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '';
+      setError(msg ? `Could not get a response: ${msg}` : 'Could not get a response. Try again.');
     } finally {
       setLoading(false);
     }
@@ -160,4 +161,3 @@ export default function AskAIPanel({ item, contextText }: { item: FeedItem; cont
     </div>
   );
 }
-

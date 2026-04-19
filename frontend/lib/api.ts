@@ -111,7 +111,18 @@ export const api = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ question, articleTitle, summary, articleText }),
-    }).then(r => { if (!r.ok) throw new Error(`API ${r.status}: /ask`); return r.json() as Promise<{ answer: string }>; }),
+    }).then(async r => {
+      if (!r.ok) {
+        try {
+          const body = await r.json() as any;
+          const msg = body?.detail || body?.error || `API ${r.status}: /ask`;
+          throw new Error(String(msg));
+        } catch {
+          throw new Error(`API ${r.status}: /ask`);
+        }
+      }
+      return r.json() as Promise<{ answer: string }>;
+    }),
   transcript: (itemId: string) => get<{ text: string; status: string | null }>(`/transcript?item_id=${itemId}`),
   videoStatus: (itemId: string) => get<{ video_id: string; status: string | null; embed_url: string | null; clips: Clip[] }>(`/video-status?item_id=${itemId}`),
   pipelineRun: (itemId: string) => post<{ started: boolean; video_id: string }>('/pipeline/run', { item_id: itemId }),
