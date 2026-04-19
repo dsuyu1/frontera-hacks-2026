@@ -4,42 +4,40 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { FeedItem } from '@/lib/api';
 import Sidebar from './Sidebar';
-import ArticleCard, { sourceDomain } from './ArticleCard';
+import { sourceDomain } from './ArticleCard';
+import ArticleRow from './ArticleRow';
 import Reader from './Reader';
 import AiSidePanel from './AiSidePanel';
 import MobileTabs from './MobileTabs';
 import { getStoredUser, startLogin, AuthUser } from '@/lib/auth';
 import { ChevronRight } from './Icons';
-import { useTrending } from '@/hooks/useFeed';
 
 interface Props {
   title: string;
   items: FeedItem[];
   loading?: boolean;
+  subtitle?: string;
 }
 
-function stableKey(item: FeedItem) {
-  return `${item.id}:${sourceDomain(item.source_url)}`;
+function groupBySource(items: FeedItem[]): { domain: string; items: FeedItem[] }[] {
+  const map = new Map<string, FeedItem[]>();
+  for (const item of items) {
+    const domain = sourceDomain(item.source_url) || 'Unknown';
+    if (!map.has(domain)) map.set(domain, []);
+    map.get(domain)!.push(item);
+  }
+  return Array.from(map.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([domain, items]) => ({ domain, items }));
 }
 
-export default function FeedLayout({ title, items, loading }: Props) {
+export default function FeedLayout({ title, items, loading, subtitle }: Props) {
   const [selected, setSelected] = useState<FeedItem | null>(null);
   const [user] = useState<AuthUser | null>(() => getStoredUser());
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const pathname = usePathname();
 
-  const { data: trendingData } = useTrending();
-
-  const sectioned = useMemo(() => {
-    const trendingIds = new Set((trendingData?.topics ?? []).flatMap(t => t.articles.map(a => a.id)));
-    const used = new Set<string>();
-
-    const trending = items.filter(i => trendingIds.has(i.id) && !used.has(i.id)).slice(0, 6);
-    trending.forEach(i => used.add(i.id));
-
-    const rest = items.filter(i => !used.has(i.id));
-    return { trending, rest };
-  }, [items, trendingData]);
+  const groups = useMemo(() => groupBySource(items), [items]);
 
   // Keyboard nav (flat item list for j/k)
   useEffect(() => {
@@ -69,7 +67,7 @@ export default function FeedLayout({ title, items, loading }: Props) {
           background: 'var(--main-bg)',
           flexShrink: 0,
           display: 'flex',
-          alignItems: 'baseline',
+          alignItems: 'flex-start',
           gap: 12,
         }}>
           {!sidebarOpen && (
@@ -88,39 +86,42 @@ export default function FeedLayout({ title, items, loading }: Props) {
               <ChevronRight size={16} />
             </button>
           )}
-          <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.4px' }}>
-            {title}
-          </h1>
-
-          <div style={{ display: 'flex', gap: 6, marginLeft: 6 }}>
-            {(
-              [
-                { href: '/today', label: 'Today' },
-                { href: '/explore', label: 'Explore' },
-              ] as const
-            ).map(t => {
-              const active = pathname === t.href || (t.href === '/today' && pathname === '/');
-              return (
-                <Link
-                  key={t.href}
-                  href={t.href}
-                  style={{
-                    padding: '5px 10px',
-                    borderRadius: 8,
-                    fontSize: 12,
-                    fontWeight: 700,
-                    letterSpacing: '-0.01em',
-                    color: active ? 'var(--text-primary)' : 'var(--text-muted)',
-                    background: active ? 'rgba(255,255,255,0.06)' : 'transparent',
-                    border: active ? '1px solid var(--border)' : '1px solid transparent',
-                    transition: 'all 0.12s',
-                    lineHeight: 1.1,
-                  }}
-                >
-                  {t.label}
-                </Link>
-              );
-            })}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.4px' }}>
+              {title}
+            </div>
+            {subtitle && (
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: -2 }}>
+                {subtitle}
+              </div>
+            )}
+            <div style={{ display: 'flex', gap: 16, marginTop: 6 }}>
+              {(
+                [
+                  { href: '/today', label: 'Today' },
+                  { href: '/explore', label: 'Explore' },
+                ] as const
+              ).map(t => {
+                const active = pathname === t.href || (t.href === '/today' && pathname === '/');
+                return (
+                  <Link
+                    key={t.href}
+                    href={t.href}
+                    style={{
+                      padding: '6px 2px',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: active ? 'var(--text-primary)' : 'var(--text-muted)',
+                      textDecoration: 'none',
+                      borderBottom: active ? '2px solid var(--text-primary)' : '2px solid transparent',
+                      transition: 'all 0.12s',
+                    }}
+                  >
+                    {t.label}
+                  </Link>
+                );
+              })}
+            </div>
           </div>
           {!loading && items.length > 0 && (
             <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
@@ -174,60 +175,31 @@ export default function FeedLayout({ title, items, loading }: Props) {
               </div>
             )}
 
-            <div style={{ maxWidth: 1180, margin: '0 auto', padding: '24px 20px 48px' }}>
-              {sectioned.trending.length > 0 && (
-                <>
+            <div style={{ maxWidth: 860, margin: '0 auto', padding: '24px 20px 48px' }}>
+              {groups.map(({ domain, items: groupItems }) => (
+                <div key={domain} style={{ marginBottom: 28 }}>
                   <div style={{
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    marginBottom: 14,
+                    fontSize: 11,
+                    color: 'var(--text-muted)',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    marginBottom: 10,
                   }}>
-                    <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.4px' }}>
-                      Trending
-                    </div>
-                    <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+                    {domain}
                   </div>
-
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: 16,
-                      overflowX: 'auto',
-                      paddingBottom: 12,
-                      marginBottom: 18,
-                      scrollSnapType: 'x mandatory',
-                    }}
-                  >
-                    {sectioned.trending.map(item => (
-                      <ArticleCard
-                        key={stableKey(item)}
+                  <div style={{ borderTop: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
+                    {groupItems.map(item => (
+                      <ArticleRow
+                        key={item.id}
                         item={item}
                         selected={selected?.id === item.id}
                         onSelect={() => setSelected(item)}
-                        style={{ width: 320, flexShrink: 0, scrollSnapAlign: 'start' }}
                       />
                     ))}
                   </div>
-
-                  <div style={{ height: 1, background: 'var(--border)', margin: '12px 0 22px' }} />
-                </>
-              )}
-
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-                  gap: 18,
-                }}
-              >
-                {sectioned.rest.map(item => (
-                  <ArticleCard
-                    key={stableKey(item)}
-                    item={item}
-                    selected={selected?.id === item.id}
-                    onSelect={() => setSelected(item)}
-                  />
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
 

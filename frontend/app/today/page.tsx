@@ -32,5 +32,5 @@ export default function TodayPage() {
       return db - da;
     });
 
-  return <FeedLayout title="Today" items={merged} loading={textLoading && videoLoading} />;
+  return <FeedLayout title="Today" subtitle="The insights you need to keep ahead" items={merged} loading={textLoading && videoLoading} />;
 }

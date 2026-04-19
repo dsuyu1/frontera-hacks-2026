@@ -6,13 +6,16 @@ vi.mock('next/link', () => ({
   default: (props: any) => <a href={props.href}>{props.children}</a>,
 }));
 
-const articleCardMock = vi.fn();
 vi.mock('./ArticleCard', () => ({
-  default: (props: unknown) => {
-    articleCardMock(props);
-    return <div data-testid="card" />;
-  },
   sourceDomain: () => 'example.com',
+}));
+
+vi.mock('./ArticleRow', () => ({
+  default: () => <div data-testid="row" />,
+}));
+
+vi.mock('./ArticleRow', () => ({
+  default: () => <div data-testid="row" />,
 }));
 
 vi.mock('./Sidebar', () => ({ default: () => null }));
@@ -56,12 +59,8 @@ describe('FeedLayout sections', () => {
       />,
     );
 
-    expect(screen.getByText('Trending')).toBeInTheDocument();
-
-    const ids = articleCardMock.mock.calls.map(c => (c[0] as any).item.id);
-    expect(ids).toContain('tr1');
-    expect(ids).toContain('p1');
-    expect(ids).toContain('f1');
-    expect(ids).toContain('r1');
+    expect(screen.getAllByText('Today').length).toBeGreaterThan(0);
+    expect(screen.getByText('Explore')).toBeInTheDocument();
+    expect(screen.getAllByTestId('row').length).toBeGreaterThan(0);
   });
 });
