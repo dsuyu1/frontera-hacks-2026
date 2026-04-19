@@ -56,9 +56,9 @@ export default function ProfilePage() {
               <ChevronRight size={16} />
             </button>
           )}
-          <div style={{ fontSize: 28, fontWeight: 850, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
+          <h1 style={{ fontSize: 28, fontWeight: 850, color: 'var(--text-primary)', letterSpacing: '-0.5px', margin: 0 }}>
             Follow Sources
-          </div>
+          </h1>
         </div>
 
         {/* Content */}
@@ -120,7 +120,7 @@ export default function ProfilePage() {
 
               {favorites.length > 0 && (
                 <div style={{ marginBottom: 28 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>Followed sources</div>
+                  <h2 style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, margin: '0 0 10px' }}>Followed sources</h2>
                   <div style={{ border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
                     {favorites.map(domain => (
                       <div
@@ -147,8 +147,10 @@ export default function ProfilePage() {
                 </div>
               )}
 
-              <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>All sources</div>
+              <h2 style={{ fontSize: 14, fontWeight: 700, margin: '0 0 10px' }}>All sources</h2>
+              <label htmlFor="sources-search" className="sr-only">Search sources</label>
               <input
+                id="sources-search"
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 placeholder="Search sources…"

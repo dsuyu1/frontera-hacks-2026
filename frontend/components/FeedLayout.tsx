@@ -75,10 +75,11 @@ export default function FeedLayout({ title, items, loading, subtitle, headerActi
 
   return (
     <div style={{ display: 'flex', height: '100vh', background: 'var(--main-bg)', overflow: 'hidden' }}>
+      <a href="#main-content" className="skip-link">Skip to content</a>
       <Sidebar open={sidebarOpen} onToggle={() => setSidebarOpen(v => !v)} />
 
       {/* Main column */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <main id="main-content" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
 
         {/* Page header */}
         <div style={{
@@ -96,6 +97,7 @@ export default function FeedLayout({ title, items, loading, subtitle, headerActi
               <button
                 onClick={() => setSidebarOpen(true)}
                 title="Open sidebar"
+                aria-label="Open sidebar"
                 style={{
                   padding: '5px 8px', background: 'none', border: '1px solid var(--border)',
                   borderRadius: 4, cursor: 'pointer', color: 'var(--text-muted)',
@@ -109,7 +111,7 @@ export default function FeedLayout({ title, items, loading, subtitle, headerActi
               </button>
             )}
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div
+              <h1
                 style={{
                   fontSize: collapsedHeader ? 14 : 30,
                   fontWeight: collapsedHeader ? 700 : 850 as any,
@@ -121,10 +123,11 @@ export default function FeedLayout({ title, items, loading, subtitle, headerActi
                   whiteSpace: collapsedHeader ? 'nowrap' : 'normal',
                   overflow: collapsedHeader ? 'hidden' : 'visible',
                   textOverflow: collapsedHeader ? 'ellipsis' : 'clip',
+                  margin: 0,
                 }}
               >
                 {title}
-              </div>
+              </h1>
               {!collapsedHeader && subtitle && (
                 <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 6 }}>
                   {subtitle}
@@ -163,11 +166,13 @@ export default function FeedLayout({ title, items, loading, subtitle, headerActi
               filter: selected ? 'brightness(0.4)' : 'none',
             }}
           >
-            {loading && (
-              <div style={{ padding: '40px 20px', color: 'var(--text-muted)', fontSize: 13 }}>
-                Loading…
-              </div>
-            )}
+            <div aria-live="polite" aria-atomic="true">
+              {loading && (
+                <div style={{ padding: '40px 20px', color: 'var(--text-muted)', fontSize: 13 }}>
+                  Loading…
+                </div>
+              )}
+            </div>
 
             {!loading && items.length === 0 && (
               <div style={{ textAlign: 'center', padding: '80px 20px', color: 'var(--text-muted)' }}>
@@ -235,7 +240,7 @@ export default function FeedLayout({ title, items, loading, subtitle, headerActi
             )}
           </div>
         </div>
-      </div>
+      </main>
 
       {/* Mobile bottom tab bar */}
       <MobileTabs />

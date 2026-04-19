@@ -46,6 +46,9 @@ export default function AskAIPanel({ item, contextText }: { item: FeedItem; cont
     <div style={{ border: '1px solid var(--border)', borderRadius: 10, background: '#0f0f0f', overflow: 'hidden' }}>
       <button
         onClick={() => setOpen(v => !v)}
+        aria-expanded={open}
+        aria-controls="ask-ai-body"
+        aria-label={open ? 'Collapse Ask AI panel' : 'Expand Ask AI panel'}
         style={{
           display: 'flex', alignItems: 'center', gap: 8,
           background: 'none', border: 'none', cursor: 'pointer',
@@ -71,13 +74,16 @@ export default function AskAIPanel({ item, contextText }: { item: FeedItem; cont
       </button>
 
       {open && (
-        <div style={{ padding: 12 }}>
+        <div id="ask-ai-body" style={{ padding: 12 }}>
           <form onSubmit={ask} style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+            <label htmlFor="ask-ai-input" className="sr-only">Ask a question about this {isVideo ? 'meeting' : 'article'}</label>
             <input
+              id="ask-ai-input"
               value={question}
               onChange={e => setQuestion(e.target.value)}
               placeholder={disabled ? 'Load content to ask questions' : (isVideo ? 'What happened at this meeting?' : 'What would you like to know?')}
               disabled={disabled}
+              aria-label={`Ask a question about this ${isVideo ? 'meeting' : 'article'}`}
               style={{
                 flex: 1, padding: '9px 12px',
                 background: '#1a1a1a', border: '1px solid #333',
@@ -90,6 +96,7 @@ export default function AskAIPanel({ item, contextText }: { item: FeedItem; cont
             <button
               type="submit"
               disabled={disabled || !question.trim() || loading}
+              aria-label={loading ? 'Getting answer…' : 'Ask question'}
               style={{
                 padding: '9px 16px', borderRadius: 6,
                 background: !disabled && question.trim() && !loading ? 'linear-gradient(135deg, #6366f1, #8b5cf6)' : '#222',
@@ -102,6 +109,7 @@ export default function AskAIPanel({ item, contextText }: { item: FeedItem; cont
             </button>
           </form>
 
+          <div aria-live="polite" aria-atomic="true">
           {answer && (
             <div style={{
               padding: '14px 16px', borderRadius: 8,
@@ -123,7 +131,8 @@ export default function AskAIPanel({ item, contextText }: { item: FeedItem; cont
             </div>
           )}
 
-          {error && <p style={{ fontSize: 13, color: '#ef4444', marginBottom: 8 }}>{error}</p>}
+          {error && <p role="alert" style={{ fontSize: 13, color: '#ef4444', marginBottom: 8 }}>{error}</p>}
+          </div>
 
           {!answer && !loading && !disabled && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>

@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { AUTH_CHANGED_EVENT, getStoredUser, startLogin, logout, AuthUser } from '@/lib/auth';
 import { SOURCES_CHANGED_EVENT, getFeedFolders, createFeedFolder, deleteFeedFolder, type FeedFolder } from '@/lib/sources';
@@ -18,7 +18,6 @@ const NAV_TOP: NavItem[] = [
 
 export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: () => void }) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [feedsOpen, setFeedsOpen] = useState(true);
   const [user, setUser] = useState<AuthUser | null>(() => getStoredUser());
   const [folders, setFolders] = useState<FeedFolder[]>(() => getFeedFolders());
@@ -73,6 +72,7 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
         <button
           onClick={onToggle}
           title="Collapse sidebar"
+          aria-label="Collapse sidebar"
           style={{
             padding: '6px 8px', background: 'none', border: 'none',
             cursor: 'pointer', color: 'var(--text-muted)', borderRadius: 6,
@@ -87,7 +87,7 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
       </div>
 
       {/* Nav */}
-      <nav style={{ flex: 1, padding: '6px 0', overflowY: 'auto' }}>
+      <nav aria-label="Main navigation" style={{ flex: 1, padding: '6px 0', overflowY: 'auto' }}>
         {NAV_TOP.map(n => {
           const active = pathname === n.href || (n.href === '/today' && pathname === '/');
           const isFollowSources = n.href === '/profile';
@@ -111,6 +111,7 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
               <button
                 key={n.href}
                 onClick={() => setShowAuthModal(true)}
+                aria-label={`${n.label} — sign in required`}
                 style={{ ...sharedStyle, width: '100%', border: 'none', cursor: 'pointer', textAlign: 'left' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--sidebar-hover-bg)'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
@@ -125,6 +126,7 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
             <Link
               key={n.href}
               href={n.href}
+              aria-current={active ? 'page' : undefined}
               style={sharedStyle}
               onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--sidebar-hover-bg)'; }}
               onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
@@ -143,6 +145,8 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
           }}>
             <button
               onClick={() => setFeedsOpen(v => !v)}
+              aria-expanded={feedsOpen}
+              aria-controls="feeds-list"
               style={{
                 display: 'flex', alignItems: 'center', gap: 4,
                 background: 'none', border: 'none', cursor: 'pointer',
@@ -156,6 +160,7 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
             <button
               onClick={() => { setFeedsOpen(true); setAddingFeed(true); }}
               title="Add feed"
+              aria-label="Add feed"
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
                 color: 'var(--text-muted)', fontSize: 16, lineHeight: 1,
@@ -165,14 +170,14 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'; }}
             >
-              +
+              <span aria-hidden="true">+</span>
             </button>
           </div>
 
           {feedsOpen && (
-            <>
+            <div id="feeds-list">
               {folders.map(folder => {
-                const active = pathname === '/feed' && searchParams.get('folderId') === folder.id;
+                const active = pathname === `/feed/${folder.id}`;
                 return (
                   <div
                     key={folder.id}
@@ -182,7 +187,8 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
                     }}
                   >
                     <Link
-                      href={`/feed?folderId=${encodeURIComponent(folder.id)}`}
+                      href={`/feed/${folder.id}`}
+                      aria-current={active ? 'page' : undefined}
                       style={{
                         flex: 1, display: 'flex', alignItems: 'center', gap: 10,
                         padding: '9px 8px 9px 31px',
@@ -208,7 +214,8 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
                     </Link>
                     <button
                       onClick={() => deleteFeedFolder(folder.id)}
-                      title="Remove feed"
+                      title={`Remove ${folder.name}`}
+                      aria-label={`Remove feed: ${folder.name}`}
                       style={{
                         background: 'none', border: 'none', cursor: 'pointer',
                         color: 'var(--text-muted)', fontSize: 13, lineHeight: 1,
@@ -232,7 +239,9 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
 
               {addingFeed && (
                 <div style={{ padding: '6px 16px 6px 34px' }}>
+                  <label htmlFor="new-feed-name" className="sr-only">Feed name</label>
                   <input
+                    id="new-feed-name"
                     ref={inputRef}
                     value={newFeedName}
                     onChange={e => setNewFeedName(e.target.value)}
@@ -242,6 +251,7 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
                     }}
                     onBlur={handleCreateFeed}
                     placeholder="Feed name…"
+                    aria-label="New feed name"
                     style={{
                       width: '100%', padding: '6px 10px',
                       background: '#1c1c1f', border: '1px solid var(--accent)',
@@ -251,7 +261,7 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
                   />
                 </div>
               )}
-            </>
+            </div>
           )}
         </div>
       </nav>

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import FeedLayout from '@/components/FeedLayout';
 import { useFeedItems } from '@/hooks/useFeed';
 import { sourceDomain } from '@/components/ArticleCard';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 import {
   SOURCES_CHANGED_EVENT,
   getFeedFolders,
@@ -11,9 +12,18 @@ import {
   type FeedFolder,
 } from '@/lib/sources';
 
+const PICKER_LABEL = 'source-picker-title';
+
 function SourcePicker({ folder, onClose }: { folder: FeedFolder; onClose: () => void }) {
+  const containerRef = useFocusTrap(true);
   const [known, setKnown] = useState<string[]>(() => getKnownSources());
   const [selected, setSelected] = useState<Set<string>>(new Set(folder.domains));
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [onClose]);
 
   useEffect(() => {
     const sync = () => setKnown(getKnownSources());
@@ -35,20 +45,28 @@ function SourcePicker({ folder, onClose }: { folder: FeedFolder; onClose: () => 
   }
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 100,
-      background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-    }}
+    <div
+      role="presentation"
+      style={{
+        position: 'fixed', inset: 0, zIndex: 100,
+        background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div style={{
-        background: 'var(--reader-bg)', border: '1px solid var(--border)',
-        borderRadius: 12, padding: 24, width: 380, maxWidth: 'calc(100vw - 32px)',
-        maxHeight: '80vh', display: 'flex', flexDirection: 'column', gap: 16,
-      }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>
-          Add sources to "{folder.name}"
-        </div>
+      <div
+        ref={containerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={PICKER_LABEL}
+        style={{
+          background: 'var(--reader-bg)', border: '1px solid var(--border)',
+          borderRadius: 12, padding: 24, width: 380, maxWidth: 'calc(100vw - 32px)',
+          maxHeight: '80vh', display: 'flex', flexDirection: 'column', gap: 16,
+        }}
+      >
+        <h2 id={PICKER_LABEL} style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+          Add sources to &ldquo;{folder.name}&rdquo;
+        </h2>
 
         {known.length === 0 ? (
           <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>

@@ -22,6 +22,8 @@ function Svg({ size = 20, color = 'currentColor', strokeWidth = 1.75, style, cla
       strokeLinejoin="round"
       style={{ display: 'inline-block', flexShrink: 0, ...style }}
       className={className}
+      aria-hidden="true"
+      focusable="false"
     >
       {children}
     </svg>

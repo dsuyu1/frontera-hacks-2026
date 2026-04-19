@@ -102,7 +102,9 @@ function CommentsSection({ item, user }: { item: FeedItem; user: AuthUser | null
 
       {user ? (
         <form onSubmit={submit}>
+          <label htmlFor="comment-input" className="sr-only">Add a comment</label>
           <textarea
+            id="comment-input"
             ref={textRef}
             value={text}
             onChange={e => setText(e.target.value)}
@@ -214,6 +216,7 @@ function VideoSection({ item }: { item: FeedItem }) {
           <iframe
             key={immediateEmbedUrl}
             className="yt-embed"
+            title={item.title}
             src={`${immediateEmbedUrl}${immediateEmbedUrl.includes('?') ? '&' : '?'}autoplay=1&mute=1&playsinline=1&rel=0`}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
@@ -269,6 +272,7 @@ function VideoSection({ item }: { item: FeedItem }) {
             <button
               onClick={triggerPipeline}
               disabled={running}
+              aria-label={running ? 'Starting video pipeline…' : 'Process video now'}
               style={{
                 marginLeft: 'auto',
                 padding: '4px 12px', borderRadius: 4,
@@ -282,7 +286,7 @@ function VideoSection({ item }: { item: FeedItem }) {
                 {running ? '…' : <RefreshCw size={11} />} {running ? 'Starting…' : 'Process Now'}
               </span>
             </button>
-            {runError && <span style={{ fontSize: 11, color: '#ef4444' }}>{runError}</span>}
+            {runError && <span role="alert" aria-live="polite" style={{ fontSize: 11, color: '#ef4444' }}>{runError}</span>}
           </>
         )}
       </div>
@@ -350,13 +354,15 @@ function TranscriptView({ text }: { text: string }) {
       {isLong && (
         <button
           onClick={() => setExpanded(v => !v)}
+          aria-expanded={expanded}
+          aria-label={expanded ? 'Collapse transcript' : 'Expand full transcript'}
           style={{
             marginTop: 10, background: 'none', border: 'none',
             cursor: 'pointer', color: 'var(--accent)', fontSize: 12,
             padding: 0,
           }}
         >
-          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }} aria-hidden="true">
             {expanded ? <><ChevronUp size={12} /> Show less</> : <><ChevronDown size={12} /> Show full transcript</>}
           </span>
         </button>
@@ -475,12 +481,14 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
         borderBottom: '1px solid var(--border)',
         position: 'sticky', top: 0, background: 'var(--reader-bg)', zIndex: 1, flexShrink: 0,
       }}>
-        <button onClick={() => { stopReading(); onClose?.(); }} style={{ ...toolBtn, display: 'flex', alignItems: 'center', gap: 5 }}>
+        <button onClick={() => { stopReading(); onClose?.(); }} aria-label="Close article" style={{ ...toolBtn, display: 'flex', alignItems: 'center', gap: 5 }}>
           <ArrowLeft size={14} /> Back
         </button>
         <div style={{ flex: 1 }} />
         <button
           onClick={() => isRead ? markUnread(item.id) : markRead(item.id)}
+          aria-pressed={isRead}
+          aria-label={isRead ? 'Mark as unread' : 'Mark as read'}
           style={{ ...toolBtn, display: 'flex', alignItems: 'center', gap: 5, color: isRead ? 'var(--accent)' : 'var(--text-muted)' }}
         >
           {isRead ? <CheckCircle size={14} /> : <Circle size={14} />}
@@ -488,6 +496,8 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
         </button>
         <button
           onClick={() => toggleSaved(item.id)}
+          aria-pressed={isSaved}
+          aria-label={isSaved ? 'Remove from saved' : 'Save for later'}
           style={{ ...toolBtn, display: 'flex', alignItems: 'center', color: isSaved ? '#f59e0b' : 'var(--text-muted)' }}
         >
           <Bookmark size={14} filled={isSaved} />
@@ -496,6 +506,8 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
           <button
             onClick={toggleReadAloud}
             disabled={!ttsSupported || (!articleLoading && !ttsText)}
+            aria-pressed={speaking}
+            aria-label={speaking ? 'Stop reading aloud' : 'Read article aloud'}
             style={{
               ...toolBtn,
               display: 'flex',

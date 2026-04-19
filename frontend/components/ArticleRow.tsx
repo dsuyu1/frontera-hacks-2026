@@ -29,18 +29,28 @@ export default function ArticleRow({ item, selected, onSelect }: {
 
   const thumbUrl = (!storedFailed && item.thumbnail_url) ? item.thumbnail_url : (ogData?.imageUrl ?? null);
 
+  const dateStr = date ? formatDistanceToNow(new Date(date), { addSuffix: true }) : '';
+  const rowLabel = [item.title, domain, dateStr, isVideo ? 'Video' : ''].filter(Boolean).join(', ');
+
   return (
-    <div onClick={onSelect} style={{
-      display: 'flex', gap: 16, padding: '18px 0', cursor: 'pointer',
-      background: selected ? 'var(--row-selected)' : 'transparent',
-      borderBottom: '1px solid var(--border)',
-      borderLeft: selected ? '2px solid var(--accent)' : '2px solid transparent',
-      transition: 'background 0.1s',
-      opacity: isRead && !selected ? 0.45 : 1,
-    }}>
+    <div
+      role="article"
+      tabIndex={0}
+      aria-label={rowLabel}
+      onClick={onSelect}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(); } }}
+      style={{
+        display: 'flex', gap: 16, padding: '18px 0', cursor: 'pointer',
+        background: selected ? 'var(--row-selected)' : 'transparent',
+        borderBottom: '1px solid var(--border)',
+        borderLeft: selected ? '2px solid var(--accent)' : '2px solid transparent',
+        transition: 'background 0.1s',
+        opacity: isRead && !selected ? 0.45 : 1,
+      }}
+    >
       {/* Thumbnail */}
       {thumbUrl ? (
-        <img src={thumbUrl} alt="" onError={() => setStoredFailed(true)} style={{
+        <img src={thumbUrl} alt={item.title} onError={() => setStoredFailed(true)} style={{
           width: 120, height: 72, objectFit: 'cover', borderRadius: 6,
           flexShrink: 0, background: 'var(--surface, #18181b)',
         }} />
