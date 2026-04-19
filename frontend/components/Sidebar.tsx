@@ -8,13 +8,13 @@ import { Sun, List, Bookmark, Clock, ChevronLeft, ChevronRight, ChevronDown, Log
 import AuthModal from './AuthModal';
 import AccountMenu from './AccountMenu';
 
-type NavItem = { href: string; Icon: React.ComponentType<{ size?: number; color?: string }>; label: string };
+type NavItem = { href: string; Icon: React.ComponentType<{ size?: number; color?: string }>; label: string; requiresAuth?: boolean };
 const NAV_TOP: NavItem[] = [
   { href: '/today', Icon: Sun, label: 'Today' },
   { href: '/all', Icon: List, label: 'All' },
   { href: '/read-later', Icon: Bookmark, label: 'Saved' },
   { href: '/recently-read', Icon: Clock, label: 'History' },
-  { href: '/profile', Icon: Star, label: 'Follow Sources' },
+  { href: '/profile?tab=sources', Icon: Star, label: 'Follow Sources', requiresAuth: true },
   { href: '/support-local', Icon: Heart, label: 'Support Local' },
 ];
 
@@ -91,8 +91,8 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
       {/* Nav */}
       <nav aria-label="Main navigation" style={{ flex: 1, padding: '6px 0', overflowY: 'auto' }}>
         {NAV_TOP.map(n => {
-          const active = pathname === n.href || (n.href === '/today' && pathname === '/');
-          const isFollowSources = n.href === '/profile';
+          const hrefPath = n.href.split('?')[0];
+          const active = pathname === hrefPath || (hrefPath === '/today' && pathname === '/');
           const sharedStyle: React.CSSProperties = {
             display: 'flex', alignItems: 'center', gap: open ? 12 : 0,
             justifyContent: open ? 'flex-start' : 'center',
@@ -109,7 +109,7 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
             </span>
           );
 
-          if (isFollowSources && !user) {
+          if (n.requiresAuth && !user) {
             return (
               <button
                 key={n.href}
@@ -275,21 +275,27 @@ export default function Sidebar({ open, onToggle }: { open: boolean; onToggle: (
       <div style={{ borderTop: '1px solid var(--sidebar-border)', flexShrink: 0 }}>
         {user ? (
           <div style={{ padding: open ? '10px 18px' : '10px 10px', display: 'flex', alignItems: 'center', gap: 8, justifyContent: open ? 'flex-start' : 'center' }}>
-            <div style={{
-              width: 26, height: 26, borderRadius: '50%',
-              background: 'var(--accent-dim)', border: '1px solid var(--accent)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 11, fontWeight: 700, color: 'var(--accent)', flexShrink: 0,
-            }}>
-              {user.username?.[0]?.toUpperCase() ?? '?'}
-            </div>
-            {open && (
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {user.username}
+            <Link
+              href="/profile"
+              aria-label="Profile"
+              style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, textDecoration: 'none', color: 'inherit', flex: 1 }}
+            >
+              <div style={{
+                width: 26, height: 26, borderRadius: '50%',
+                background: 'var(--accent-dim)', border: '1px solid var(--accent)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 11, fontWeight: 700, color: 'var(--accent)', flexShrink: 0,
+              }}>
+                {user.username?.[0]?.toUpperCase() ?? '?'}
               </div>
-            </div>
-            )}
+              {open && (
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {user.username}
+                </div>
+              </div>
+              )}
+            </Link>
             <button
               onClick={logout}
               title="Sign out"

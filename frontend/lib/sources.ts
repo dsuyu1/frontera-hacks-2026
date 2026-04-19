@@ -43,6 +43,17 @@ export function getKnownSources(): string[] {
   return safeJsonParse<string[]>(localStorage.getItem(KNOWN_KEY), []);
 }
 
+export function addKnownSources(domains: string[]) {
+  if (typeof window === 'undefined') return;
+  const current = new Set(getKnownSources());
+  for (const d of domains) {
+    const trimmed = d.trim().toLowerCase();
+    if (trimmed) current.add(trimmed);
+  }
+  localStorage.setItem(KNOWN_KEY, JSON.stringify(Array.from(current).sort()));
+  emitChange();
+}
+
 export function getFavoriteSources(): string[] {
   if (typeof window === 'undefined') return [];
   return safeJsonParse<string[]>(localStorage.getItem(FAVORITES_KEY), []).sort();
@@ -92,4 +103,3 @@ export function updateFeedFolder(id: string, updates: Partial<Omit<FeedFolder, '
   localStorage.setItem(FEEDS_KEY, JSON.stringify(next));
   emitChange();
 }
-

@@ -1,19 +1,24 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import AuthModal from '@/components/AuthModal';
 import { Star } from '@/components/Icons';
 import { AUTH_CHANGED_EVENT, getStoredUser, type AuthUser } from '@/lib/auth';
-import { SOURCES_CHANGED_EVENT, getFavoriteSources, getKnownSources, isFavoriteSource, toggleFavoriteSource } from '@/lib/sources';
+import { SOURCES_CHANGED_EVENT, addKnownSources, getFavoriteSources, getKnownSources, isFavoriteSource, toggleFavoriteSource } from '@/lib/sources';
 import { api } from '@/lib/api';
 
 type Tab = 'account' | 'sources';
 
 export default function ProfilePage() {
+  const searchParams = useSearchParams();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [user, setUser] = useState<AuthUser | null>(() => getStoredUser());
-  const [activeTab, setActiveTab] = useState<Tab>('account');
+  const [activeTab, setActiveTab] = useState<Tab>(() => {
+    const tab = searchParams.get('tab');
+    return tab === 'sources' ? 'sources' : 'account';
+  });
 
   // account state
   const [displayName, setDisplayName] = useState('');
@@ -39,6 +44,17 @@ export default function ProfilePage() {
     const sync = () => { setFavorites(getFavoriteSources()); setKnown(getKnownSources()); };
     window.addEventListener(SOURCES_CHANGED_EVENT, sync);
     return () => window.removeEventListener(SOURCES_CHANGED_EVENT, sync);
+  }, []);
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    setActiveTab(tab === 'sources' ? 'sources' : 'account');
+  }, [searchParams]);
+
+  useEffect(() => {
+    api.sourcesDomains()
+      .then(({ domains }) => addKnownSources(domains))
+      .catch(() => {});
   }, []);
 
   // Load profile from backend when user logs in

@@ -64,6 +64,10 @@ export interface UserProfile {
   followed_sources: string[];
 }
 
+export interface SourcesDomainsResponse {
+  domains: string[];
+}
+
 function authHeaders(): Record<string, string> {
   try {
     const raw = typeof window !== 'undefined' && localStorage.getItem('frontera_auth');
@@ -97,6 +101,7 @@ async function del(path: string): Promise<void> {
 export const api = {
   localities: () => get<Locality[]>('/localities'),
   categories: () => get<Category[]>('/categories'),
+  sourcesDomains: () => get<SourcesDomainsResponse>('/sources/domains'),
   feed: (p: { localities?: string[]; categories?: string[]; type?: string; limit?: number; offset?: number }) => {
     const qs = new URLSearchParams();
     if (p.localities?.length) qs.set('localities', p.localities.join(','));

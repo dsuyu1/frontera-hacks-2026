@@ -172,6 +172,29 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
         return json(200, rows);
       }
 
+      // GET /sources/domains
+      if (method === 'GET' && path === '/sources/domains') {
+        const { rows } = await db.query(
+          `SELECT url FROM sources WHERE active = true
+           UNION ALL
+           SELECT source_url AS url FROM feed_items`,
+        );
+        const domains = Array.from(
+          new Set(
+            rows
+              .map((r: { url: string }) => {
+                try {
+                  return new URL(r.url).hostname.toLowerCase();
+                } catch {
+                  return null;
+                }
+              })
+              .filter((d: string | null): d is string => !!d),
+          ),
+        ).sort();
+        return json(200, { domains });
+      }
+
       // GET /elections/dates
       if (method === 'GET' && path === '/elections/dates') {
         const { rows } = await db.query(
