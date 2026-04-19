@@ -62,7 +62,7 @@ export default function FeedLayout({ title, items, loading, subtitle }: Props) {
 
         {/* Page header */}
         <div style={{
-          padding: '16px 20px 12px',
+          padding: '24px 24px 16px',
           borderBottom: '1px solid var(--border)',
           background: 'var(--main-bg)',
           flexShrink: 0,
@@ -86,16 +86,21 @@ export default function FeedLayout({ title, items, loading, subtitle }: Props) {
               <ChevronRight size={16} />
             </button>
           )}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.4px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ fontSize: 30, fontWeight: 850 as any, color: 'var(--text-primary)', letterSpacing: '-0.6px', lineHeight: 1.05 }}>
               {title}
             </div>
             {subtitle && (
-              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: -2 }}>
+              <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: -4 }}>
                 {subtitle}
               </div>
             )}
-            <div style={{ display: 'flex', gap: 16, marginTop: 6 }}>
+            {!loading && items.length > 0 && (
+              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                {items.length} articles
+              </div>
+            )}
+            <div style={{ display: 'flex', gap: 18, marginTop: 8 }}>
               {(
                 [
                   { href: '/today', label: 'Today' },
@@ -108,12 +113,12 @@ export default function FeedLayout({ title, items, loading, subtitle }: Props) {
                     key={t.href}
                     href={t.href}
                     style={{
-                      padding: '6px 2px',
-                      fontSize: 12,
-                      fontWeight: 700,
+                      padding: '10px 2px',
+                      fontSize: 13,
+                      fontWeight: 800,
                       color: active ? 'var(--text-primary)' : 'var(--text-muted)',
                       textDecoration: 'none',
-                      borderBottom: active ? '2px solid var(--text-primary)' : '2px solid transparent',
+                      borderBottom: active ? '3px solid var(--text-primary)' : '3px solid transparent',
                       transition: 'all 0.12s',
                     }}
                   >
@@ -123,18 +128,13 @@ export default function FeedLayout({ title, items, loading, subtitle }: Props) {
               })}
             </div>
           </div>
-          {!loading && items.length > 0 && (
-            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-              {items.length} articles
-            </span>
-          )}
           <div style={{ marginLeft: 'auto' }}>
             {!user && (
               <button
                 onClick={startLogin}
                 style={{
-                  padding: '6px 14px', background: 'var(--accent)', color: '#fff',
-                  border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 600,
+                  padding: '8px 16px', background: 'var(--accent)', color: '#fff',
+                  border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700,
                   cursor: 'pointer', transition: 'background 0.15s',
                 }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--accent-hover)'; }}
@@ -175,7 +175,7 @@ export default function FeedLayout({ title, items, loading, subtitle }: Props) {
               </div>
             )}
 
-            <div style={{ maxWidth: 860, margin: '0 auto', padding: '24px 20px 48px' }}>
+            <div style={{ maxWidth: 920, margin: '0 auto', padding: '26px 24px 56px' }}>
               {groups.map(({ domain, items: groupItems }) => (
                 <div key={domain} style={{ marginBottom: 28 }}>
                   <div style={{
