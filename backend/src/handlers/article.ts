@@ -16,12 +16,7 @@ const bedrock = new BedrockRuntimeClient({ region: 'us-east-1' });
 function json(status: number, body: unknown): APIGatewayProxyResultV2 {
   return {
     statusCode: status,
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-      'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   };
 }

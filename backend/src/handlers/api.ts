@@ -137,12 +137,7 @@ async function verifyToken(authHeader: string | undefined): Promise<{ sub: strin
 function json(status: number, body: unknown): APIGatewayProxyResultV2 {
   return {
     statusCode: status,
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-      'Access-Control-Allow-Methods': 'GET,POST,DELETE,OPTIONS',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   };
 }
