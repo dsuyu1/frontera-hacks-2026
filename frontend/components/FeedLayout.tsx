@@ -178,16 +178,14 @@ export default function FeedLayout({ title, items, loading, subtitle }: Props) {
               {groups.map(({ domain, items: groupItems }) => (
                 <div key={domain} style={{ marginBottom: 28 }}>
                   <div style={{
-                    fontSize: 11,
+                    fontSize: 12,
                     color: 'var(--text-muted)',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.08em',
-                    marginBottom: 10,
+                    fontWeight: 600,
+                    marginBottom: 12,
                   }}>
                     {domain}
                   </div>
-                  <div style={{ borderTop: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
+                  <div style={{ borderTop: '1px solid var(--border)' }}>
                     {groupItems.map(item => (
                       <ArticleRow
                         key={item.id}
