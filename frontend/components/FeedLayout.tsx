@@ -62,7 +62,7 @@ export default function FeedLayout({ title, items, loading, subtitle }: Props) {
 
         {/* Page header */}
         <div style={{
-          padding: '24px 24px 16px',
+          padding: '18px 20px 12px',
           borderBottom: '1px solid var(--border)',
           background: 'var(--main-bg)',
           flexShrink: 0,
@@ -86,7 +86,7 @@ export default function FeedLayout({ title, items, loading, subtitle }: Props) {
               <ChevronRight size={16} />
             </button>
           )}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <div style={{ fontSize: 30, fontWeight: 850 as any, color: 'var(--text-primary)', letterSpacing: '-0.6px', lineHeight: 1.05 }}>
               {title}
             </div>
@@ -96,11 +96,11 @@ export default function FeedLayout({ title, items, loading, subtitle }: Props) {
               </div>
             )}
             {!loading && items.length > 0 && (
-              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: -2 }}>
                 {items.length} articles
               </div>
             )}
-            <div style={{ display: 'flex', gap: 18, marginTop: 8 }}>
+            <div style={{ display: 'flex', gap: 14, marginTop: 4 }}>
               {(
                 [
                   { href: '/today', label: 'Today' },
@@ -113,7 +113,7 @@ export default function FeedLayout({ title, items, loading, subtitle }: Props) {
                     key={t.href}
                     href={t.href}
                     style={{
-                      padding: '10px 2px',
+                      padding: '8px 2px',
                       fontSize: 13,
                       fontWeight: 800,
                       color: active ? 'var(--text-primary)' : 'var(--text-muted)',
