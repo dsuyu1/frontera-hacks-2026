@@ -6,7 +6,7 @@ import { useFeedStore } from '@/lib/store';
 import { getStoredUser, startLogin, AuthUser } from '@/lib/auth';
 import { formatDistanceToNow } from 'date-fns';
 import VideoPlayer from './VideoPlayer';
-import { ArrowLeft, Circle, CheckCircle, Bookmark, ExternalLink, Sparkles, ChevronUp, ChevronDown, RefreshCw } from './Icons';
+import { ArrowLeft, Circle, CheckCircle, Bookmark, ExternalLink, ChevronUp, ChevronDown, RefreshCw } from './Icons';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -156,150 +156,6 @@ function CommentsSection({ item, user }: { item: FeedItem; user: AuthUser | null
   );
 }
 
-// ── Ask AI panel ─────────────────────────────────────────────────────────────
-
-function AskAIPanel({ item, contextText }: { item: FeedItem; contextText: string }) {
-  const [open, setOpen] = useState(false);
-  const [question, setQuestion] = useState('');
-  const [answer, setAnswer] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const isVideo = item.type === 'video';
-
-  const suggestedQuestions = isVideo ? [
-    'What decisions were made at this meeting?',
-    'Who spoke and what did they say?',
-    'How does this affect residents?',
-  ] : [
-    'What is the main point of this article?',
-    'Who is affected by this?',
-    'What are the key facts?',
-  ];
-
-  async function ask(e: React.FormEvent) {
-    e.preventDefault();
-    if (!question.trim() || loading) return;
-    setLoading(true);
-    setAnswer('');
-    setError('');
-    try {
-      const data = await api.ask(question.trim(), item.title, item.summary, contextText);
-      setAnswer(data.answer);
-    } catch {
-      setError('Could not get a response. Try again.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return (
-    <div style={{ marginTop: 32, borderTop: '1px solid var(--border)', paddingTop: 20 }}>
-      <button
-        onClick={() => setOpen(v => !v)}
-        style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          background: 'none', border: 'none', cursor: 'pointer',
-          padding: 0, width: '100%',
-        }}
-      >
-        <span style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          width: 28, height: 28, borderRadius: 6,
-          background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-          flexShrink: 0,
-        }}><Sparkles size={14} color="#fff" strokeWidth={0} /></span>
-        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-          Ask AI
-        </span>
-        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 4 }}>
-          · {isVideo ? 'Ask about this meeting' : 'Ask about this article'}
-        </span>
-        <span style={{ marginLeft: 'auto', color: 'var(--text-muted)' }}>
-          {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-        </span>
-      </button>
-
-      {open && (
-        <div style={{ marginTop: 16 }}>
-          <form onSubmit={ask} style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-            <input
-              value={question}
-              onChange={e => setQuestion(e.target.value)}
-              placeholder={isVideo ? 'What happened at this meeting?' : 'What would you like to know?'}
-              style={{
-                flex: 1, padding: '9px 12px',
-                background: '#1a1a1a', border: '1px solid #333',
-                borderRadius: 6, color: 'var(--text-primary)',
-                fontSize: 13, fontFamily: 'inherit', outline: 'none',
-              }}
-              onFocus={e => { e.target.style.borderColor = '#6366f1'; }}
-              onBlur={e => { e.target.style.borderColor = '#333'; }}
-            />
-            <button
-              type="submit"
-              disabled={!question.trim() || loading}
-              style={{
-                padding: '9px 16px', borderRadius: 6,
-                background: question.trim() && !loading ? 'linear-gradient(135deg, #6366f1, #8b5cf6)' : '#222',
-                color: question.trim() && !loading ? '#fff' : '#555',
-                border: 'none', cursor: question.trim() && !loading ? 'pointer' : 'default',
-                fontSize: 12, fontWeight: 600, transition: 'all 0.15s', flexShrink: 0,
-              }}
-            >
-              {loading ? '…' : 'Ask'}
-            </button>
-          </form>
-
-          {answer && (
-            <div style={{
-              padding: '14px 16px', borderRadius: 8,
-              background: 'rgba(99, 102, 241, 0.08)',
-              border: '1px solid rgba(99, 102, 241, 0.2)',
-              marginBottom: 10,
-            }}>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <span style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  width: 20, height: 20, borderRadius: 4,
-                  background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                  flexShrink: 0, marginTop: 2,
-                }}><Sparkles size={11} color="#fff" strokeWidth={0} /></span>
-                <p style={{ fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.7, margin: 0 }}>
-                  {answer}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {error && <p style={{ fontSize: 13, color: '#ef4444', marginBottom: 8 }}>{error}</p>}
-
-          {!answer && !loading && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {suggestedQuestions.map(q => (
-                <button
-                  key={q}
-                  onClick={() => setQuestion(q)}
-                  style={{
-                    padding: '5px 10px', borderRadius: 20,
-                    background: '#222', border: '1px solid #333',
-                    color: 'var(--text-muted)', cursor: 'pointer',
-                    fontSize: 11, transition: 'all 0.1s',
-                  }}
-                  onMouseEnter={e => { (e.currentTarget.style.borderColor = '#6366f1'); (e.currentTarget.style.color = '#a5b4fc'); }}
-                  onMouseLeave={e => { (e.currentTarget.style.borderColor = '#333'); (e.currentTarget.style.color = 'var(--text-muted)'); }}
-                >
-                  {q}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ── Video pipeline status + transcript section ────────────────────────────────
 
 function VideoSection({ item }: { item: FeedItem }) {
@@ -440,8 +296,7 @@ function VideoSection({ item }: { item: FeedItem }) {
         </div>
       )}
 
-      {/* Ask AI — uses transcript as context */}
-      <AskAIPanel item={item} contextText={transcriptText} />
+      
     </>
   );
 }
@@ -631,56 +486,48 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
         {isVideo ? (
           <VideoSection item={item} />
         ) : (
-          <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ marginBottom: 8 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)' }}>
-                    Full Article
-                  </span>
-                  {!item.summary && (
-                    <a href={item.source_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: 'var(--accent)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 3 }}>
-                      View source <ExternalLink size={11} />
-                    </a>
-                  )}
-                </div>
+          <div style={{ marginBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)' }}>
+                Full Article
+              </span>
+              {!item.summary && (
+                <a href={item.source_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: 'var(--accent)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 3 }}>
+                  View source <ExternalLink size={11} />
+                </a>
+              )}
+            </div>
 
-                {articleLoading && (
-                  <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>Fetching article…</p>
-                )}
+            {articleLoading && (
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>Fetching article…</p>
+            )}
 
-                {!articleLoading && articleText && (
-                  <div style={{ fontSize: 15, color: 'var(--text-primary)', lineHeight: 1.8 }}>
-                    {articleText.split('\n\n').map((para, i) =>
-                      para.trim() ? <p key={i} style={{ marginBottom: 16 }}>{para.trim()}</p> : null
-                    )}
-                  </div>
-                )}
-
-                {!articleLoading && !articleText && articleEmbedUrl && (
-                  <div style={{ border: '1px solid #222', borderRadius: 8, overflow: 'hidden', height: 720, background: '#0b0b0b' }}>
-                    <iframe
-                      src={articleEmbedUrl}
-                      style={{ width: '100%', height: '100%', border: 0 }}
-                      title="Embedded document"
-                    />
-                  </div>
-                )}
-
-                {!articleLoading && !articleText && !articleEmbedUrl && (
-                  <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                    Could not load article content.{' '}
-                    <a href={item.source_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                      Read on source site <ExternalLink size={11} />
-                    </a>
-                  </p>
+            {!articleLoading && articleText && (
+              <div style={{ fontSize: 15, color: 'var(--text-primary)', lineHeight: 1.8 }}>
+                {articleText.split('\n\n').map((para, i) =>
+                  para.trim() ? <p key={i} style={{ marginBottom: 16 }}>{para.trim()}</p> : null
                 )}
               </div>
-            </div>
+            )}
 
-            <div style={{ width: 360, flexShrink: 0, position: 'sticky', top: 82 }}>
-              <AskAIPanel item={item} contextText={articleText} />
-            </div>
+            {!articleLoading && !articleText && articleEmbedUrl && (
+              <div style={{ border: '1px solid #222', borderRadius: 8, overflow: 'hidden', height: 720, background: '#0b0b0b' }}>
+                <iframe
+                  src={articleEmbedUrl}
+                  style={{ width: '100%', height: '100%', border: 0 }}
+                  title="Embedded document"
+                />
+              </div>
+            )}
+
+            {!articleLoading && !articleText && !articleEmbedUrl && (
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                Could not load article content.{' '}
+                <a href={item.source_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                  Read on source site <ExternalLink size={11} />
+                </a>
+              </p>
+            )}
           </div>
         )}
 

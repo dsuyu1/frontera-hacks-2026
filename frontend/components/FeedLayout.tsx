@@ -4,6 +4,7 @@ import { FeedItem } from '@/lib/api';
 import Sidebar from './Sidebar';
 import ArticleCard, { sourceDomain } from './ArticleCard';
 import Reader from './Reader';
+import AiSidePanel from './AiSidePanel';
 import MobileTabs from './MobileTabs';
 import { getStoredUser, startLogin, AuthUser } from '@/lib/auth';
 import { ChevronRight } from './Icons';
@@ -176,17 +177,26 @@ export default function FeedLayout({ title, items, loading }: Props) {
               position: 'absolute',
               top: 0, right: 0, bottom: 0,
               width: '100%',
-              maxWidth: 'var(--reader-width)',
+              maxWidth: 'calc(var(--reader-width) + 420px)',
               background: 'var(--reader-bg)',
               borderLeft: '1px solid var(--border)',
               transform: selected ? 'translateX(0)' : 'translateX(100%)',
               transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
               zIndex: 20,
-              overflowY: 'auto',
+              overflow: 'hidden',
               boxShadow: selected ? '-12px 0 40px rgba(0,0,0,0.5)' : 'none',
             }}
           >
-            <Reader item={selected} onClose={() => setSelected(null)} />
+            {selected && (
+              <div style={{ display: 'flex', height: '100%' }}>
+                <div style={{ flex: 1, minWidth: 0, borderRight: '1px solid var(--border)' }}>
+                  <Reader item={selected} onClose={() => setSelected(null)} />
+                </div>
+                <div style={{ width: 420, flexShrink: 0, padding: 16, overflowY: 'auto' }}>
+                  <AiSidePanel item={selected} />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
