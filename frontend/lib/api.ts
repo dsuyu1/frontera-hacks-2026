@@ -121,6 +121,7 @@ export const api = {
     if (p.region) qs.set('region', p.region);
     if (p.city) qs.set('city', p.city);
     const q = qs.toString();
-    return get<{ sources: SupportSource[] }>(`/support/sources${q ? '?' + q : ''}`);
+    return fetch(ARTICLE_BASE + `/support/sources${q ? '?' + q : ''}`, { cache: 'no-store' })
+      .then(r => { if (!r.ok) throw new Error(`API ${r.status}: /support/sources`); return r.json() as Promise<{ sources: SupportSource[] }>; });
   },
 };

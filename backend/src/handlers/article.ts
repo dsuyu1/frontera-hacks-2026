@@ -71,6 +71,36 @@ async function fetchSafe(rawUrl: string, init: RequestInit, maxRedirects = 3): P
 
 const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
+function decodeHtmlEntities(s: string): string {
+  return s
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+}
+
+export function parseDuckDuckGoHtml(html: string): Array<{ title: string; url: string; snippet: string | null }> {
+  const results: Array<{ title: string; url: string; snippet: string | null }> = [];
+  const anchorRe = /<a[^>]+class="result__a"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g;
+
+  let match: RegExpExecArray | null;
+  while ((match = anchorRe.exec(html)) !== null) {
+    const url = decodeHtmlEntities(match[1]);
+    const rawTitle = match[2].replace(/<[^>]+>/g, '').trim();
+    const title = decodeHtmlEntities(rawTitle);
+
+    const after = html.slice(match.index, Math.min(html.length, match.index + 1800));
+    const snippetMatch = after.match(/class="result__snippet"[^>]*>([\s\S]*?)<\/a>/);
+    const snippetRaw = snippetMatch ? snippetMatch[1].replace(/<[^>]+>/g, '').trim() : '';
+    const snippet = snippetRaw ? decodeHtmlEntities(snippetRaw).replace(/\s+/g, ' ').trim() : null;
+
+    if (url && title) results.push({ title, url, snippet });
+    if (results.length >= 12) break;
+  }
+  return results;
+}
+
 export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> => {
   const method = event.requestContext.http.method;
   const path = event.rawPath ?? event.requestContext.http.path;
@@ -110,6 +140,38 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
       console.error('Ask error:', err);
       const detail = err instanceof Error ? err.message : String(err);
       return json(500, { error: 'Ask failed', detail });
+    }
+  }
+
+  // GET /support/sources — search DuckDuckGo for local nonprofits/volunteer opportunities
+  if (method === 'GET' && path.endsWith('/support/sources')) {
+    const q = (qs.q ?? '').trim();
+    const region = (qs.region ?? '').trim();
+    const city = (qs.city ?? '').trim();
+    const base = [city, region].filter(Boolean).join(' ').trim() || 'Rio Grande Valley';
+    const query = q || `${base} nonprofit volunteer opportunities humanitarian aid donate`;
+    const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+    try {
+      const ctrl = new AbortController();
+      setTimeout(() => ctrl.abort(), 12_000);
+      const res = await fetchSafe(searchUrl, {
+        signal: ctrl.signal,
+        headers: {
+          'User-Agent': 'CivicWatchSupportLocal/0.1',
+          'Accept': 'text/html,application/xhtml+xml',
+        },
+      });
+      if (!res.ok) return json(502, { error: 'search_failed', status: res.status });
+      const html = await res.text();
+      const found = parseDuckDuckGoHtml(html);
+      const sources = found.map(r => {
+        const u = new URL(r.url);
+        return { title: r.title, url: r.url, domain: u.hostname.replace(/^www\./, ''), snippet: r.snippet };
+      });
+      return json(200, { sources });
+    } catch (err) {
+      console.error('Support sources error:', err);
+      return json(502, { error: 'search_failed' });
     }
   }
 
