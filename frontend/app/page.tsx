@@ -140,14 +140,6 @@ function ListPreview() {
     return () => { cancelled = true; };
   }, []);
 
-  useEffect(() => {
-    if (!items?.length) return;
-    const t = setInterval(() => {
-      setSelectedIdx((i) => (items.length ? (i + 1) % items.length : 0));
-    }, 4500);
-    return () => clearInterval(t);
-  }, [items]);
-
   const fallback: Row[] = useMemo(() => ([
     { title: 'City Commission approves road contract', source: 'mcallentx.new.swagit.com', meta: 'recent', active: true, snippet: 'Key decisions, timeline, and relevant context—summarized fast.' },
     { title: 'Agenda posted: Planning & Zoning', source: 'edinburgtx.new.swagit.com', meta: 'recent', active: false, snippet: 'What’s being voted on and what to watch.' },
@@ -346,26 +338,17 @@ function LiveReaderCarousel({ items, selectedIdx }: { items: Array<{ title: stri
   return (
     <div style={{ position: 'relative' }}>
       <div
-        key={`${selectedIdx}:${current?.title}`}
-        style={{
-          animation: 'fadeIn 450ms ease',
-        }}
+        key={`${current?.title}`}
       >
         <ReaderPreview title={current?.title ?? 'Loading…'} source={current?.source ?? ''} />
       </div>
-      <style jsx global>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(6px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </div>
   );
 }
 
 export default function LandingPage() {
   const [liveItems, setLiveItems] = useState<Array<{ title: string; source: string }> | null>(null);
-  const [idx, setIdx] = useState(0);
+  const idx = 0;
 
   useEffect(() => {
     let cancelled = false;
@@ -392,18 +375,11 @@ export default function LandingPage() {
           return { title: it.title, source: host };
         });
       setLiveItems(merged);
-      setIdx(0);
     }).catch(() => {
       if (!cancelled) setLiveItems([]);
     });
     return () => { cancelled = true; };
   }, []);
-
-  useEffect(() => {
-    if (!liveItems?.length) return;
-    const t = setInterval(() => setIdx((i) => (i + 1) % liveItems.length), 4500);
-    return () => clearInterval(t);
-  }, [liveItems]);
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--main-bg)', color: 'var(--text-primary)' }}>
@@ -439,47 +415,46 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <section style={{ maxWidth: 1180, margin: '0 auto', padding: '26px 18px 0' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
-          <div style={{ maxWidth: 560 }}>
-            <h1 style={{ marginTop: 14, fontSize: 'clamp(28px, 3.6vw, 42px)', letterSpacing: '-1.2px', lineHeight: 1.1, fontWeight: 950 as any }}>
+      <section style={{ maxWidth: 1180, margin: '0 auto', padding: '0 18px 56px' }}>
+        <div style={{ minHeight: 'calc(100vh - 66px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: '100%', maxWidth: 980, textAlign: 'center' }}>
+            <h1 style={{ marginTop: 0, fontSize: 'clamp(30px, 4vw, 46px)', letterSpacing: '-1.2px', lineHeight: 1.08, fontWeight: 950 as any }}>
               A calm, Feedly‑style view
               <br />
               of local government
             </h1>
-            <p style={{ marginTop: 12, fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7 }}>
+            <p style={{ marginTop: 14, fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.7, maxWidth: 720, marginLeft: 'auto', marginRight: 'auto' }}>
               Scan headlines, open a reader, and catch meeting clips—without hunting across dozens of government sites.
             </p>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18, justifyContent: 'center' }}>
               <Button href="/today" variant="primary">Read Today</Button>
               <Button href="/explore" variant="ghost">Explore</Button>
             </div>
-          </div>
-        </div>
-      </section>
 
-      <section style={{ maxWidth: 1180, margin: '0 auto', padding: '22px 18px 56px' }}>
-        <div
-          style={{
-            border: '1px solid var(--border)',
-            borderRadius: 16,
-            overflow: 'hidden',
-            background: 'rgba(255,255,255,0.02)',
-            boxShadow: '0 18px 60px rgba(0,0,0,0.45)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'stretch', minHeight: 520 }}>
-            <SidebarPreview />
-            <ListPreview />
-            <LiveReaderCarousel
-              items={liveItems?.length ? liveItems : [{ title: 'City Commission approves road contract', source: 'mcallentx.new.swagit.com' }]}
-              selectedIdx={idx}
-            />
-          </div>
-        </div>
+            <div
+              style={{
+                marginTop: 26,
+                border: '1px solid var(--border)',
+                borderRadius: 16,
+                overflow: 'hidden',
+                background: 'rgba(255,255,255,0.02)',
+                boxShadow: '0 18px 60px rgba(0,0,0,0.45)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'stretch', minHeight: 520 }}>
+                <SidebarPreview />
+                <ListPreview />
+                <LiveReaderCarousel
+                  items={liveItems?.length ? liveItems : [{ title: 'City Commission approves road contract', source: 'mcallentx.new.swagit.com' }]}
+                  selectedIdx={idx}
+                />
+              </div>
+            </div>
 
-        <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, color: 'var(--text-muted)', fontSize: 12 }}>
-          <div>Keyboard friendly · Read state · Saved · Follow sources</div>
+            <div style={{ marginTop: 14, display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 10, color: 'var(--text-muted)', fontSize: 12 }}>
+              <div>Keyboard friendly · Read state · Saved · Follow sources</div>
+            </div>
+          </div>
         </div>
       </section>
     </div>
