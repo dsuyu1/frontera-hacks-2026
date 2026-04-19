@@ -147,7 +147,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
            SELECT d.*,
              (SELECT ${CLIP_SELECT}
               FROM clips c JOIN videos v ON v.id = c.video_id AND v.feed_item_id = d.id
-              WHERE c.status = 'published' ORDER BY c.created_at ASC LIMIT 1) as clip
+              WHERE c.status = 'published' ORDER BY c.start_time_s ASC LIMIT 1) as clip
            FROM deduped d
            ORDER BY d.published_at DESC NULLS LAST, d.created_at DESC
            LIMIT $1 OFFSET $2`,
@@ -318,22 +318,26 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
         if (!targetUrl) return json(400, { error: 'url required' });
         try {
           const ctrl = new AbortController();
-          setTimeout(() => ctrl.abort(), 10000);
+          setTimeout(() => ctrl.abort(), 12000);
           const res = await fetch(targetUrl, {
             signal: ctrl.signal,
             headers: {
-              'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-              'Accept': 'text/html,application/xhtml+xml',
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
               'Accept-Language': 'en-US,en;q=0.9',
+              'Accept-Encoding': 'gzip, deflate, br',
+              'Cache-Control': 'no-cache',
+              'Upgrade-Insecure-Requests': '1',
             },
           });
           if (!res.ok) return json(200, { text: '' });
           let html = await res.text();
 
-          // Strip scripts, styles, nav, header, footer, aside
+          // Strip noise elements
           html = html
             .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
             .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')
+            .replace(/<noscript\b[^>]*>[\s\S]*?<\/noscript>/gi, '')
             .replace(/<nav\b[^>]*>[\s\S]*?<\/nav>/gi, '')
             .replace(/<header\b[^>]*>[\s\S]*?<\/header>/gi, '')
             .replace(/<footer\b[^>]*>[\s\S]*?<\/footer>/gi, '')
@@ -341,22 +345,46 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
             .replace(/<form\b[^>]*>[\s\S]*?<\/form>/gi, '')
             .replace(/<!--[\s\S]*?-->/g, '');
 
-          // Extract article/main body
-          const articleMatch =
-            html.match(/<article\b[^>]*>([\s\S]*?)<\/article>/i) ??
-            html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i);
-          let content = articleMatch && articleMatch[1].length > 200 ? articleMatch[1] : html;
+          // Try increasingly broad content selectors
+          const contentSelectors = [
+            // Specific article body classes common in local news sites
+            /class=["'][^"']*(?:article-body|article-content|entry-content|post-content|story-body|article-text|news-content|field-body|node-content)[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|section|article)/i,
+            // Standard semantic elements
+            /<article\b[^>]*>([\s\S]*?)<\/article>/i,
+            // main with substantial content
+            /<main\b[^>]*>([\s\S]*?)<\/main>/i,
+            // div with article-like class
+            /<div[^>]+class=["'][^"']*(?:content|body|text)[^"']*["'][^>]*>([\s\S]{500,}?)<\/div>/i,
+          ];
+
+          let content = '';
+          for (const selector of contentSelectors) {
+            const m = html.match(selector);
+            if (m && m[1] && m[1].length > 300) {
+              content = m[1];
+              break;
+            }
+          }
+          if (!content) content = html;
 
           const text = content
             .replace(/<[^>]+>/g, ' ')
             .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
             .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, ' ')
-            .replace(/&#\d+;/g, ' ')
-            .replace(/\s{3,}/g, '\n\n').replace(/ {2,}/g, ' ')
+            .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+            .replace(/[ \t]{2,}/g, ' ')
+            .replace(/\n[ \t]*/g, '\n')
+            .replace(/\n{3,}/g, '\n\n')
             .trim();
 
-          return json(200, { text: text.slice(0, 12000) });
-        } catch {
+          // Filter out very short lines (ads, nav remnants)
+          const paragraphs = text.split('\n\n')
+            .map(p => p.trim())
+            .filter(p => p.length > 40);
+
+          return json(200, { text: paragraphs.join('\n\n').slice(0, 14000) });
+        } catch (err) {
+          console.error('Article fetch error:', err);
           return json(200, { text: '' });
         }
       }
@@ -396,7 +424,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
         if (!itemId) return json(400, { error: 'item_id required' });
 
         const { rows: [video] } = await db.query(
-          "SELECT id, status, caption_s3_key FROM videos WHERE feed_item_id = $1 ORDER BY created_at DESC LIMIT 1",
+          "SELECT id, status, caption_s3_key FROM videos WHERE feed_item_id = $1 ORDER BY id DESC LIMIT 1",
           [itemId],
         );
         if (!video) return json(200, { text: '', status: null });
@@ -418,7 +446,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
         if (!itemId) return json(400, { error: 'item_id required' });
 
         const { rows: [video] } = await db.query(
-          "SELECT id, status FROM videos WHERE feed_item_id = $1 ORDER BY created_at DESC LIMIT 1",
+          "SELECT id, status FROM videos WHERE feed_item_id = $1 ORDER BY id DESC LIMIT 1",
           [itemId],
         );
         if (!video) return json(200, { status: null, clips: [] });
@@ -432,9 +460,10 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
         return json(200, { video_id: video.id, status: video.status, clips });
       }
 
-      // POST /pipeline/run — manually trigger pipeline for a video (by feed item id or video id)
+      // POST /pipeline/run — manually trigger per-video pipeline
       if (method === 'POST' && path === '/pipeline/run') {
-        const smArn = process.env.PIPELINE_SM_ARN;
+        // Use dedicated per-video SM if available, else fall back to daily pipeline
+        const smArn = process.env.PIPELINE_VIDEO_SM_ARN ?? process.env.PIPELINE_SM_ARN;
         if (!smArn) return json(503, { error: 'Pipeline not configured' });
 
         const body = JSON.parse(event.body ?? '{}');
@@ -442,17 +471,19 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
 
         if (!videoId && body.item_id) {
           const { rows: [video] } = await db.query(
-            "SELECT id FROM videos WHERE feed_item_id = $1 ORDER BY created_at DESC LIMIT 1",
+            "SELECT id FROM videos WHERE feed_item_id = $1 ORDER BY id DESC LIMIT 1",
             [body.item_id],
           );
           videoId = video?.id;
         }
 
-        if (!videoId) return json(400, { error: 'video_id or item_id required' });
+        if (!videoId) return json(400, { error: 'video_id or item_id required — no video found for this item' });
 
         // Reset video to pending so the pipeline re-runs from scratch
-        await db.query("UPDATE videos SET status = 'pending' WHERE id = $1", [videoId]);
+        await db.query("UPDATE videos SET status = 'pending', caption_s3_key = NULL WHERE id = $1", [videoId]);
         await db.query("DELETE FROM clips WHERE video_id = $1", [videoId]);
+        // Remove any stale transcript record so Transcribe can restart
+        await db.query("DELETE FROM transcripts WHERE video_id = $1", [videoId]);
 
         await sfnClient.send(new StartExecutionCommand({
           stateMachineArn: smArn,

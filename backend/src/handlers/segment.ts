@@ -39,6 +39,37 @@ function toSeconds(ts: string): number {
   return parts[0];
 }
 
+function parseTranscribeJson(json: string): VttCue[] {
+  try {
+    const data = JSON.parse(json);
+    const items = data.results?.items ?? [];
+    const cues: VttCue[] = [];
+    let sentence = '';
+    let sentStart = 0;
+    let sentEnd = 0;
+
+    for (const item of items) {
+      if (item.type === 'punctuation') {
+        sentence += item.alternatives[0]?.content ?? '';
+        continue;
+      }
+      const word = item.alternatives[0]?.content ?? '';
+      if (!sentence) sentStart = parseFloat(item.start_time ?? '0');
+      sentence += (sentence ? ' ' : '') + word;
+      sentEnd = parseFloat(item.end_time ?? String(sentStart + 1));
+
+      if (sentence.split(' ').length >= 15) {
+        cues.push({ start: sentStart, end: sentEnd, text: sentence });
+        sentence = '';
+      }
+    }
+    if (sentence) cues.push({ start: sentStart, end: sentEnd, text: sentence });
+    return cues;
+  } catch {
+    return [];
+  }
+}
+
 export const handler = async (event: Event) => {
   const { video_id } = event;
 
@@ -55,14 +86,21 @@ export const handler = async (event: Event) => {
     if (captionKey) {
       try {
         const obj = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: captionKey }));
-        const vttText = await obj.Body!.transformToString();
-        cues = parseVtt(vttText);
+        const rawText = await obj.Body!.transformToString();
+        // Detect format: Transcribe JSON has a "results" key; VTT starts with WEBVTT
+        if (rawText.trimStart().startsWith('{')) {
+          cues = parseTranscribeJson(rawText);
+        } else {
+          cues = parseVtt(rawText);
+        }
       } catch {
         console.warn('Could not load captions for', video_id);
       }
     }
 
-    const embedBase = video.embed_url ?? `https://www.youtube.com/embed/${video.source_url.split('v=')[1]}`;
+    // Extract YouTube video ID safely for embed URL construction
+    const youtubeIdMatch = video.source_url?.match(/[?&]v=([^&]+)/) ?? video.source_url?.match(/youtu\.be\/([^?]+)/);
+    const embedBase = video.embed_url ?? (youtubeIdMatch ? `https://www.youtube.com/embed/${youtubeIdMatch[1]}` : null);
 
     // If no captions or very sparse, generate one segment from video title/description
     if (cues.length < 5) {
@@ -70,11 +108,11 @@ export const handler = async (event: Event) => {
         'SELECT title, summary FROM feed_items WHERE id = $1', [video.feed_item_id],
       );
       const seg = await generateSegmentFromMeta(fi?.title ?? 'Meeting', fi?.summary ?? '');
+      const clipEmbedUrl = embedBase ? `${embedBase}?start=${seg.start}` : null;
       await db.query(
         `INSERT INTO clips (video_id, start_time_s, end_time_s, title, summary, categories, embed_url, status)
          VALUES ($1, $2, $3, $4, $5, $6::text[], $7, 'pending')`,
-        [video_id, seg.start, seg.end, seg.title, seg.summary, seg.categories,
-         `${embedBase}?start=${seg.start}`],
+        [video_id, seg.start, seg.end, seg.title, seg.summary, seg.categories, clipEmbedUrl],
       );
       await db.query("UPDATE videos SET status = 'segmented' WHERE id = $1", [video_id]);
       return { video_id, segments_created: 1 };
@@ -94,11 +132,11 @@ export const handler = async (event: Event) => {
       const transcriptText = windowCues.map(c => c.text).join(' ').slice(0, 6000);
       const seg = await askBedrockForSegment(transcriptText, windowStart, windowEnd);
 
+      const clipEmbedUrl = embedBase ? `${embedBase}?start=${seg.start}` : null;
       await db.query(
         `INSERT INTO clips (video_id, start_time_s, end_time_s, title, summary, categories, embed_url, status)
          VALUES ($1, $2, $3, $4, $5, $6::text[], $7, 'pending')`,
-        [video_id, seg.start, seg.end, seg.title, seg.summary, seg.categories,
-         `${embedBase}?start=${seg.start}`],
+        [video_id, seg.start, seg.end, seg.title, seg.summary, seg.categories, clipEmbedUrl],
       );
       segmentsCreated++;
     }
