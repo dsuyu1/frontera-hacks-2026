@@ -7,11 +7,13 @@ import useSWR from 'swr';
 import { sourceDomain } from './ArticleCard';
 import { Star } from './Icons';
 import { isFavoriteSource, toggleFavoriteSource } from '@/lib/sources';
-import { getStoredUser, startLogin } from '@/lib/auth';
+import { getStoredUser } from '@/lib/auth';
+import AuthModal from './AuthModal';
 
 export default function ArticleRow({ item, selected, onSelect }: {
   item: FeedItem; selected: boolean; onSelect: () => void;
 }) {
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const { readIds } = useFeedStore();
   const isRead = readIds.has(item.id);
   const date = item.published_at ?? item.created_at;
@@ -95,7 +97,7 @@ export default function ArticleRow({ item, selected, onSelect }: {
               onClick={(e) => {
                 e.stopPropagation();
                 if (!getStoredUser()) {
-                  startLogin();
+                  setShowAuthModal(true);
                   return;
                 }
                 toggleFavoriteSource(domain);
@@ -130,5 +132,6 @@ export default function ArticleRow({ item, selected, onSelect }: {
         )}
       </div>
     </div>
+    {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
   );
 }

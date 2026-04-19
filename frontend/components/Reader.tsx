@@ -3,7 +3,8 @@ import { useEffect, useState, useRef } from 'react';
 import useSWR from 'swr';
 import { FeedItem, api, Comment } from '@/lib/api';
 import { useFeedStore } from '@/lib/store';
-import { AUTH_CHANGED_EVENT, getStoredUser, startLogin, AuthUser } from '@/lib/auth';
+import { AUTH_CHANGED_EVENT, getStoredUser, AuthUser } from '@/lib/auth';
+import AuthModal from './AuthModal';
 import { formatDistanceToNow } from 'date-fns';
 import VideoPlayer from './VideoPlayer';
 import { ArrowLeft, Circle, CheckCircle, Bookmark, ExternalLink, ChevronUp, ChevronDown, RefreshCw, Volume2 } from './Icons';
@@ -141,7 +142,7 @@ function CommentsSection({ item, user }: { item: FeedItem; user: AuthUser | null
         </form>
       ) : (
         <button
-          onClick={startLogin}
+          onClick={() => setShowAuthModal(true)}
           style={{
             width: '100%', padding: '10px', borderRadius: 6,
             background: '#222', border: '1px dashed #444',
@@ -376,6 +377,7 @@ function TranscriptView({ text }: { text: string }) {
 export default function Reader({ item, onClose }: { item: FeedItem | null; onClose?: () => void }) {
   const { readIds, savedIds, markRead, markUnread, toggleSaved } = useFeedStore();
   const [user, setUser] = useState<AuthUser | null>(() => getStoredUser());
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const ttsSupported = typeof window !== 'undefined' && typeof window.speechSynthesis !== 'undefined';
   const [ttsVoice, setTtsVoice] = useState<SpeechSynthesisVoice | null>(null);
@@ -525,7 +527,7 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
             {user.username}
           </span>
         ) : (
-          <button onClick={startLogin} style={{ ...toolBtn, color: 'var(--accent)' }}>Sign in</button>
+          <button onClick={() => setShowAuthModal(true)} style={{ ...toolBtn, color: 'var(--accent)' }}>Sign in</button>
         )}
       </div>
 
@@ -630,6 +632,7 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
         <CommentsSection item={item} user={user} />
       </div>
     </div>
+    {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
   );
 }
 
