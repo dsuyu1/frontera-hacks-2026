@@ -44,7 +44,7 @@ export const handler = async (event: Event) => {
 
   return withClient(async (db) => {
     const { rows: [video] } = await db.query(
-      'SELECT v.*, vi.embed_url FROM videos v LEFT JOIN videos vi ON vi.id = v.id WHERE v.id = $1',
+      'SELECT * FROM videos WHERE id = $1',
       [video_id],
     );
     if (!video) throw new Error(`Video not found: ${video_id}`);

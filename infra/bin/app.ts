@@ -2,16 +2,6 @@
 import * as cdk from 'aws-cdk-lib';
 import { IngestStack } from '../lib/ingest-stack';
 
-/**
- * Run CDK from the `infra/` directory (`cd infra && cdk synth`) so paths resolve to ../backend.
- *
- * Required context key `frontera`:
- * - vpcId, privateSubnetIds, availabilityZones, lambdaSecurityGroupId, dbSecretArn
- * - optional rawBucketName for RSS XML snapshots to S3
- *
- * Ingest Lambda is placed in private subnets (RDS access). For HTTPS fetches to public RSS feeds,
- * the subnets need a route to a NAT Gateway (or another outbound path). See stack template description.
- */
 const app = new cdk.App();
 
 const cfg = app.node.tryGetContext('frontera') as
@@ -21,7 +11,10 @@ const cfg = app.node.tryGetContext('frontera') as
       availabilityZones?: string[];
       lambdaSecurityGroupId?: string;
       dbSecretArn?: string;
+      s3BucketName?: string;
+      cdnDomain?: string;
       rawBucketName?: string;
+      ytdlpLayerArn?: string;
     }
   | undefined;
 
@@ -31,10 +24,12 @@ if (
   !cfg?.availabilityZones?.length ||
   cfg.privateSubnetIds.length !== cfg.availabilityZones.length ||
   !cfg?.lambdaSecurityGroupId ||
-  !cfg?.dbSecretArn
+  !cfg?.dbSecretArn ||
+  !cfg?.s3BucketName ||
+  !cfg?.cdnDomain
 ) {
   throw new Error(
-    'Set CDK context "frontera" with vpcId, privateSubnetIds, availabilityZones (same length as subnets), lambdaSecurityGroupId, dbSecretArn. See cdk.json.',
+    'Set CDK context "frontera" with: vpcId, privateSubnetIds, availabilityZones, lambdaSecurityGroupId, dbSecretArn, s3BucketName, cdnDomain. See cdk.json.',
   );
 }
 
@@ -49,6 +44,9 @@ new IngestStack(app, 'FronteraIngestStack', {
     availabilityZones: cfg.availabilityZones,
     lambdaSecurityGroupId: cfg.lambdaSecurityGroupId,
     dbSecretArn: cfg.dbSecretArn,
+    s3BucketName: cfg.s3BucketName,
+    cdnDomain: cfg.cdnDomain,
     rawBucketName: cfg.rawBucketName?.trim() || undefined,
+    ytdlpLayerArn: cfg.ytdlpLayerArn?.trim() || undefined,
   },
 });

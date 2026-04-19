@@ -7,6 +7,8 @@ import { getStoredUser, startLogin, AuthUser } from '@/lib/auth';
 import { formatDistanceToNow } from 'date-fns';
 import VideoPlayer from './VideoPlayer';
 
+// ── helpers ──────────────────────────────────────────────────────────────────
+
 function renderSummary(text: string, sourceUrl: string) {
   const cleaned = text.replace(/\s*\[\.{2,3}\]\s*$|\s*\[…\]\s*$/g, '');
   const hadTruncation = cleaned.length < text.length;
@@ -23,6 +25,22 @@ function renderSummary(text: string, sourceUrl: string) {
   );
 }
 
+const PIPELINE_STATUS_LABELS: Record<string, string> = {
+  pending: 'Queued',
+  transcribed: 'Transcribed',
+  segmented: 'Segmented',
+  published: 'Published',
+};
+
+const PIPELINE_STATUS_COLORS: Record<string, string> = {
+  pending: '#f59e0b',
+  transcribed: '#3b82f6',
+  segmented: '#8b5cf6',
+  published: 'var(--accent)',
+};
+
+// ── Comments ─────────────────────────────────────────────────────────────────
+
 function CommentsSection({ item, user }: { item: FeedItem; user: AuthUser | null }) {
   const { data, mutate } = useSWR(`comments:${item.id}`, () => api.comments(item.id));
   const [text, setText] = useState('');
@@ -37,9 +55,7 @@ function CommentsSection({ item, user }: { item: FeedItem; user: AuthUser | null
       await api.postComment(item.id, text.trim());
       setText('');
       await mutate();
-    } finally {
-      setSubmitting(false);
-    }
+    } finally { setSubmitting(false); }
   }
 
   async function deleteComment(id: string) {
@@ -139,12 +155,26 @@ function CommentsSection({ item, user }: { item: FeedItem; user: AuthUser | null
   );
 }
 
-function AskAIPanel({ item, articleText }: { item: FeedItem; articleText: string }) {
+// ── Ask AI panel ─────────────────────────────────────────────────────────────
+
+function AskAIPanel({ item, contextText }: { item: FeedItem; contextText: string }) {
   const [open, setOpen] = useState(false);
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const isVideo = item.type === 'video';
+
+  const suggestedQuestions = isVideo ? [
+    'What decisions were made at this meeting?',
+    'Who spoke and what did they say?',
+    'How does this affect residents?',
+  ] : [
+    'What is the main point of this article?',
+    'Who is affected by this?',
+    'What are the key facts?',
+  ];
 
   async function ask(e: React.FormEvent) {
     e.preventDefault();
@@ -153,10 +183,10 @@ function AskAIPanel({ item, articleText }: { item: FeedItem; articleText: string
     setAnswer('');
     setError('');
     try {
-      const data = await api.ask(question.trim(), item.title, item.summary, articleText);
+      const data = await api.ask(question.trim(), item.title, item.summary, contextText);
       setAnswer(data.answer);
     } catch {
-      setError('Something went wrong. Try again.');
+      setError('Could not get a response. Try again.');
     } finally {
       setLoading(false);
     }
@@ -181,7 +211,9 @@ function AskAIPanel({ item, articleText }: { item: FeedItem; articleText: string
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           Ask AI
         </span>
-        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 4 }}>· Ask anything about this article</span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 4 }}>
+          · {isVideo ? 'Ask about this meeting' : 'Ask about this article'}
+        </span>
         <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text-muted)' }}>{open ? '▲' : '▼'}</span>
       </button>
 
@@ -191,7 +223,7 @@ function AskAIPanel({ item, articleText }: { item: FeedItem; articleText: string
             <input
               value={question}
               onChange={e => setQuestion(e.target.value)}
-              placeholder="What would you like to know about this article?"
+              placeholder={isVideo ? 'What happened at this meeting?' : 'What would you like to know?'}
               style={{
                 flex: 1, padding: '9px 12px',
                 background: '#1a1a1a', border: '1px solid #333',
@@ -221,33 +253,27 @@ function AskAIPanel({ item, articleText }: { item: FeedItem; articleText: string
               padding: '14px 16px', borderRadius: 8,
               background: 'rgba(99, 102, 241, 0.08)',
               border: '1px solid rgba(99, 102, 241, 0.2)',
+              marginBottom: 10,
             }}>
-              <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+              <div style={{ display: 'flex', gap: 8 }}>
                 <span style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   width: 20, height: 20, borderRadius: 4,
                   background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                  fontSize: 10, flexShrink: 0, marginTop: 1,
+                  fontSize: 10, flexShrink: 0, marginTop: 2,
                 }}>✦</span>
-                <p style={{ fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.65, margin: 0 }}>
+                <p style={{ fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.7, margin: 0 }}>
                   {answer}
                 </p>
               </div>
             </div>
           )}
 
-          {error && (
-            <p style={{ fontSize: 13, color: '#ef4444', marginTop: 8 }}>{error}</p>
-          )}
+          {error && <p style={{ fontSize: 13, color: '#ef4444', marginBottom: 8 }}>{error}</p>}
 
-          {/* Suggested questions */}
           {!answer && !loading && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
-              {[
-                'What is the main point of this article?',
-                'Who is affected by this?',
-                'What are the key facts?',
-              ].map(q => (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {suggestedQuestions.map(q => (
                 <button
                   key={q}
                   onClick={() => setQuestion(q)}
@@ -271,18 +297,177 @@ function AskAIPanel({ item, articleText }: { item: FeedItem; articleText: string
   );
 }
 
-async function fetchArticle(url: string): Promise<string> {
-  const data = await api.article(url);
-  return data.text ?? '';
+// ── Video pipeline status + transcript section ────────────────────────────────
+
+function VideoSection({ item }: { item: FeedItem }) {
+  const [running, setRunning] = useState(false);
+  const [runError, setRunError] = useState('');
+
+  const { data: statusData, mutate: mutateStatus } = useSWR(
+    `video-status:${item.id}`,
+    () => api.videoStatus(item.id),
+    { revalidateOnFocus: false, refreshInterval: (data) => {
+      const s = data?.status;
+      if (!s || s === 'published') return 0;
+      return 15000; // poll every 15s while processing
+    }},
+  );
+
+  const { data: transcriptData, isLoading: transcriptLoading } = useSWR(
+    statusData?.status ? `transcript:${item.id}` : null,
+    () => api.transcript(item.id),
+    { revalidateOnFocus: false, dedupingInterval: 60_000 },
+  );
+
+  const status = statusData?.status;
+  const transcriptText = transcriptData?.text ?? '';
+  const clips = statusData?.clips ?? [];
+
+  async function triggerPipeline() {
+    setRunning(true);
+    setRunError('');
+    try {
+      await api.pipelineRun(item.id);
+      await mutateStatus();
+    } catch {
+      setRunError('Could not start pipeline. Check your setup.');
+    } finally {
+      setRunning(false);
+    }
+  }
+
+  return (
+    <>
+      {/* Pipeline status bar */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '10px 14px', borderRadius: 8,
+        background: '#1a1a1a', border: '1px solid #2a2a2a',
+        marginBottom: 20,
+      }}>
+        <span style={{
+          fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
+          letterSpacing: '0.05em',
+          color: status ? (PIPELINE_STATUS_COLORS[status] ?? 'var(--text-muted)') : '#3f3f46',
+        }}>
+          {status ? (PIPELINE_STATUS_LABELS[status] ?? status) : 'Not processed'}
+        </span>
+
+        {status && status !== 'published' && (
+          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+            · processing{status === 'pending' ? ' queued' : '…'}
+          </span>
+        )}
+
+        {(!status || status === 'pending') && (
+          <>
+            <button
+              onClick={triggerPipeline}
+              disabled={running}
+              style={{
+                marginLeft: 'auto',
+                padding: '4px 12px', borderRadius: 4,
+                background: running ? '#333' : 'var(--accent)',
+                color: running ? '#666' : '#fff',
+                border: 'none', cursor: running ? 'default' : 'pointer',
+                fontSize: 11, fontWeight: 600, transition: 'all 0.15s',
+              }}
+            >
+              {running ? 'Starting…' : 'Process Now'}
+            </button>
+            {runError && <span style={{ fontSize: 11, color: '#ef4444' }}>{runError}</span>}
+          </>
+        )}
+      </div>
+
+      {/* Clips (YouTube embeds) */}
+      {clips.filter(c => c.status === 'published').map(clip => (
+        <div key={clip.id} style={{ marginBottom: 24 }}>
+          <VideoPlayer clip={clip} />
+          {clip.title && (
+            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginTop: 4 }}>{clip.title}</p>
+          )}
+          {clip.summary && (
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5, marginTop: 4 }}>{clip.summary}</p>
+          )}
+        </div>
+      ))}
+
+      {/* Clips still in pipeline */}
+      {clips.filter(c => c.status !== 'published').length > 0 && (
+        <div style={{ padding: '12px 14px', background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 8, marginBottom: 20, fontSize: 13, color: 'var(--text-muted)' }}>
+          {clips.filter(c => c.status !== 'published').length} clip{clips.filter(c => c.status !== 'published').length > 1 ? 's' : ''} processing…
+        </div>
+      )}
+
+      {/* Transcript */}
+      {(transcriptLoading || transcriptText) && (
+        <div style={{ marginTop: 8 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)', marginBottom: 12 }}>
+            Transcript
+          </div>
+
+          {transcriptLoading && (
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>Loading transcript…</p>
+          )}
+
+          {!transcriptLoading && transcriptText && (
+            <TranscriptView text={transcriptText} />
+          )}
+        </div>
+      )}
+
+      {/* Ask AI — uses transcript as context */}
+      <AskAIPanel item={item} contextText={transcriptText} />
+    </>
+  );
 }
+
+function TranscriptView({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const PREVIEW_LENGTH = 600;
+  const isLong = text.length > PREVIEW_LENGTH;
+  const display = expanded || !isLong ? text : text.slice(0, PREVIEW_LENGTH) + '…';
+
+  return (
+    <div style={{
+      padding: '14px 16px', borderRadius: 8,
+      background: '#111', border: '1px solid #222',
+      marginBottom: 8,
+    }}>
+      <p style={{
+        fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.75,
+        margin: 0, whiteSpace: 'pre-wrap',
+      }}>
+        {display}
+      </p>
+      {isLong && (
+        <button
+          onClick={() => setExpanded(v => !v)}
+          style={{
+            marginTop: 10, background: 'none', border: 'none',
+            cursor: 'pointer', color: 'var(--accent)', fontSize: 12,
+            padding: 0,
+          }}
+        >
+          {expanded ? 'Show less ▲' : 'Show full transcript ▼'}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ── Main Reader ───────────────────────────────────────────────────────────────
 
 export default function Reader({ item, onClose }: { item: FeedItem | null; onClose?: () => void }) {
   const { readIds, savedIds, markRead, markUnread, toggleSaved } = useFeedStore();
   const [user, setUser] = useState<AuthUser | null>(null);
 
+  // For text articles: fetch full article content
+  const isVideo = item?.type === 'video';
   const { data: articleData, isLoading: articleLoading } = useSWR(
-    item ? `article:${item.id}` : null,
-    () => fetchArticle(item!.source_url),
+    item && !isVideo ? `article:${item.id}` : null,
+    () => api.article(item!.source_url),
     { revalidateOnFocus: false, dedupingInterval: 3_600_000 },
   );
 
@@ -296,7 +481,7 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
   const isRead = readIds.has(item.id);
   const isSaved = savedIds.has(item.id);
   const date = item.published_at ?? item.created_at;
-  const articleText = articleData ?? '';
+  const articleText = articleData?.text ?? '';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--reader-bg)' }}>
@@ -308,12 +493,16 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
       }}>
         <button onClick={onClose} style={toolBtn}>← Back</button>
         <div style={{ flex: 1 }} />
-        <button onClick={() => isRead ? markUnread(item.id) : markRead(item.id)}
-          style={{ ...toolBtn, color: isRead ? 'var(--accent)' : 'var(--text-muted)' }}>
+        <button
+          onClick={() => isRead ? markUnread(item.id) : markRead(item.id)}
+          style={{ ...toolBtn, color: isRead ? 'var(--accent)' : 'var(--text-muted)' }}
+        >
           {isRead ? '● Read' : '○ Unread'}
         </button>
-        <button onClick={() => toggleSaved(item.id)}
-          style={{ ...toolBtn, color: isSaved ? '#f59e0b' : 'var(--text-muted)' }}>
+        <button
+          onClick={() => toggleSaved(item.id)}
+          style={{ ...toolBtn, color: isSaved ? '#f59e0b' : 'var(--text-muted)' }}
+        >
           {isSaved ? '★' : '☆'}
         </button>
         {user ? (
@@ -327,6 +516,7 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
 
       {/* Content */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
+
         {/* City + date */}
         <div style={{ fontSize: 11, color: 'var(--accent)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
           {item.city}
@@ -368,58 +558,55 @@ export default function Reader({ item, onClose }: { item: FeedItem | null; onClo
           </div>
         )}
 
-        {/* Thumbnail */}
-        {item.thumbnail_url && item.type === 'text' && (
+        {/* Thumbnail (text articles) */}
+        {item.thumbnail_url && !isVideo && (
           <img src={item.thumbnail_url} alt="" style={{ width: '100%', borderRadius: 6, marginBottom: 20, objectFit: 'cover', maxHeight: 240 }} />
         )}
 
-        {/* Video */}
-        {item.clip && <VideoPlayer clip={item.clip} />}
+        {/* ── VIDEO SECTION ── */}
+        {isVideo && <VideoSection item={item} />}
 
-        {/* Full article content */}
-        <div style={{ marginBottom: 8 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)' }}>
-              Full Article
-            </span>
-            {!item.summary && (
-              <a
-                href={item.source_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ fontSize: 11, color: 'var(--accent)', textDecoration: 'none' }}
-              >
-                View source ↗
-              </a>
-            )}
-          </div>
+        {/* ── TEXT ARTICLE SECTION ── */}
+        {!isVideo && (
+          <>
+            <div style={{ marginBottom: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)' }}>
+                  Full Article
+                </span>
+                {!item.summary && (
+                  <a href={item.source_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: 'var(--accent)', textDecoration: 'none' }}>
+                    View source ↗
+                  </a>
+                )}
+              </div>
 
-          {articleLoading && (
-            <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>Fetching article…</p>
-          )}
+              {articleLoading && (
+                <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>Fetching article…</p>
+              )}
 
-          {!articleLoading && articleText && (
-            <div style={{ fontSize: 15, color: 'var(--text-primary)', lineHeight: 1.8 }}>
-              {articleText.split('\n\n').map((para, i) => (
-                para.trim() ? (
-                  <p key={i} style={{ marginBottom: 16 }}>{para.trim()}</p>
-                ) : null
-              ))}
+              {!articleLoading && articleText && (
+                <div style={{ fontSize: 15, color: 'var(--text-primary)', lineHeight: 1.8 }}>
+                  {articleText.split('\n\n').map((para, i) =>
+                    para.trim() ? <p key={i} style={{ marginBottom: 16 }}>{para.trim()}</p> : null
+                  )}
+                </div>
+              )}
+
+              {!articleLoading && !articleText && (
+                <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                  Could not load article content.{' '}
+                  <a href={item.source_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)' }}>
+                    Read on source site ↗
+                  </a>
+                </p>
+              )}
             </div>
-          )}
 
-          {!articleLoading && !articleText && (
-            <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>
-              Could not load article content.{' '}
-              <a href={item.source_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)' }}>
-                Read on source site ↗
-              </a>
-            </p>
-          )}
-        </div>
-
-        {/* Ask AI panel */}
-        <AskAIPanel item={item} articleText={articleText} />
+            {/* Ask AI for text articles */}
+            <AskAIPanel item={item} contextText={articleText} />
+          </>
+        )}
 
         {/* Comments */}
         <CommentsSection item={item} user={user} />

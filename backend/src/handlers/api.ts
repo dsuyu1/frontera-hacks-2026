@@ -1,6 +1,29 @@
 import { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda';
 import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { SFNClient, StartExecutionCommand } from '@aws-sdk/client-sfn';
 import { withClient } from '../lib/db';
+
+const s3 = new S3Client({});
+const sfnClient = new SFNClient({});
+const BUCKET = process.env.S3_BUCKET ?? '';
+
+function parseVttToText(vtt: string): string {
+  const lines = vtt.split('\n');
+  const textLines: string[] = [];
+  let prevText = '';
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed === 'WEBVTT' || trimmed.startsWith('NOTE') || trimmed.includes('-->') || /^\d+$/.test(trimmed)) continue;
+    // Strip VTT inline tags like <00:01:23.456><c>text</c>
+    const clean = trimmed.replace(/<[^>]+>/g, '').trim();
+    if (clean && clean !== prevText) {
+      textLines.push(clean);
+      prevText = clean;
+    }
+  }
+  return textLines.join(' ');
+}
 
 const bedrock = new BedrockRuntimeClient({ region: 'us-east-1' });
 
@@ -365,6 +388,79 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
         const bedrockResp = JSON.parse(new TextDecoder().decode(res.body));
         const answer = bedrockResp.content[0].text.trim();
         return json(200, { answer });
+      }
+
+      // GET /transcript?item_id=X — return readable caption text for a video feed item
+      if (method === 'GET' && path === '/transcript') {
+        const itemId = qs.item_id;
+        if (!itemId) return json(400, { error: 'item_id required' });
+
+        const { rows: [video] } = await db.query(
+          "SELECT id, status, caption_s3_key FROM videos WHERE feed_item_id = $1 ORDER BY created_at DESC LIMIT 1",
+          [itemId],
+        );
+        if (!video) return json(200, { text: '', status: null });
+        if (!video.caption_s3_key) return json(200, { text: '', status: video.status });
+
+        try {
+          const obj = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: video.caption_s3_key }));
+          const vttText = await obj.Body!.transformToString();
+          const text = parseVttToText(vttText);
+          return json(200, { text, status: video.status });
+        } catch {
+          return json(200, { text: '', status: video.status });
+        }
+      }
+
+      // GET /video-status?item_id=X — pipeline status for a video feed item
+      if (method === 'GET' && path === '/video-status') {
+        const itemId = qs.item_id;
+        if (!itemId) return json(400, { error: 'item_id required' });
+
+        const { rows: [video] } = await db.query(
+          "SELECT id, status FROM videos WHERE feed_item_id = $1 ORDER BY created_at DESC LIMIT 1",
+          [itemId],
+        );
+        if (!video) return json(200, { status: null, clips: [] });
+
+        const { rows: clips } = await db.query(
+          `SELECT id, status, title, summary, start_time_s, end_time_s, embed_url
+           FROM clips WHERE video_id = $1 ORDER BY start_time_s`,
+          [video.id],
+        );
+
+        return json(200, { video_id: video.id, status: video.status, clips });
+      }
+
+      // POST /pipeline/run — manually trigger pipeline for a video (by feed item id or video id)
+      if (method === 'POST' && path === '/pipeline/run') {
+        const smArn = process.env.PIPELINE_SM_ARN;
+        if (!smArn) return json(503, { error: 'Pipeline not configured' });
+
+        const body = JSON.parse(event.body ?? '{}');
+        let videoId: string | undefined = body.video_id;
+
+        if (!videoId && body.item_id) {
+          const { rows: [video] } = await db.query(
+            "SELECT id FROM videos WHERE feed_item_id = $1 ORDER BY created_at DESC LIMIT 1",
+            [body.item_id],
+          );
+          videoId = video?.id;
+        }
+
+        if (!videoId) return json(400, { error: 'video_id or item_id required' });
+
+        // Reset video to pending so the pipeline re-runs from scratch
+        await db.query("UPDATE videos SET status = 'pending' WHERE id = $1", [videoId]);
+        await db.query("DELETE FROM clips WHERE video_id = $1", [videoId]);
+
+        await sfnClient.send(new StartExecutionCommand({
+          stateMachineArn: smArn,
+          name: `manual-${videoId}-${Date.now()}`,
+          input: JSON.stringify({ video_id: videoId }),
+        }));
+
+        return json(200, { started: true, video_id: videoId });
       }
 
       // GET /stats

@@ -12,6 +12,7 @@ export interface Clip {
   end_time_s: number;
   categories: string[];
   playback_url?: string | null;
+  status?: string;
 }
 export interface FeedItem {
   id: string;
@@ -95,4 +96,7 @@ export const api = {
   article: (url: string) => get<{ text: string }>(`/article?url=${encodeURIComponent(url)}`),
   ask: (question: string, articleTitle: string, summary: string | null, articleText: string) =>
     post<{ answer: string }>('/ask', { question, articleTitle, summary, articleText }),
+  transcript: (itemId: string) => get<{ text: string; status: string | null }>(`/transcript?item_id=${itemId}`),
+  videoStatus: (itemId: string) => get<{ video_id: string; status: string | null; clips: Clip[] }>(`/video-status?item_id=${itemId}`),
+  pipelineRun: (itemId: string) => post<{ started: boolean; video_id: string }>('/pipeline/run', { item_id: itemId }),
 };

@@ -12,7 +12,10 @@
       "availabilityZones": ["us-east-1a", "us-east-1b"],
       "lambdaSecurityGroupId": "sg-01430cfd92e4017de",
       "dbSecretArn": "arn:aws:secretsmanager:us-east-1:602569699510:secret:DatabaseDbSecret1098DC6E-TQmJ7ROtNdgQ-Y7yZNP",
-      "rawBucketName": "frontera-main-602569699510"
+      "s3BucketName": "frontera-main-602569699510",
+      "cdnDomain": "d25yrx00pth40q.cloudfront.net",
+      "rawBucketName": "frontera-main-602569699510",
+      "ytdlpLayerArn": ""
     }
   }
 }

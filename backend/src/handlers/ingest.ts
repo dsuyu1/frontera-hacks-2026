@@ -1,7 +1,24 @@
 import type { Handler } from 'aws-lambda';
+import { SFNClient, StartExecutionCommand } from '@aws-sdk/client-sfn';
 import { runIngest } from '../ingest/runIngest';
 import { getPool } from '../db/client';
 import { fetchRssXml, backfillThumbnails } from '../ingest/rss';
+
+const sfn = new SFNClient({});
+
+async function startPipelineForVideo(videoId: string): Promise<void> {
+  const smArn = process.env.PIPELINE_SM_ARN;
+  if (!smArn) return;
+  try {
+    await sfn.send(new StartExecutionCommand({
+      stateMachineArn: smArn,
+      name: `video-${videoId}-${Date.now()}`,
+      input: JSON.stringify({ video_id: videoId }),
+    }));
+  } catch (err) {
+    console.error(`Failed to start pipeline for video ${videoId}:`, err);
+  }
+}
 
 export const handler: Handler = async (event: { backfill?: boolean } = {}) => {
   if (event?.backfill) {
@@ -29,14 +46,17 @@ export const handler: Handler = async (event: { backfill?: boolean } = {}) => {
 
   const result = await runIngest();
 
-  // Collect any videos that still need processing after ingest
+  // Collect pending videos and trigger Step Functions pipeline for each
   const pool = await getPool();
   const { rows } = await pool.query<{ id: string }>(
     "SELECT id FROM videos WHERE status = 'pending' ORDER BY id",
   );
   const videos_queued = rows.map((r) => r.id);
 
-  const output = { ...result, videos_queued };
+  // Kick off pipeline executions in parallel (fire-and-forget per video)
+  await Promise.allSettled(videos_queued.map(startPipelineForVideo));
+
+  const output = { ...result, videos_queued, pipelines_started: videos_queued.length };
   console.log(JSON.stringify({ ok: true, ...output }));
   return output;
 };
