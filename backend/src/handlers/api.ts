@@ -10,7 +10,7 @@ let jwksCache: { keys: { kid: string; n: string; e: string }[] } | null = null;
 async function getJwks() {
   if (jwksCache) return jwksCache;
   const res = await fetch(`${COGNITO_ISSUER}/.well-known/jwks.json`);
-  jwksCache = await res.json();
+  jwksCache = await res.json() as { keys: { kid: string; n: string; e: string }[] };
   return jwksCache!;
 }
 

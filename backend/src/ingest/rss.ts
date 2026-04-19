@@ -161,3 +161,25 @@ export async function ingestRssSource(pool: Pool, source: SourceRow, xml: string
     client.release();
   }
 }
+
+export async function backfillThumbnails(pool: Pool, source: SourceRow, xml: string): Promise<number> {
+  const feed = await parser.parseString(xml);
+  const client = await pool.connect();
+  let updated = 0;
+  try {
+    for (const item of feed.items ?? []) {
+      const link = item.link?.trim();
+      if (!link) continue;
+      const thumb = extractThumbnail(item);
+      if (!thumb) continue;
+      const { rowCount } = await client.query(
+        `UPDATE feed_items SET thumbnail_url = $1 WHERE source_url = $2 AND thumbnail_url IS NULL`,
+        [thumb, link],
+      );
+      updated += rowCount ?? 0;
+    }
+  } finally {
+    client.release();
+  }
+  return updated;
+}
