@@ -1,3 +1,5 @@
+![Frontera hacks banner](frontera_hacks.webp)
+
 # frontera-hacks-2026
 Our hackathon project for Frontera Hacks. You can demo the project [here](https://main.d1fqkvr9egy0i4.amplifyapp.com/) for a short time.
 
