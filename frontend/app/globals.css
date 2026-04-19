@@ -18,15 +18,14 @@
   --text-muted: #666666;
   --border: #333333;
 
-  --accent: #2BB24C;
-  --accent-hover: #229a40;
-  --accent-dim: rgba(43,178,76,0.15);
+  --accent: #f97316;
+  --accent-hover: #ea6c0a;
+  --accent-dim: rgba(249,115,22,0.15);
 
   --thumb-radius: 4px;
   --row-radius: 0px;
 
   --sidebar-width: 240px;
-  --article-list-width: 360px;
   --reader-width: 660px;
 }
 
@@ -64,19 +63,9 @@ button { font-family: inherit; }
   display: none;
 }
 
-@media (max-width: 1024px) {
-  .article-list-pane {
-    width: 100% !important;
-    border-right: none !important;
-  }
-}
-
 @media (max-width: 768px) {
   .sidebar-desktop {
     display: none !important;
-  }
-  .article-list-pane {
-    width: 100% !important;
   }
   .mobile-tabs {
     display: flex;

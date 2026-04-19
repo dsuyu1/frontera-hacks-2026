@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { FeedItem } from '@/lib/api';
 import Sidebar from './Sidebar';
-import ArticleRow from './ArticleRow';
+import ArticleCard from './ArticleCard';
 import Reader from './Reader';
 import MobileTabs from './MobileTabs';
 
@@ -14,13 +14,11 @@ interface Props {
 
 export default function FeedLayout({ title, items, loading }: Props) {
   const [selected, setSelected] = useState<FeedItem | null>(null);
-  const [showUnreadOnly, setShowUnreadOnly] = useState(false);
 
   // Keyboard nav
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement)?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
       if (e.key === 'Escape') { setSelected(null); return; }
       if (!selected) return;
       const idx = items.findIndex(i => i.id === selected.id);
@@ -35,103 +33,109 @@ export default function FeedLayout({ title, items, loading }: Props) {
     <div style={{ display: 'flex', height: '100vh', background: 'var(--main-bg)', overflow: 'hidden' }}>
       <Sidebar />
 
-      {/* Article list pane */}
-      <div
-        className="article-list-pane"
-        style={{
-          width: 'var(--article-list-width)',
-          flexShrink: 0,
-          borderRight: '1px solid var(--border)',
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100vh',
-          background: 'var(--main-bg)',
-        }}
-      >
-        {/* Pane header */}
+      {/* Main column */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+
+        {/* Page header */}
         <div style={{
-          padding: '14px 16px 10px',
+          padding: '16px 20px 12px',
           borderBottom: '1px solid var(--border)',
+          background: 'var(--main-bg)',
           flexShrink: 0,
           display: 'flex',
-          alignItems: 'center',
-          gap: 8,
+          alignItems: 'baseline',
+          gap: 12,
         }}>
-          <h1 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', flex: 1, letterSpacing: '-0.2px' }}>
+          <h1 style={{
+            fontSize: 18,
+            fontWeight: 700,
+            color: 'var(--text-primary)',
+            letterSpacing: '-0.3px',
+          }}>
             {title}
           </h1>
           {!loading && items.length > 0 && (
-            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{items.length}</span>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+              {items.length} articles
+            </span>
           )}
-          <button
-            onClick={() => setShowUnreadOnly(v => !v)}
-            style={{
-              padding: '3px 8px',
-              background: showUnreadOnly ? 'var(--accent-dim)' : 'none',
-              border: `1px solid ${showUnreadOnly ? 'var(--accent)' : 'var(--border)'}`,
-              borderRadius: 3,
-              fontSize: 11,
-              color: showUnreadOnly ? 'var(--accent)' : 'var(--text-muted)',
-              cursor: 'pointer',
-              fontWeight: showUnreadOnly ? 600 : 400,
-              transition: 'all 0.1s',
-            }}
-          >
-            Unread
-          </button>
-        </div>
 
-        {/* Article list */}
-        <div style={{ flex: 1, overflowY: 'auto' }}>
-          {loading && (
-            <div style={{ padding: '32px 16px', color: 'var(--text-muted)', fontSize: 13 }}>Loading…</div>
-          )}
-          {!loading && items.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '60px 16px', color: 'var(--text-muted)' }}>
-              <div style={{ fontSize: 30, marginBottom: 12, opacity: 0.25 }}>📭</div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4 }}>Nothing here yet</div>
-              <div style={{ fontSize: 12 }}>Check back after 3 AM UTC.</div>
+          {/* Mark all read button */}
+          {!loading && items.length > 0 && (
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>j/k to navigate · Esc to close</span>
             </div>
           )}
-          {items.map(item => (
-            <ArticleRow
-              key={item.id}
-              item={item}
-              selected={selected?.id === item.id}
-              onSelect={() => setSelected(selected?.id === item.id ? null : item)}
-            />
-          ))}
         </div>
 
-        {/* Keyboard hint */}
-        {items.length > 0 && (
-          <div style={{
-            padding: '6px 16px',
-            borderTop: '1px solid var(--border)',
-            fontSize: 10,
-            color: 'var(--text-muted)',
-            flexShrink: 0,
-          }}>
-            j / k to navigate · Esc to close
-          </div>
-        )}
-      </div>
+        {/* Feed body */}
+        <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
 
-      {/* Reader pane */}
-      <div style={{ flex: 1, minWidth: 0, height: '100vh', overflowY: 'auto', background: 'var(--reader-bg)' }}>
-        {selected ? (
-          <Reader item={selected} onClose={() => setSelected(null)} />
-        ) : (
-          <div style={{
-            height: '100%', display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center',
-            color: 'var(--text-muted)',
-          }}>
-            <div style={{ fontSize: 40, opacity: 0.12, marginBottom: 16 }}>⊡</div>
-            <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-secondary)' }}>Select an article</div>
-            <div style={{ fontSize: 12, marginTop: 4 }}>or press <kbd style={{ padding: '1px 5px', background: '#2a2a2a', borderRadius: 3, border: '1px solid #3a3a3a', fontSize: 11 }}>j</kbd> to start</div>
+          {/* Article list — single column, max-width centered */}
+          <div
+            className="feed-main-body"
+            style={{
+              height: '100%',
+              overflowY: 'auto',
+              transition: 'filter 0.2s, opacity 0.2s',
+              filter: selected ? 'brightness(0.4)' : 'none',
+            }}
+          >
+            {loading && (
+              <div style={{ padding: '40px 20px', color: 'var(--text-muted)', fontSize: 13 }}>
+                Loading…
+              </div>
+            )}
+
+            {!loading && items.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '80px 20px', color: 'var(--text-muted)' }}>
+                <div style={{ fontSize: 36, marginBottom: 14, opacity: 0.3 }}>📭</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>
+                  Nothing here yet
+                </div>
+                <div style={{ fontSize: 13 }}>
+                  Check back after the next daily update at 3 AM UTC.
+                </div>
+              </div>
+            )}
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: 1,
+              maxWidth: 1200,
+              margin: '0 auto',
+            }}>
+              {items.map(item => (
+                <ArticleCard
+                  key={item.id}
+                  item={item}
+                  selected={selected?.id === item.id}
+                  onSelect={() => setSelected(item)}
+                />
+              ))}
+            </div>
           </div>
-        )}
+
+          {/* Slide-in reader panel */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 0, right: 0, bottom: 0,
+              width: '100%',
+              maxWidth: 'var(--reader-width)',
+              background: 'var(--reader-bg)',
+              borderLeft: '1px solid var(--border)',
+              transform: selected ? 'translateX(0)' : 'translateX(100%)',
+              transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+              zIndex: 20,
+              overflowY: 'auto',
+              boxShadow: selected ? '-12px 0 40px rgba(0,0,0,0.5)' : 'none',
+            }}
+          >
+            <Reader item={selected} onClose={() => setSelected(null)} />
+          </div>
+        </div>
       </div>
 
       {/* Mobile bottom tab bar */}
