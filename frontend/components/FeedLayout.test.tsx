@@ -11,15 +11,11 @@ vi.mock('./ArticleRow', () => ({
   default: () => <div data-testid="row" />,
 }));
 
-vi.mock('./ArticleRow', () => ({
-  default: () => <div data-testid="row" />,
-}));
-
 vi.mock('./Sidebar', () => ({ default: () => null }));
 vi.mock('./Reader', () => ({ default: () => null }));
 vi.mock('./AiSidePanel', () => ({ default: () => null }));
 vi.mock('./MobileTabs', () => ({ default: () => null }));
-vi.mock('@/lib/auth', () => ({ getStoredUser: () => null, startLogin: () => {} }));
+vi.mock('@/lib/auth', () => ({ AUTH_CHANGED_EVENT: 'frontera_auth_changed', getStoredUser: () => null, startLogin: () => {} }));
 
 const useTrendingMock = vi.fn();
 vi.mock('@/hooks/useFeed', () => ({
