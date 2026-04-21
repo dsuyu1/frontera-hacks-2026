@@ -43,3 +43,6 @@ yarn-error.log*
 # AWS CDK
 cdk.out
 **/cdk.out
+
+# Claude
+.claude
