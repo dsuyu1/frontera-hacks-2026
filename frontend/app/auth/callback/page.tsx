@@ -1,0 +1,51 @@
+'use client';
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { handleCallback } from '@/lib/auth';
+import { Suspense } from 'react';
+
+function CallbackInner() {
+  const router = useRouter();
+  const params = useSearchParams();
+  const code = params.get('code');
+  const state = params.get('state');
+  const [status, setStatus] = useState<'loading' | 'error'>(() => (code && state ? 'loading' : 'error'));
+
+  useEffect(() => {
+    if (!code || !state) return;
+    handleCallback(code, state).then(user => {
+      if (user) {
+        router.replace('/today');
+      } else {
+        setStatus('error');
+      }
+    });
+  }, [code, state, router]);
+
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      height: '100vh', background: '#191919', color: '#e0e0e0', flexDirection: 'column', gap: 12,
+    }}>
+      {status === 'loading' ? (
+        <>
+          <div style={{ fontSize: 24, color: '#f97316' }}>CivicWatch</div>
+          <div style={{ fontSize: 14, color: '#666' }}>Signing you in…</div>
+        </>
+      ) : (
+        <>
+          <div style={{ fontSize: 14, color: '#ef4444' }}>Sign-in failed. Please try again.</div>
+          <a href="/today" style={{ color: '#f97316', fontSize: 13 }}>← Go back</a>
+        </>
+      )}
+    </div>
+  );
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense>
+      <CallbackInner />
+    </Suspense>
+  );
+}

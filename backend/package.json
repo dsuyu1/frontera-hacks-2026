@@ -1,0 +1,32 @@
+{
+  "name": "frontera-backend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/local.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3",
+    "@aws-sdk/client-s3": "^3",
+    "@aws-sdk/client-secrets-manager": "^3",
+    "@aws-sdk/client-sfn": "^3",
+    "@aws-sdk/client-transcribe": "^3",
+    "@mozilla/readability": "^0.5.0",
+    "linkedom": "^0.18.0",
+    "pg": "^8",
+    "rss-parser": "^3.13.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8",
+    "@types/node": "^20",
+    "@types/pg": "^8",
+    "@types/xml2js": "^0.4.14",
+    "esbuild": "^0.28.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5",
+    "vitest": "^2.1.9"
+  }
+}

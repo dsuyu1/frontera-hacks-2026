@@ -1,0 +1,2082 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+	<meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
+<!-- Google Tag Manager for GA4 -->
+				<script>(function(w,d,s,l,i){w.GAMeasurementID='G-RKYL4614T1';w[l]=w[l]||[];w[l].push({'gtm.start':
+				new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+				j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+				'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+				})(window,document,'script','cpDataLayerGA4','GTM-K73C5PS');</script>
+				<!-- End Google Tag Manager for GA4 -->
+				<script type='text/javascript'>
+					var enableTelemetry = 'false'
+					var aiConfig = {
+					instrumentationKey: '1cde048e-3185-4906-aa46-c92a7312b60f'						
+					}
+					var appInsights = window.appInsights || function (a) { function b(a) { c[a] = function () { var b = arguments; c.queue.push(function () { c[a].apply(c, b) }) } } var c = { config: a }, d = document, e = window; setTimeout(function () { var b = d.createElement('script'); b.src = a.url || 'https://js.monitor.azure.com/scripts/a/ai.0.js', d.getElementsByTagName('script')[0].parentNode.appendChild(b) }); try { c.cookie = d.cookie } catch (a) { } c.queue = []; for (var f = ['Event', 'Exception', 'Metric', 'PageView', 'Trace', 'Dependency']; f.length;)b('track' + f.pop()); if (b('setAuthenticatedUserContext'), b('clearAuthenticatedUserContext'), b('startTrackEvent'), b('stopTrackEvent'), b('startTrackPage'), b('stopTrackPage'), b('flush'), !a.disableExceptionTracking) { f = 'onerror', b('_' + f); var g = e[f]; e[f] = function (a, b, d, e, h) { var i = g && g(a, b, d, e, h); return !0 !== i && c['_' + f](a, b, d, e, h), i } } return c }(aiConfig);
+					window.appInsights = appInsights, appInsights.queue && 0 === appInsights.queue.length;
+					// Add telemetry initializer
+					appInsights.queue.push(function() {
+						appInsights.context.addTelemetryInitializer(function(envelope) {
+							var telemetryItem = envelope.data.baseData;
+							// To check the telemetry item’s type:
+							if (!false)
+							{
+								//If the telemetry is not enabled, we still want to capture Google map custom event, so only allow that
+								if (envelope.name.indexOf('.Event') == -1)
+									return false;
+							}
+						});
+					});						
+					appInsights.trackPageView();
+				</script>
+	<script>
+		function populateAntiForgery(token) {
+			var input = document.createElement("input");
+			input.name = "__RequestVerificationToken";
+			input.type = "hidden";
+			input.value = token;
+			var absPat = /^https?:\/\/|^\/\//i;
+			var forms = document.getElementsByTagName("form");
+			for (var i = 0; i < forms.length; i++) {
+				if (forms[i].method == "post" &&
+					!forms[i].querySelector('[name="__RequestVerificationToken"]') &&
+					!absPat.test(forms[i].getAttribute("action"))) {
+					forms[i].appendChild(input.cloneNode());
+				}
+			}
+		}
+
+		function getAntiForgeryToken(callback, error) {
+			var xhr = new XMLHttpRequest();
+			xhr.open("GET", "/antiforgery");
+			xhr.addEventListener("load", function() {
+				try {
+					if (this.status !== 200) {
+						throw Error("Invalid status. Could not retrieve antiforgery token.");
+		}
+					var obj = JSON.parse(this.responseText);
+					callback(obj.token);
+				} catch (e) {
+					typeof error === "function" && error(e);
+				}
+			});
+			xhr.send();
+		}
+
+		getAntiForgeryToken(function(token) {
+			if (document.readyState === "complete"
+				|| document.readyState === "loaded" 
+				|| document.readyState === "interactive") {
+				populateAntiForgery(token);
+				return;
+			}
+			document.addEventListener("DOMContentLoaded", function() {
+				populateAntiForgery(token);
+			}, false);
+		}, console.error);
+			</script>
+			
+
+	<script type="text/javascript">
+		window.departmentHeader = {};
+		window.pageSectionTracker = {};
+		window.isResponsiveEnabled = true;
+		window.isRemoveSetHeights= false;
+		if (window.isRemoveSetHeights) {
+			document.documentElement.className += ' removeSetHeights';
+		}
+		window.mainMenuMediaQuery = 'screen and (max-width: 40em)';
+		window.isMobileBrowserIncludingTablets = false;
+		window.fixedResponsiveMenu = false;
+		window.fullWidthResponsiveMenu = false;
+		window.responsiveMenuHeight = '';
+		window.responsiveMenuFontSize = '';
+		window.isContentAdvisor = false;
+		(function () {
+			window.setSizeCookie = function () {
+				document.cookie = "dpi=" + window.devicePixelRatio + "; path=/";
+				document.cookie = "viewportWidth=" + window.innerWidth + "; path=/";
+				document.cookie = "viewportHeight=" + window.innerHeight + "; path=/";
+				if (screen && screen.width && screen.height) {
+					document.cookie = "screenWidth=" + screen.width + "; path=/";
+					document.cookie = "screenHeight=" + screen.height + "; path=/";
+				}
+				document.cookie = "responsiveGhost=1; path=/";
+			};
+
+			setSizeCookie();
+		}());
+	</script>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<script async src="https://docaccess.com/docbox.js"></script>
+	<meta name="google-site-verification" content="NfmuuAIp3PlH86tSRi-pr2uXc5WCaClgyNlouo_gn3A" />
+
+<!-- Request 446754-->
+
+<script>
+            window.onload = () => {
+                var serviceUrl = "//api.reciteme.com/asset/js?key=";
+                var serviceKey = "31c719e184d5ef12bed0a0c3697e833a8d0aeec4";
+                var options = {};  // Options can be added as needed
+                var autoLoad = false;
+                var enableFragment = "#reciteEnable";
+                var loaded = [], frag = !1; window.location.hash === enableFragment && (frag = !0); function loadScript(c, b) { var a = document.createElement("script"); a.type = "text/javascript"; a.readyState ? a.onreadystatechange = function () { if ("loaded" == a.readyState || "complete" == a.readyState) a.onreadystatechange = null, void 0 != b && b() } : void 0 != b && (a.onload = function () { b() }); a.src = c; document.getElementsByTagName("head")[0].appendChild(a) } function _rc(c) { c += "="; for (var b = document.cookie.split(";"), a = 0; a < b.length; a++) { for (var d = b[a]; " " == d.charAt(0);)d = d.substring(1, d.length); if (0 == d.indexOf(c)) return d.substring(c.length, d.length) } return null } function loadService(c) { for (var b = serviceUrl + serviceKey, a = 0; a < loaded.length; a++)if (loaded[a] == b) return; loaded.push(b); loadScript(serviceUrl + serviceKey, function () { "function" === typeof _reciteLoaded && _reciteLoaded(); "function" == typeof c && c(); Recite.load(options); Recite.Event.subscribe("Recite:load", function () { Recite.enable() }) }) } "true" == _rc("Recite.Persist") && loadService(); if (autoLoad && "false" != _rc("Recite.Persist") || frag) document.addEventListener ? document.addEventListener("DOMContentLoaded", function (c) { loadService() }) : loadService();
+            
+                var reciteButtonContainer = document.createElement("div");
+                var reciteButton = document.createElement("img");
+                var reciteButtonAlt = "Accessibility Tools";
+                var reciteButtonPng = '/ImageRepository/Document?documentId=60300';
+                reciteButton.setAttribute('id', 'reciteme-launch');
+                reciteButton.addEventListener("click", function () {
+                    loadService();
+                    return false;
+                });
+                reciteButtonContainer.style.position = 'fixed';
+                reciteButtonContainer.style.bottom = '40px';
+                reciteButtonContainer.style.left = '12px';
+                reciteButtonContainer.style.borderRadius = '50%';
+                reciteButtonContainer.style.zIndex = '1000000';
+                reciteButton.style.width = '200x';
+                reciteButton.style.height = '90px';
+                reciteButton.style.cursor = 'pointer';
+                reciteButton.setAttribute('alt', reciteButtonAlt);
+                reciteButton.setAttribute('src', reciteButtonPng);
+                reciteButtonContainer.appendChild(reciteButton);
+                var buttonParent = document.querySelector("body");
+                buttonParent.appendChild(reciteButtonContainer);
+            }
+        </script>
+
+<!-- End Request -->
+
+	<meta name="category0" content="Home" />
+<meta name="category1" content="Departments" />
+<meta name="category2" content="Elections Department" />
+<meta name="category3" content="May 2, 2026 Local Entities Elections" />
+
+	
+	<meta name="theme-color" content="#35445b">
+	<link rel="icon" href="/images/favicon.ico" type="image/x-icon" />
+	<link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon" />
+		<title>May 2, 2026 Local Entities Elections | Hidalgo County, TX - Official Website</title>
+
+		<meta name="description" content="">
+			<script src="/Assets/Scripts/jQuery/jquery-3.7.1.min.js"></script>
+	<script src="/Assets/Scripts/jQuery/jquery-migrate-3.5.2.min.js" type="text/javascript"></script>
+	
+
+	<!--[if IE 6]><script language="JavaScript" type="text/javascript"> var isie6 = true; </script><![endif]-->
+	<!--[if IE 7]><script language="JavaScript" type="text/javascript"> var isie7 = true; </script><![endif]-->
+	<!--[if IE 8]><script language="JavaScript" type="text/javascript"> var isie8 = true; </script><![endif]-->
+	<!--[if IE 9]><script language="JavaScript" type="text/javascript"> var isie8 = true; </script><![endif]-->
+	<script type="text/javascript"><!--
+	var intCountryCode = 840;
+	var externalSiteDialogHeight = '350px';
+	var order = '';
+//--></script>
+	
+	<link href="/-1465647691.css" rel="stylesheet" type="text/css" />	<link href="/522563718.css" rel="stylesheet" type="text/css" />
+
+	<link rel="stylesheet" type="text/css" href="/Assets/Styles/Print.css" media="print">
+	<script type="text/javascript">
+		window.Pages = window.Pages || {};
+		// FrontEnd RWD initialization
+		window.Pages.rwdReady = $.Deferred();
+		window.Pages.toolBarDeferred = $.Deferred();
+		window.Pages.rwdSetupComplete = $.Deferred();
+		window.Pages.megaMenuLoaded = $.Deferred();
+		window.Pages.angularToolbarComplete = $.Deferred();
+		window.Pages.frontEndToolbarComplete = $.Deferred();
+	</script>
+	<!--CPHeadContent-->
+	<script src="/739942322.js" type="text/javascript"></script>
+	
+	
+	
+	
+
+
+
+
+	<!--[if lte IE 8]><link rel="stylesheet" type="text/css" href="/App_Themes/ie8.css"><![endif]-->
+	<!--[if lte IE 7]><link rel="stylesheet" type="text/css" href="/App_Themes/ie7.css"><![endif]-->
+	<!--[if lte IE 6]><link rel="stylesheet" type="text/css" href="/App_Themes/ie6.css"><![endif]-->
+	<!--[if lt IE 9]><script type="text/javascript" src="/Scripts/html5.js"></script><![endif]-->
+
+	<script type="text/javascript">
+		setEditorVariables(false, 840);
+		function getPrintPreviewType() { return 0; } function printPreview() {pPreview(getPrintPreviewType()); }
+	</script>
+	<script src="/Assets/Scripts/AlpineJS/3.14.1/alpine.min.js" type="text/javascript" defer="defer"></script>
+</head>
+<body class="wide " >
+
+    <script>jQuery(document).click(function (event) {
+	var target = jQuery(event.target);
+	if (target.attr('src') && target.parents('.image').length && target.parents('.widget').length) {
+		var text = target.attr('title');
+		
+		if (!text.length) {
+			text = "N/A";
+		}
+		ga('send',
+			{
+				hitType: 'event',
+				eventCategory: 'Image',
+				eventAction: 'Image - ' + text,
+				eventLabel: window.location.href
+			});
+	}
+	if (target.is('button') || target.hasClass('button') || target.parents().hasClass('button')) {
+		var text = "";
+		if (target.parents('.button')[0]) {
+			text = target.parents('.button').first().text();
+		} else if (target.text().length) {
+			text = target.text();
+		} else if (target.attr('title').length) {
+			text = target.attr('title');
+		}
+		if (!text.length) {
+			text = "N/A";
+		}
+		ga('send',
+			{
+				hitType: 'event',
+				eventCategory: 'Button',
+				eventAction: 'Button - ' + text,
+				eventLabel: window.location.href
+			});
+	}
+	if (target.parents('.widgetCustomHtml').length) {
+		ga('send',
+			{
+				hitType: 'event',
+				eventCategory: 'Custom Html',
+				eventAction: 'Custom Html Clicked',
+				eventLabel: window.location.href
+			});
+	}
+	if (target.parents('.editor').length) {
+		ga('send',
+			{
+				hitType: 'event',
+				eventCategory: 'Editor',
+				eventAction: 'Editor Link Clicked',
+				eventLabel: window.location.href
+			});
+	}
+	if (target.parents('.GraphicLinks').length) {
+		var text = "";
+		var targetGraphicLink = target;
+		if (target.hasClass('widgetGraphicLinksLink')) {
+			targetGraphicLink = jQuery(target.children()[0]);
+		}
+		if (targetGraphicLink.hasClass('text')) {
+			text = targetGraphicLink.text();
+		} else if (targetGraphicLink.attr('src').length) {
+			if (targetGraphicLink.attr('alt').length) {
+				text = targetGraphicLink.attr('alt');
+			} else {
+				text = targetGraphicLink.attr('src');
+			}
+		} else {
+			text = "N/A";
+		}
+		ga('send',
+			{
+				hitType: 'event',
+				eventCategory: 'Graphic Links',
+				eventAction: 'Graphic Link - ' + text,
+				eventLabel: window.location.href
+			});
+	}
+	if (target.parents('.InfoAdvanced').length) {
+		ga('send',
+			{
+				hitType: 'event',
+				eventCategory: 'Info Advanced',
+				eventAction: 'Info Advanced Clicked',
+				eventLabel: window.location.href
+			});
+	}
+	if (target.parents('.list').length) {
+		ga('send',
+			{
+				hitType: 'event',
+				eventCategory: 'List',
+				eventAction: 'List Clicked',
+				eventLabel: window.location.href
+			});
+	}
+	if (target.parents('.megaMenuItem').length || target.parents('.topMenuItem').length) {
+		var megaMenuText = jQuery('.topMenuItem.mouseover').find('span').text();
+		var breadCrumbs = [];
+		jQuery('.breadCrumbs > li').each(function () {
+			 breadCrumbs.push(this.textContent);
+		});
+		var pageTitle = breadCrumbs.join('>');
+		var subTitleText = target.parents('.megaMenuItem').children('.widgetTitle').children().text();
+		var text = "";
+		if (pageTitle) {
+			text += pageTitle + " | ";
+		} else {
+			text += document.title + ' - ';
+		}
+		if (target.text() == "" && megaMenuText == "") {
+			text += "N/A";
+		} else if (target.text().length && megaMenuText.length) {
+			if (megaMenuText == target.text()) {
+				text += megaMenuText;
+			} else {
+				text += megaMenuText + " - " + subTitleText + " - " + target.text();
+			}
+		} else if (target.text() == "") {
+			text += megaMenuText;
+		} else {
+			text += target.text();
+		}
+		if (!text.length) {
+			text = "N/A";
+		}
+		ga('send',
+			{
+				hitType: 'event',
+				eventCategory: 'Mega Menu',
+				eventAction: 'Mega Menu : ' + text,
+				eventLabel: window.location.href
+			});
+	}
+	if (target.parents('.widgetNewsFlash').length && target.parents('.widgetItem').length) {
+		var text = jQuery(target.parents('.widgetItem')[0]).find('.widgetTitle').children().text();
+		if (!text.length) {
+			text = "N/A";
+		}
+		ga('send',
+			{
+				hitType: 'event',
+				eventCategory: 'News Flash',
+				eventAction: 'News Flash - ' + text,
+				eventLabel: window.location.href
+			});
+	}
+	if (target.hasClass('widgetQuickLinksLink') || target.find('.widgetQuickLinksLink').length) {
+		var text = target.text();
+		if (!text.length) {
+			text = "N/A";
+		}
+		ga('send',
+			{
+				hitType: 'event',
+				eventCategory: 'Quick Links',
+				eventAction: 'Quick Links - ' + text,
+				eventLabel: window.location.href
+			});
+	}
+	if (target.attr('src') && target.parents('.cpSlideshow').length) {
+		var text = target.attr('title');
+		if (!text.length) {
+			text = "N/A";
+		}
+		ga('send',
+			{
+				hitType: 'event',
+				eventCategory: 'Slideshow',
+				eventAction: 'Slideshow - ' + text,
+				eventLabel: window.location.href
+			});
+	}
+	if (target.parents('.widgetText').length) {
+		ga('send',
+			{
+				hitType: 'event',
+				eventCategory: 'Text',
+				eventAction: 'Text Link Clicked',
+				eventLabel: window.location.href
+			});
+	}
+});</script>
+	<div id="popoverModal" class="cp-PopOver cp-PopOver--modal cp-AdminWrap" style="position: fixed; display: none;">
+	<div class="cp-PopOver-header">
+		<h3 class="cp-PopOver-title"></h3>
+		<button class="cp-Btn cp-PopOver-close" onclick="closePopOverModal(event)">
+			<svg class="cp-Icon--close" alt="close" title="close">
+				<use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#iconClose"></use>
+			</svg>
+		</button>
+	</div>
+	<div id="cpPopOverBody" class="cp-PopOver-body">
+		<form id="cpPopOverForm" name="cpPopOverForm" novalidate></form>
+	</div>
+	<div id="cpPopOverFooter" class="cp-PopOver-footer">
+		<div class="cp-BtnGroup" id="actionButtons">
+			<!-- Action buttons will be dynamically added here -->
+		</div>
+	</div>
+</div>
+    <div id="fb-root"></div>
+<div id=skipToContentLinks>
+<a href="#cc6c9730b4-4105-4ccf-874a-ef04699eeee2" target="_self" class="skipToContentLink">Skip to Main Content</a>
+</div>
+    <form id="frmReferenceFormForTelerikEditorDialogs"></form>
+
+        <input type="hidden" id="GoogleMapsKey" value="AIzaSyDWUuE-ifkbhxblF920N8MjpBdTg1Wt784" />
+
+
+
+    <input type="hidden" id="cpcDomain" value="https://cp-civicplusuniversity2.civicplus.com">
+    <input type="hidden" id="hdnStructureID" value="2" />
+    <input type="hidden" id="hdnContentCollectionID" value="add11b12-575f-4e8a-afa1-6804ea42e91b" />
+    <input type="hidden" id="hdnWorkingCopyID" value="00000000-0000-0000-0000-000000000000" />
+    <input type="hidden" id="hdnThemeID" value="2" />
+    <input type="hidden" id="pageIsFrontEnd" value="true" />
+    <input type="hidden" id="pageModuleID" />
+    <input type="hidden" id="pagePageID" value="3473" />
+
+    <div id="stickyPlaceholder"></div>
+    <div id="outer-wrap" class="outer-wrap">
+        <div id="inner-wrap" class="inner-wrap">
+                <div id="divToolbars" class="cpToolbars newCP mui-fixed" style="">
+                    
+
+
+
+<!-- Begin Signed Out Bar -->
+<div class="cpToolbar user public">
+    <div class="inner selfClear">
+        <p class="dropdown"><a href="/MyAccount/ProfileCreate" role="link" class="myConnections" id="signedOutToolbarCreateProfileButton">Create a Website Account</a> <span class="welcomeMessage">- Manage notification subscriptions, save form progress and more. &nbsp;&nbsp;</span></p>
+        <ul class="nav secondary">
+	        <li><a href="/MyAccount" role="link" class="button" id="loggedOutToolbarSignInButton"><span>Website Sign In</span></a></li>
+        </ul>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        $('#signedOutToolbarCreateProfileButton').keypress(function (e) { if (e.which === 0) return; $(this).click(); });
+        $('#signedOutToolbarCreateProfileButton').click(function (event) {
+        	event.preventDefault();
+        	window.location.href = '/MyAccount/ProfileCreate?from=url&url=/&dn=' + window.location.origin;
+        });
+
+			
+				$('#loggedOutToolbarSignInButton').click(function (event) {
+					event.preventDefault();
+					window.location.href = '/MyAccount/?from=url&url=' + encodeURIComponent(window.location.href.replace(window.location.origin, '')) + '&dn=' + window.location.host;
+				});
+			
+
+		if ('False' == 'True') {
+            $('#loggedOutToolbarSignInButton').hide();
+		}
+    })
+</script>
+<!-- End Signed Out Bar -->
+
+                </div>
+            <div id="bodyWrapper">
+                <div id="mainNavHolderMobile" class="mainNavHolderMobile"></div>
+                
+<div data-cpRole="structuralContainer" id="structuralContainer5">
+<div data-cpRole="structuralContainer" id="structuralContainer6">
+<div data-cpRole="banner" id="banner1"><div data-cpRole="structuralContainer" id="structuralContainer10">
+<div class="siteWrap"><header class="siteHeader"><h1 data-cpRole="banner" id="banner2" class="logo empty">
+
+
+
+
+				<a id="banner2-4" style="			display: block; text-align: center;
+" class="bannerObject" href="/" target="_self"><img alt="Hidalgo County Texas" class="bannerObject" height="97" src="/ImageRepository/Document?documentID=27481" width="440" /></a>
+</h1><aside data-cpRole="contentContainer" id="contentContainer2" class="search">	<div id="cc67996834-97fd-497b-b859-a415d15f52ab" data-containerid="67996834-97fd-497b-b859-a415d15f52ab" class="pageContent cpGrid cpGrid24 isLockedContainer showInMobile" data-contentcontainerbreakpoint="28">
+				                
+
+		<div class="row outer wide"><!--
+--><div class="outer col col12 first" style="" data-widgetcontainerid="555a6657-8438-4dec-aa13-377e5a874f4f">				
+	<div class="row nest first last wide">
+	
+	<div class="inner col col4 first id1f620c50-3a6d-41d8-a589-18574007b5f2" style="" data-widgetcontainerid="1f620c50-3a6d-41d8-a589-18574007b5f2">	
+<div data-widget-id="f7abe50b-c7ba-4751-8635-bedcb27aa0f6" data-widget-controller-path="/GraphicLinks/Widget">
+
+
+
+
+<div id="graphicLinkWidgetf7abe50b-c7ba-4751-8635-bedcb27aa0f6" class="widget widgetGraphicLinks skin9 widgetOptionSet4 wide" data-elementqueryclasses='{"wide-narrow":"min-width:25em"}' data-elementquerymatch='matchMultiColumn' data-elementqueryunmatch='unmatchMultiColumn' data-modulewidgettype="graphicLinks">
+	<div class="widgetHeader">
+		<div class="">
+				</div>
+	</div>
+	<div class="widgetBody cpGrid cpGrid1 "> 	
+				<ul class="semanticList"><!--
+	    --><li class="widgetItem GraphicLinks"><a class="widgetDesc widgetGraphicLinksLink" href="https://translate.google.com/translate?sl=auto&amp;tl=es&amp;js=y&amp;prev=_t&amp;hl=en&amp;ie=UTF-8&amp;u=https%3A%2F%2Fwww.hidalgocounty.us%2F&amp;edit-text=" target="_blank"  aria-label="Button to switch language to Spanish graphic opens in new window"><img src="/ImageRepository/Document?documentID=70209" 
+     class="graphicButtonLink" alt="Button to switch language to Spanish" 
+     onmouseover="this.src='/ImageRepository/Document?documentID=70210'" 
+	onmouseout="this.src='/ImageRepository/Document?documentID=70209'"
+     onfocus="this.src='/ImageRepository/Document?documentID=70210'" 
+	onblur="this.src='/ImageRepository/Document?documentID=70209'"> </a></li><!--
+				--></ul>
+	</div>
+	<div class="widgetFooter">
+			</div>
+</div>
+
+</div>
+	</div> <!-- inner column -->
+	<div class="inner col col8 last id0be427c8-d689-4869-b832-27de563f6f88" style="" data-widgetcontainerid="0be427c8-d689-4869-b832-27de563f6f88">	
+<div data-widget-id="fea5137a-f977-4cf5-acfa-d4940bda43b5" data-widget-controller-path="/GraphicLinks/Widget">
+
+
+
+
+<div id="graphicLinkWidgetfea5137a-f977-4cf5-acfa-d4940bda43b5" class="widget widgetGraphicLinks skin9 widgetOptionSet17 wide" data-elementqueryclasses='{"wide-narrow":"min-width:1em"}' data-elementquerymatch='matchMultiColumn' data-elementqueryunmatch='unmatchMultiColumn' data-modulewidgettype="graphicLinks">
+	<div class="widgetHeader">
+		<div class="">
+				</div>
+	</div>
+	<div class="widgetBody cpGrid cpGrid4 "> 	
+				<nav class="widgetGraphicLinksNav" aria-label="Graphic links">
+					<div class="row   wide"><!--
+--><div class="col col1 first "><ul class="semanticList"><!--
+	    --><li class="widgetItem GraphicLinks"><a class="widgetDesc widgetGraphicLinksLink" href="https://www.facebook.com/HidalgoCountyTexas/" target="_blank"  aria-label="Icon for our facebook page. graphic opens in new window"><img src="/ImageRepository/Document?documentID=70203" 
+     class="graphicButtonLink" alt="Icon for our facebook page." 
+     onmouseover="this.src='/ImageRepository/Document?documentID=70206'" 
+	onmouseout="this.src='/ImageRepository/Document?documentID=70203'"
+     onfocus="this.src='/ImageRepository/Document?documentID=70206'" 
+	onblur="this.src='/ImageRepository/Document?documentID=70203'"> </a></li><!--
+--></ul></div><!----><div class="col col1  "><ul class="semanticList"><!--
+	    --><li class="widgetItem GraphicLinks"><a class="widgetDesc widgetGraphicLinksLink" href="http://www.instagram.com/hidalgocountytx" target="_blank"  aria-label="Icon for our Instagram page. graphic opens in new window"><img src="/ImageRepository/Document?documentID=70201" 
+     class="graphicButtonLink" alt="Icon for our Instagram page." 
+     onmouseover="this.src='/ImageRepository/Document?documentID=70205'" 
+	onmouseout="this.src='/ImageRepository/Document?documentID=70201'"
+     onfocus="this.src='/ImageRepository/Document?documentID=70205'" 
+	onblur="this.src='/ImageRepository/Document?documentID=70201'"> </a></li><!--
+--></ul></div><!----><div class="col col1  "><ul class="semanticList"><!--
+	    --><li class="widgetItem GraphicLinks"><a class="widgetDesc widgetGraphicLinksLink" href="https://x.com/hidalgocountytx" target="_blank"  aria-label="Icon for our X page. graphic opens in new window"><img src="/ImageRepository/Document?documentID=70202" 
+     class="graphicButtonLink" alt="Icon for our X page." 
+     onmouseover="this.src='/ImageRepository/Document?documentID=70204'" 
+	onmouseout="this.src='/ImageRepository/Document?documentID=70202'"
+     onfocus="this.src='/ImageRepository/Document?documentID=70204'" 
+	onblur="this.src='/ImageRepository/Document?documentID=70202'"> </a></li><!--
+--></ul></div><!----><div class="col col1  last"><ul class="semanticList"><!--
+	    --><li class="widgetItem GraphicLinks"><a class="widgetDesc widgetGraphicLinksLink" href="https://www.youtube.com/channel/UC6TaYtcc4hbJPaXt6SHmyyQ" target="_blank"  aria-label="Icon for our Youtube page. graphic opens in new window"><img src="/ImageRepository/Document?documentID=70208" 
+     class="graphicButtonLink" alt="Icon for our Youtube page." 
+     onmouseover="this.src='/ImageRepository/Document?documentID=70207'" 
+	onmouseout="this.src='/ImageRepository/Document?documentID=70208'"
+     onfocus="this.src='/ImageRepository/Document?documentID=70207'" 
+	onblur="this.src='/ImageRepository/Document?documentID=70208'"> </a></li><!--
+--></ul></div><!--					--></div>
+				</nav>
+	</div>
+	<div class="widgetFooter">
+			</div>
+</div>
+
+</div>
+	</div> <!-- inner column -->
+
+	</div> <!-- inner row -->
+
+			</div><!-- outer column --><!----><div class="outer col col12 last" style="" data-widgetcontainerid="65a7aaea-5756-44eb-ac42-5ac3744c9c9d">				
+	<div class="row nest first last wide">
+	
+	<div class="inner col col12 first last ida7684e29-4a85-4476-a3c3-d7bdfa270c51" style="" data-widgetcontainerid="a7684e29-4a85-4476-a3c3-d7bdfa270c51">	
+<div data-widget-id="3cffcc56-ece8-4547-8def-c154410fd9c2" data-widget-controller-path="/Layout/WidgetSearch">
+	
+	<script defer type="text/javascript" src="/Common/Controls/jquery-ui-1.14.1/jquery-ui.min.js"></script>
+	<script defer src="/Areas/Layout/Assets/Scripts/Search.js" type="text/javascript"></script>
+	<script defer type="text/javascript">
+
+		$(document).ready(function () {
+			try {
+				$(".widgetSearchButton.widgetSearchButton3cffcc56-ece8-4547-8def-c154410fd9c2").click(function (e) {
+				e.preventDefault();
+					if (false||$("#ysnSearchOnlyDept3cffcc56-ece8-4547-8def-c154410fd9c2").is(':checked'))
+					{
+						doWidgetSearch($(this).siblings(".widgetSearchBox").val(), Number(0));
+					}
+					else {
+						doWidgetSearch($(this).siblings(".widgetSearchBox").val(), 0);
+					}
+			});
+			$("#searchField3cffcc56-ece8-4547-8def-c154410fd9c2").keypress(function (e) {
+				if (window.clipboardData) {
+					if (e.keyCode === 13) {
+						if ($("#ysnSearchOnlyDept3cffcc56-ece8-4547-8def-c154410fd9c2").is(':checked') || false) {
+								doWidgetSearch($(this).val(), Number(0));
+							} else {
+								doWidgetSearch($(this).val(), 0);
+							}
+						return false;
+					}
+				} else {
+					if (e.which === 13) {
+						if ($("#ysnSearchOnlyDept3cffcc56-ece8-4547-8def-c154410fd9c2").is(':checked') || false) {
+								doWidgetSearch($(this).val(), Number(0));
+							} else {
+								doWidgetSearch($(this).val(), 0);
+							}
+						return false;
+					}
+				}
+				return true;
+			});
+
+				if (true) {
+					var currentRequest = null;
+					var $searchField = $("#searchField3cffcc56-ece8-4547-8def-c154410fd9c2").autocomplete({
+						source: function (request, response) {
+							currentRequest = $.ajax({
+								url: '/Search/AutoComplete' + ($("#ysnSearchOnlyDept3cffcc56-ece8-4547-8def-c154410fd9c2").is(':checked') || false? '?departmentId=0' : ''),
+								dataType: "json",
+								timeout: 10000,
+								beforeSend: function () {
+									if (currentRequest != null) {
+										currentRequest.abort();
+									}
+								},
+								data:
+								{
+									term: request.term,
+								},
+								success: function (data) {
+									response(data);
+									$('.autoCompleteError').remove();
+								},
+								error: function (xmlhttprequest, textstatus, message) {
+									if (textstatus === "timeout") {
+										if ($("#searchField3cffcc56-ece8-4547-8def-c154410fd9c2").siblings('.autoCompleteError').length == 0)
+											$('<span class="autoCompleteError"><p class="alert error">Search autocomplete is currently not responding. Please try again later.</p></span>').insertAfter($("#searchField3cffcc56-ece8-4547-8def-c154410fd9c2"));
+									}
+								}
+							});
+						},
+						html: true,
+						delay: 500,
+						select: function (event, ui) {
+							$(this).val(ui.item.value);
+							$(this).next().click();
+						}
+					});
+
+					$searchField.data("ui-autocomplete")._renderItem = function (ul, item) {
+						return $("<li class=\"itemList\"></li>")
+							.data("ui-autocomplete-item", item)
+							.append("<a>" + item.label + "</a>")
+							.appendTo(ul);
+					};
+}
+}
+			catch(e) {} //we're going to eat this error. Autocomplete won't work but we dont wan't to break anything else on the page.
+		});
+	</script>
+
+	<section id="widgetPreviewSearch" class="widget widgetSearch skin7 widgetOptionSet12" style="display: block;" aria-label="Search">
+				<!-- For the button right and inside -->
+		<div class="widgetBody buttonRightInside">
+			<input class="widgetSearchBox widgetSearchBox3cffcc56-ece8-4547-8def-c154410fd9c2" cp5ph="true" id="searchField3cffcc56-ece8-4547-8def-c154410fd9c2" name="searchField" onchange="searchBtnApplyQuery();" placeholder="I’m looking for..." type="text" value="" />
+						<a href="/Search/Results" id="btnSearchIcon" class="widgetSearchButton widgetSearchButton3cffcc56-ece8-4547-8def-c154410fd9c2" role="button"><img alt="Go to Site Search" class="imageHover" data-hover="/ImageRepository/Document?documentID=25059" data-image="/ImageRepository/Document?documentID=25058" src="/ImageRepository/Document?documentID=25058" /></a>
+
+			<label class="searchLabel" aria-hidden="true" for="searchField3cffcc56-ece8-4547-8def-c154410fd9c2">Search</label>
+		</div>
+
+	</section>
+
+
+<style scoped>
+	  
+		.widgetSearch ::-webkit-input-placeholder {
+		color: #333333;
+	  }
+		.widgetSearch :-moz-placeholder { /* Firefox 18- */
+	   color: #333333;
+	}
+		.widgetSearch ::-moz-placeholder {  /* Firefox 19+ */
+	   color: #333333;
+	}
+	.widgetSearch :-ms-input-placeholder {
+	   color: #333333;
+	}
+	
+
+	.widgetSearch .widgetBody .widgetSearchBox3cffcc56-ece8-4547-8def-c154410fd9c2
+	{
+		color: #333333;
+		background: #ebe6e1; border: 1px solid #fff; border-radius: 10px; font-family: Ubuntu; padding: 15px 50px 15px 15px;
+	}
+	.widgetSearch .widgetBody .widgetSearchButton3cffcc56-ece8-4547-8def-c154410fd9c2
+	{
+		margin: 7px 7px 0 0;
+	}
+	.widgetSearch .widgetSearch-onlyDept3cffcc56-ece8-4547-8def-c154410fd9c2
+	{
+		display: inline-block;
+		color: #333;
+		
+		
+		 padding-top: 10px;
+	}
+	#ysnSearchOnlyDept3cffcc56-ece8-4547-8def-c154410fd9c2
+	{
+		position: relative;
+		top: .125em;
+	}
+
+</style>
+
+<link rel="stylesheet" href="/Common/Controls/jquery-ui-1.14.1/jquery-ui.min.css">
+<link rel="stylesheet" href="/Common/Controls/jquery-ui-1.14.1/jquery-ui.theme.min.css">
+
+
+
+<script type="text/javascript">
+	//Updates search icons href to have the correct queryString
+	function searchBtnApplyQuery() {
+		document.getElementById("btnSearchIcon").href = "/Search?searchPhrase=" + document.getElementById("searchField3cffcc56-ece8-4547-8def-c154410fd9c2").value;
+	}
+	</script>
+
+</div>
+	</div> <!-- inner column -->
+
+	</div> <!-- inner row -->
+
+			</div><!-- outer column --><!--		--></div> <!-- outer row -->
+
+
+	</div>
+</aside><nav data-cpRole="nav" id="mainNav" class="siteNav mainNav" role="navigation">
+<ol id="mainNavMenu" data-parent="1" class="rootNavMenu" role="menu"><!--
+--><li id="MainItem66" class="topMenuItem" role="none" data-pageid="66" data-displaymegamenu="True"><!--
+			--><!--
+			--> <a role = "menuitem" aria-haspopup=true aria-expanded='false' id = "mainNavCountyGovernment" class="navMainItem mainNavItem mainNavItem1 " href="/66/County-Government" target = "_self" >   County Government  </a>			<!--
+			--><!--
+			--></li><!----><li id="MainItem63" class="topMenuItem" role="none" data-pageid="63" data-displaymegamenu="True"><!--
+			--><!--
+			--> <a role = "menuitem" aria-haspopup=true aria-expanded='false' id = "mainNavDepartments" class="navMainItem mainNavItem mainNavItem2 " href="/63/Departments" target = "_self" >   Departments  </a>			<!--
+			--><!--
+			--></li><!----><li id="MainItem2120" class="topMenuItem" role="none" data-pageid="2120" data-displaymegamenu="True"><!--
+			--><!--
+			--> <a role = "menuitem" aria-haspopup=true aria-expanded='false' id = "mainNavLawJustice" class="navMainItem mainNavItem mainNavItem3 " href="/2120/Law-Justice" target = "_self" >   Law &amp; Justice  </a>			<!--
+			--><!--
+			--></li><!----><li id="MainItem9" class="topMenuItem" role="none" data-pageid="9" data-displaymegamenu="True"><!--
+			--><!--
+			--> <a role = "menuitem" aria-haspopup=true aria-expanded='false' id = "mainNavServices" class="navMainItem mainNavItem mainNavItem4 " href="/9/Services" target = "_self" >   Services  </a>			<!--
+			--><!--
+			--></li><!----><li id="MainItem7" class="topMenuItem" role="none" data-pageid="7" data-displaymegamenu="True"><!--
+			--><!--
+			--> <a role = "menuitem" aria-haspopup=true aria-expanded='false' id = "mainNavHowdoI" class="navMainItem mainNavItem mainNavItem5 " href="/7/How-do-I" target = "_self" >   How do I?  </a>			<!--
+			--><!--
+			--></li><!---->
+</ol>
+
+
+	<script type="text/javascript">
+		(function () {
+			function setupMenu() {
+				const menuID = 'mainNavMenu';
+				const menuType = MAIN_MENU;
+
+				//setup menu manager properties for main menu
+				if (!menuManager.mobileMainNav && true)
+					menuManager.adjustMainItemsWidth('#' + menuID);
+				menuManager.isMainMenuEditable = false;
+				menuManager.mainMenuMaxSubMenuLevels = 4;
+				menuManager.setMOMMode(2, menuType);
+
+				//Init main menu
+				const setupDraggable = menuManager.isMainMenuEditable;
+				const urlToGetHiddenMenus = '/Pages/MenuMain/HiddenMainSubMenus?pageID=1&moduleID=&themeID=2&menuContainerID=mainNav';
+
+				menuManager.setupMenu(menuID, 'mainNav', menuType, setupDraggable, urlToGetHiddenMenus);
+				menuManager.mainMenuInit = true;
+				menuManager.mainMenuTextResizer = true;
+				if (1.00 > 0)
+					menuManager.mainMenuTextResizerRatio = 1.00;
+				if (window.isResponsiveEnabled)
+					menuManager.mainMenuReady.resolve();
+
+			}
+
+			if (document.readyState === "complete"
+				|| document.readyState === "loaded"
+				|| document.readyState === "interactive") {
+				setupMenu();
+				return;
+			}
+
+			document.addEventListener("DOMContentLoaded", setupMenu);
+		})();
+	</script>
+
+
+<aside data-cpRole="megaMenu" id="megaMenu" class="megaMenu" style="display: none;"><input type="hidden" id="megaMenuPopupDirection" value="0"><input type="hidden" id="megaMenuWidthReference" value="0"><aside role="menu" data-cpRole="contentContainer" id="mainNavMegaMenu66" class="contentTop mainNavMegaMenu megaMenuContainer pageID_66 hidden" data-orientation="horizontal">	<div id="cc5342fd41-7f93-4631-998e-6a15027d2646" data-containerid="5342fd41-7f93-4631-998e-6a15027d2646" class="pageContent cpGrid cpGrid24">
+				                
+
+
+
+	</div>
+</aside><aside role="menu" data-cpRole="contentContainer" id="mainNavMegaMenu63" class="contentTop mainNavMegaMenu megaMenuContainer pageID_63 hidden" data-orientation="horizontal">	<div id="cc0a642825-6dee-406b-82ca-c4e454dae2de" data-containerid="0a642825-6dee-406b-82ca-c4e454dae2de" class="pageContent cpGrid cpGrid24">
+				                
+
+
+
+	</div>
+</aside><aside role="menu" data-cpRole="contentContainer" id="mainNavMegaMenu2120" class="contentTop mainNavMegaMenu megaMenuContainer pageID_2120 hidden" data-orientation="horizontal">	<div id="cc0fb27aaf-9267-4422-bbe6-a014877eda53" data-containerid="0fb27aaf-9267-4422-bbe6-a014877eda53" class="pageContent cpGrid cpGrid24">
+				                
+
+
+
+	</div>
+</aside><aside role="menu" data-cpRole="contentContainer" id="mainNavMegaMenu9" class="contentTop mainNavMegaMenu megaMenuContainer pageID_9 hidden" data-orientation="horizontal">	<div id="cc96263a9c-4c75-4f01-8d3f-b9ee6de6edaa" data-containerid="96263a9c-4c75-4f01-8d3f-b9ee6de6edaa" class="pageContent cpGrid cpGrid24">
+				                
+
+
+
+	</div>
+</aside><aside role="menu" data-cpRole="contentContainer" id="mainNavMegaMenu7" class="contentTop mainNavMegaMenu megaMenuContainer pageID_7 hidden" data-orientation="horizontal">	<div id="ccf5224031-8211-4c6d-8a68-3d63b69c81f7" data-containerid="f5224031-8211-4c6d-8a68-3d63b69c81f7" class="pageContent cpGrid cpGrid24">
+				                
+
+
+
+	</div>
+</aside></aside></nav></header></div>
+</div><div data-cpRole="structuralContainer" id="structuralContainer4">
+<div class="siteWrap"><div data-cpRole="structuralContainer" id="structuralContainer1" class="mainWrap" role="main">
+<div data-cpRole="structuralContainer" id="structuralContainer12" class="outerContentWrap">
+<div data-cpRole="structuralContainer" id="structuralContainer2" class="contentWrap">
+<div data-cpRole="breadCrumbs" class="breadCrumbContainer" id="breadCrumbs">		<ol class="semanticList breadCrumbs">
+			<li><a class="breadCrumb" href="/">Home</a></li><li><a class="breadCrumb" href="/63/Departments">Departments</a></li><li><a class="breadCrumb" href="/105/Elections-Department">Elections Department</a></li><li id="currentBCPage" data-pageid="3473">May 2, 2026 Local Entities Elections</li>
+		</ol>
+
+	   
+    
+</div><div data-cpRole="mainContentContainer" id="moduleContent">
+	
+	<div id="page" class="moduleContentNew">
+		
+
+	<input id="hdnPageID" name="hdnPageID" type="hidden" value="3473" />
+	<input id="hdnParentID" name="hdnParentID" type="hidden" value="105" />
+	<input id="hdnVersionID" name="hdnVersionID" type="hidden" value="49970" />
+	<input id="pageMenuTitle" name="pageMenuTitle" type="hidden" value="May 2, 2026 Local Entities Elections" />
+	<input id="pageShowFeatureColumn" name="pageShowFeatureColumn" type="hidden" value="False" />
+	<input id="hdnIsLayoutPage" name="hdnIsLayoutPage" type="hidden" value="False" />
+	<input id="hdnPageStatus" name="hdnPageStatus" type="hidden" value="Published" />
+
+				<h1 id="versionHeadLine" class="headline">
+
+May 2, 2026 Local Entities Elections		</h1>
+	
+		<div id="cc6c9730b4-4105-4ccf-874a-ef04699eeee2" data-containerid="6c9730b4-4105-4ccf-874a-ef04699eeee2" class="pageContent cpGrid cpGrid24"  data-smoothscrolling="True">
+			
+
+		<div class="row outer wide"><!--
+--><div class="outer col col24 first last" style="" data-widgetcontainerid="058a5223-ee38-4824-91d5-198f950cfe9d">				
+	<div class="row nest first last wide">
+	
+	<div class="inner col col24 first last id996dd555-15e2-4abf-8e81-7c42a8da141f" style="" data-widgetcontainerid="996dd555-15e2-4abf-8e81-7c42a8da141f">	
+
+<div class="widget image pageStyles" id="divImageOuter93c306dd-4016-4870-aa7e-bf9902a0b106" data-widget-id="93c306dd-4016-4870-aa7e-bf9902a0b106">
+    
+	<div class="widgetBody " id="divImage93c306dd-4016-4870-aa7e-bf9902a0b106"><img src="/ImageRepository/Document?documentID=72354" alt="May 2, 2026 Local Entities Elections & Special Elections" title="May 2, 2026 Local Entities Elections & Special Elections"/>	</div></div>
+	</div> <!-- inner column -->
+
+	</div> <!-- inner row -->
+
+			</div><!-- outer column --><!--		--></div> <!-- outer row -->
+		<div class="row outer wide"><!--
+--><div class="outer col col24 first last" style="" data-widgetcontainerid="087b73da-a584-4c82-bba7-c5cee7cc6c80">				
+	<div class="row nest first last wide">
+	
+	<div class="inner col col24 first last idd8db4227-e2ca-41d8-aba7-4b1c392159ff" style="" data-widgetcontainerid="d8db4227-e2ca-41d8-aba7-4b1c392159ff">	
+<div class="widget editor pageStyles narrow" id="divEditorab5024f4-fd6b-46cb-91ea-9b966649113e" data-elementqueryclasses='{"wide-narrow":"min-width:25em"}'>
+	    <div class="fr-view">
+
+
+        <p style="text-align: center;" data-pasted="true"><strong style="box-sizing: border-box; font-weight: 700;"><span style="font-size: 18px;">Welcome to the May 2, 2026 Local Entities Election page.&nbsp;</span></strong></p><p style="text-align: center;"><strong style="box-sizing: border-box; font-weight: 700;"><span style="font-size: 24px; color: rgb(209, 72, 65); background-color: rgb(247, 218, 100);">Please note that this page will be updated with information as soon as it becomes available</span></strong><strong style="box-sizing: border-box; font-weight: 700;"><span style="font-size: 24px; color: rgb(209, 72, 65); background-color: rgb(247, 218, 100);">. </span></strong></p><p style="text-align: center;"><span style="font-size: 18px;"><strong style="box-sizing: border-box; font-weight: 700;"><span style="color: rgb(184, 49, 47);">STAY IN THE KNOW</span></strong></span><strong style="box-sizing: border-box; font-weight: 700;"><span style="font-size: 18px;"><span style="color: rgb(184, 49, 47);">,</span> by visiting our website in the next couple of weeks. If you have any questions, please do not hesitate to contact our office at (956)318-2570. </span></strong></p><p style="text-align: center;"><strong><span style="font-size: 18px;">Early voting will begin Monday, April 20, 2026 and will run to Tuesday, April 28, 2026. With the exception of Tuesday, April 21, 2026 and Sunday, April 26, 2026 polling locations will be closed. Election Day is Saturday, May 2, 2026</span></strong></p>
+    </div>
+
+<script type="text/javascript">
+	$(document).ready(function (e) {		
+	    renderSlideshowIfApplicable($('#divEditor' + 'ab5024f4-fd6b-46cb-91ea-9b966649113e'));
+	});
+</script>
+</div>
+	</div> <!-- inner column -->
+
+	</div> <!-- inner row -->
+
+			</div><!-- outer column --><!--		--></div> <!-- outer row -->
+		<div class="row outer wide"><!--
+--><div class="outer col col24 first last" style="" data-widgetcontainerid="02279dda-4577-4ef8-a1da-0181b0d411fa">				
+	<div class="row nest first wide">
+	
+	<div class="inner col col24 first last id45cc6b21-44f8-4011-983e-ad754724465e" style="" data-widgetcontainerid="45cc6b21-44f8-4011-983e-ad754724465e">	
+<div class="widget editor pageStyles narrow" id="divEditor28efe602-0bad-45dc-85fe-dd4b226e656d" data-elementqueryclasses='{"wide-narrow":"min-width:25em"}'>
+	    <div class="fr-view">
+
+
+        <h1 data-pasted="true"><span style="color: rgb(0, 0, 0);">Election Calendar Dates</span></h1><table style="box-sizing: border-box; border-collapse: collapse; border-spacing: 0px; border: 0px none; empty-cells: show; max-width: 100%; background-color: rgb(247, 247, 247); text-decoration: none; width: 896.156px; color: rgb(73, 71, 67); font-family: Arial; font-size: 14.4px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: left; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; height: 222px;"><tbody><tr style="height: 32px;"><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 0px none; text-decoration: none; min-width: 5px; width: 448.078px;">First Day to Apply for a Ballot by Mail&nbsp;</td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 0px none; text-decoration: none; min-width: 5px; width: 448.078px;">Thursday, January 1, 2026</td></tr><tr style="height: 32px;"><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 0px none; text-decoration: none; min-width: 5px; width: 448.078px;">Last Day to Register to Vote&nbsp;</td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 0px none; text-decoration: none; min-width: 5px; width: 448.078px;">Thursday, April 2, 2026</td></tr><tr style="height: 32px;"><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 0px none; text-decoration: none; min-width: 5px; width: 448.078px;">First Day of Early Voting</td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 0px none; text-decoration: none; min-width: 5px; width: 448.078px;">Monday, April 20, 2026</td></tr><tr style="height: 32px;"><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 0px none; text-decoration: none; min-width: 5px; width: 448.078px;">Polling Locations <strong>CLOSED</strong> for Holiday (San Jacinto Day)</td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 0px none; text-decoration: none; min-width: 5px; width: 448.078px;">Tuesday, April 21, 2026</td></tr><tr style="height: 32px;"><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 0px none; text-decoration: none; min-width: 5px; width: 448.078px;">Last Day to Apply for Ballot by Mail (Received, not Postmarked)</td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 0px none; text-decoration: none; min-width: 5px; width: 448.078px;">Monday, April 20, 2026</td></tr><tr style="height: 32px;"><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 0px none; text-decoration: none; min-width: 5px; width: 448.078px;">Last Day of Early Voting</td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 0px none; text-decoration: none; min-width: 5px; width: 448.078px;">Tuesday, April 28, 2026</td></tr><tr style="height: 32px;"><td>Election Day&nbsp;</td><td>Saturday, May 2, 2026</td></tr></tbody></table>
+    </div>
+
+<script type="text/javascript">
+	$(document).ready(function (e) {		
+	    renderSlideshowIfApplicable($('#divEditor' + '28efe602-0bad-45dc-85fe-dd4b226e656d'));
+	});
+</script>
+</div>
+	</div> <!-- inner column -->
+
+	</div> <!-- inner row -->
+	<div class="row nest last wide">
+	
+	<div class="inner col col24 first last id75a9d269-d303-4bbb-b9b1-d9348a0c797e" style="" data-widgetcontainerid="75a9d269-d303-4bbb-b9b1-d9348a0c797e">	
+<div class="widget editor pageStyles narrow" id="divEditor76105c4b-cb87-45b3-b744-22fb56784da3" data-elementqueryclasses='{"wide-narrow":"min-width:25em"}'>
+	    <div class="fr-view">
+
+
+        <h1 data-pasted="true"><span style="font-size: 24px;">Election Information</span></h1><h1 data-pasted="true"><span style="font-size: 24px;">Local Entities and Special Elections - Results</span><br><span style="font-size: 24px;" data-pasted="true">Local Entities and Special Elections</span><span style="font-size: 24px;">&nbsp;- Results (TEXT)</span><br><span style="font-size: 24px;" data-pasted="true">Local Entities and Special Elections</span><span style="font-size: 24px;">&nbsp;- Results (PCT by PCT)</span></h1><p><span style="font-size: 24px;">Cast Vote Record (CVR)</span></p><p><span style="font-size: 24px;"><a href="/3490/Unofficial-Early-Voting-Totals-Rosters" target="_blank" rel="noopener">Unofficial Early Voting Totals &amp; Rosters</a></span></p><h1><span style="font-size: 24px;">Schedules&nbsp;</span></h1><p>Early Voting Schedule <a href="/DocumentCenter/View/72385" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72385" data-url-hash="a0067d45bebbdf59315c68de4f1fc1f081c19eac0196a8df3e2a56ea8dbeea7f" data-url-status="disabled">PDF</a> / <a href="/DocumentCenter/View/72386" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72386" data-url-hash="97fe5776147ceca0bcb1cdb3e34e5d3bd2224290a0a95f924faa0bc8bf41a771" data-url-status="archived">HTML</a></p><p>Election Day Schedule <a href="/DocumentCenter/View/72387" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72387" data-url-hash="d4faa2323fa2e126e7e49cc83ed6aa51f0dfab0a2282ea05bf5e3cdec54dd499" data-url-status="disabled">PDF</a> / <a href="/DocumentCenter/View/72388" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72388" data-url-hash="97b0a75c0babc1637e86c7f9677e661c8c3c202202921f3610c1b6bc1130e62d" data-url-status="archived">HTML</a></p><h1><span style="font-size: 24px;">Sample Ballot Information</span></h1><p><a href="https://apps.co.hidalgo.tx.us/SampleBallotLookup/">Sample Ballot Lookup Tool&nbsp;</a>&nbsp;</p><table width="100%" style="box-sizing: border-box; border-collapse: collapse; border-spacing: 0px; border: 0px none; empty-cells: show; max-width: 100%; background-color: rgb(247, 247, 247); text-decoration: none; width: 896.156px; color: rgb(73, 71, 67); font-family: Arial; font-size: 14.4px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: left; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; margin-left: 0px; margin-right: 0px; height: 413px;"><colgroup><col style="width: 53.5427%;"><col style="width: 20.579%;"><col style="width: 25.8783%;"></colgroup><tbody style="box-sizing: border-box;"><tr><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 0px none; text-decoration: none; min-width: 5px; background-color: rgb(0, 0, 0);"><strong><span style="color: rgb(255, 255, 255);">Precincts</span></strong></td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px; background-color: rgb(0, 0, 0);"><strong><span style="color: rgb(255, 255, 255);">Entity</span>&nbsp;</strong></td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 0px none; text-decoration: none; min-width: 5px; background-color: rgb(0, 0, 0);"><strong><span style="color: rgb(255, 255, 255);">Ballot Style</span></strong></td></tr><tr style="box-sizing: border-box;"><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;"><div style="box-sizing: border-box; text-align: justify;">040.03, 155.02</div></td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;"><strong style="box-sizing: border-box; font-weight: 700;">City of Mercedes</strong></td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;"><strong style="box-sizing: border-box; font-weight: 700;">&nbsp;</strong><strong style="box-sizing: border-box; font-weight: 700;">BS #01</strong><strong style="box-sizing: border-box; font-weight: 700;">&nbsp;</strong><br>SAMPLE BALLOT VIEW / Boleta de Muestra <a href="/DocumentCenter/View/72409" target="_blank" rel="noopener">ENG &amp; ESP</a></td></tr><tr><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;">032.0, 040.04, 041.02, 046.03, 056.01, 085.01, 121.01, 202.01, 202.02, 246.02</td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;"><strong>City of Mercedes</strong><br><strong>South Texas College #7</strong></td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;"><strong>BS #02</strong><br>SAMPLE BALLOT VIEW / Boleta de Muestra <a href="/DocumentCenter/View/72410" target="_blank" rel="noopener">ENG &amp; ESP</a></td></tr><tr><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;">016.01, 076.01</td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;"><strong>City of Edcouch <br>South Texas College #7</strong></td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;"><strong data-pasted="true">BS #03</strong><br>SAMPLE BALLOT VIEW / Boleta de Muestra <a href="/DocumentCenter/View/72411" target="_blank" rel="noopener">ENG &amp; ESP</a></td></tr><tr style="height: 76px;"><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;">090.01, 119.01, 225.03, 237.02</td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;"><strong>City of Elsa<br>South Texas College #7</strong></td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;"><strong data-pasted="true">BS #04</strong><br>SAMPLE BALLOT VIEW / Boleta de Muestra <a href="/DocumentCenter/View/72412" target="_blank" rel="noopener">ENG &amp; ESP</a></td></tr><tr><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;"><p data-pasted="true" style="text-align: justify;">013.01, 014.01, 019.01, 019.02, 019.03, 019.04, 024.01, 024.02, 024.03, 024.04, .024.05, 030.01, 031.01, 053.01, 053.02, 059.01, 060.01, 060.02, 068.01, 068.02, 068.03, 069.01, 069.02, 069.03, 069.04, 069.05, 069.06, 075.01, 075.02, 105.01, 07.01, 108.01, 109.01, 116.01, 117.01, 117.02, 143.01, 144.01, 152.01, 154.01, 154.02, 158.01, 159.01, 221.01, 221.02, 221.03, 222.01, 222.02, 222.03, 222.04, 222.05, 222.06, 223.01, 228.01, 228.02, 239.01, 239.02, 239.03, 239.04, 239.05, 239.06, 239.07, 240.01, 245.01, 245.02</p></td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: middle; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;"><strong>South Texas College #5</strong></td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: middle; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;"><strong data-pasted="true">BS #05</strong><br>SAMPLE BALLOT VIEW / Boleta de Muestra <a href="/DocumentCenter/View/72413" target="_blank" rel="noopener">ENG &amp; ESP</a></td></tr><tr><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;">167.04, 167.05</td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: middle; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;"><strong>South Texas College #5<br>Sharyland Independent School District&nbsp;</strong>&nbsp;</td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: middle; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;"><strong data-pasted="true">BS #06</strong><br>SAMPLE BALLOT VIEW / Boleta de Muestra <a href="/DocumentCenter/View/72414" target="_blank" rel="noopener">ENG &amp; ESP</a></td></tr><tr><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: justify; vertical-align: top; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;">001.01, 015.01, 016.02, 017.01, 017.02, 032.02, 033.01, 033.02, 041.03, 041.04, 043.01, 044.01, 044.02, 044.03, 046.01, 046.04, 058.02, 079.02, 085.02, 087.01, 087.02, 087.03, 087.04, 090.02, 092.01, 090.02, 104.01, 110.01, 119.02, 121.02, 126.01, 127.01, 130.01, 130.02, 142.01, 153.01, 163.01, 163.02, 169.01, 169.02, 180.01, 180.02, 180.03, 180.04, 180.05, 181.01, 184.01, 184.02, 189.01, 192.01, 192.02, 213.01, 225.01, 225.02, 237.01, 242.01, 249.01, 255.01, 259.01</td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: middle; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;"><strong>South Texas College #7</strong></td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: middle; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;"><strong data-pasted="true">BS #07</strong><br>SAMPLE BALLOT VIEW / Boleta de Muestra <a href="/DocumentCenter/View/72415" target="_blank" rel="noopener">ENG &amp; ESP</a></td></tr><tr><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;">041.01, 046.02, 058.01, 070.01, 079.03, 121.03, 179.01</td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: middle; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;"><strong>South Texas College #7<br>Emergency Services District #1</strong></td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: middle; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;"><strong data-pasted="true">BS #08</strong><br>SAMPLE BALLOT VIEW / Boleta de Muestra <a href="/DocumentCenter/View/72416" target="_blank" rel="noopener">ENG &amp; ESP</a></td></tr><tr><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: top; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;">002.01, 021.01, 040.01, 040.02, 071.03, 113.02, 196.02, 232.03, 235.01, 235.02, 238.02, 250.01</td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: middle; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;"><strong>Emergency Services District #1</strong></td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: middle; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;"><strong data-pasted="true">BS #09</strong><br>SAMPLE BALLOT VIEW / Boleta de Muestra <a href="/DocumentCenter/View/72417" target="_blank" rel="noopener">ENG &amp; ESP</a></td></tr><tr><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: justify; vertical-align: top; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;">009.01, 010.01, 028.01, 063.01, 063.02, 082.04, 086.01, 088.01, 088.02, 093.02, 093.03, 093.04, 094.01, 098.01, 102.01, 103.01, 125.01, 125.02, 125.03, 125.04, 183.01, 183.02, 204.01, 205.01, 218.01, 220.01, 220.02, 243.01, 244.01, 244.02, 244.03, 244.04, 247.01, 248.01, 248.02</td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: middle; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;"><strong>Mission Consolidated Independent School District</strong><br></td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: middle; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;"><strong data-pasted="true">BS #10</strong><br>SAMPLE BALLOT VIEW / Boleta de Muestra <a href="/DocumentCenter/View/72418" target="_blank" rel="noopener">ENG &amp; ESP</a></td></tr><tr><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: justify; vertical-align: top; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;">007.01, 007.02, 008.01, 008.02, 008.07, 018.01, 018.02, 026.01, 026.02, 027.01, 027.02, 034.01, 035.02, 037.01, 037.02, 047.01, 047.01, 048.02, 049.01, 062.01, 065.01, 065.02, 066.01, 066.01, 066.02, 067.01, 067.02, 072.01, 072.02, 073.01, 073.02, 080.01, 081.01, 081.02, 095.01, 095.02, 096.01, 096.02, 097.01, 124.01, 129.01, 129.02, 134.01, 135.01, 135.02, 136.01, 136.02, 138.01, 139.01, 149.01, 160.01, 161.01, 161.02, 162.01, 199.01, 199.02, 199.03, 200.01, 206.01, 206.02, 206.03, 207.01, 216.01, 224.01</td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: middle; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;"><strong>McAllen Independent School District&nbsp;</strong></td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: middle; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;"><strong data-pasted="true">BS #11</strong><br>SAMPLE BALLOT VIEW / Boleta de Muestra <a href="/DocumentCenter/View/72419" target="_blank" rel="noopener">ENG &amp; ESP</a></td></tr><tr><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: justify; vertical-align: top; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;">038.01, 074.01, 074.02, 083.01, 084.01, 101.01, 164.01, 165.01, 165.02, 165.03, 166.01, 157.01, 167.02, 167.03, 171.01, 188.01, 193.01, 203.01, 203.01, 211.01, 211.02, 212.01, 212.02, 215.01, 231.01, 236.01, 256.01, 256.02</td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: middle; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;"><strong>Sharyland Independent School District</strong>&nbsp;</td><td style="box-sizing: border-box; font-weight: 400; padding: 0.35em; text-align: left; vertical-align: middle; border: 1px solid rgb(221, 221, 221); text-decoration: none; min-width: 5px;"><strong data-pasted="true">BS #12</strong><br>SAMPLE BALLOT VIEW / Boleta de Muestra <a href="/DocumentCenter/View/72420" target="_blank" rel="noopener">ENG &amp; ESP</a></td></tr></tbody></table><p style="text-align: center;"><span style="color: rgb(184, 49, 47); font-family: Ubuntu; font-size: 17.28px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 700; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;">(As per Sec. 52.008 of Texas Election Law, A sample ballot must be printed</span><span style="box-sizing: border-box; margin: 0px; padding: 0px; border: 0px; font-weight: 700; font-style: normal; font-size: 17.28px; font-family: Ubuntu; vertical-align: baseline; outline: 0px; color: rgb(184, 49, 47); font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;">&nbsp;only on yellow paper.)</span></p><h2 style="text-align: center;"><strong><span style="font-family: Georgia, serif; color: rgb(0, 0, 0);">Sample Ballot Legend&nbsp;</span></strong><a href="/DocumentCenter/View/72421" target="_blank" rel="noopener"><strong><span style="font-family: Georgia, serif; color: rgb(0, 0, 0);">PDF</span></strong></a><strong><span style="font-family: Georgia, serif; color: rgb(0, 0, 0);">&nbsp;/&nbsp;</span></strong><a href="/DocumentCenter/View/72422" target="_blank" rel="noopener"><strong><span style="font-family: Georgia, serif; color: rgb(0, 0, 0);">HTML</span></strong></a></h2><h1><span style="font-size: 24px;">Notices and Orders</span></h1><p>May 2, 2026 Local Entities Election Notice <a href="/DocumentCenter/View/72439" target="_blank" rel="noopener">PDF</a> / <a href="/DocumentCenter/View/72440" target="_blank" rel="noopener">HTML</a></p><p>Logic and Accuracy Notice <a href="/DocumentCenter/View/72351" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72351" data-url-hash="1392a45d14fe7e7b8e0d219b0d3a7156a317e7cf04c05191f7e1304e8df4fb2a" data-url-status="disabled">PDF</a> / <a href="/DocumentCenter/View/72352" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72352" data-url-hash="13c0c9edc1718139e1a5b4b4ed23e88a0e73899a12967e4e07e8efb41f83444b" data-url-status="archived">HTML</a></p><p>Notice of Voting Order <a href="https://www.hidalgocounty.us/DocumentCenter/View/64367/Voting-Order?bidId=" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/64367" data-url-hash="2e285d65169b9177f7cfa72ed8adbc4920adcc428633da865c8dcbd289496310" data-url-status="disabled">PDF</a> / <a href="https://www.hidalgocounty.us/DocumentCenter/View/64763/7-38f" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/64763" data-url-hash="36e1b5c8f5da3388b8a98df50fc5cdf6976b449dd2d35d12237b10d16b0f3f3a" data-url-status="archived">HTML</a></p><p>Central Counting Station Plan <a href="/DocumentCenter/View/70240" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/70240" data-url-hash="2946ad2ec68845314dcacfb27ba4d087704401452dfabc612cc85de954a5d94a" data-url-status="disabled">PDF</a>/ &nbsp;<a href="https://www.hidalgocounty.us/DocumentCenter/View/72208/2025-Hidalgo-County-Central-Counting-Station-Plan-1?bidId=" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72208" data-url-hash="2946ad2ec68845314dcacfb27ba4d087704401452dfabc612cc85de954a5d94a" data-url-status="disabled">HTML</a></p><p>Notice Delivery of Provisional Ballots PDF / HTML</p><p>Notice of Post-Election Hand Count Audit PDF / HTML</p><h1><span style="font-size: 24px;">Cities</span>&nbsp;</h1><p>City of Edcouch Order of Election</p><ul><li><a href="/DocumentCenter/View/72082" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72082" data-url-hash="7e61bb75d58609447f3e275f5e3fe026ba4c81f06fcf75a4051987cfde518c0b" data-url-status="disabled">2026-04</a> / <a href="/DocumentCenter/View/72084" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72084" data-url-hash="ee4ed0aef8282de41a52d6b52466a61b1617fe912db00da7c6320a1fd273fd98" data-url-status="archived">HTML</a></li><li><a href="/DocumentCenter/View/72083" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72083" data-url-hash="4d6e2645ef169a770684037cbe0054b19360eb18fce6bd85bd8bd2f12ee703a0" data-url-status="disabled">2026-05</a> / <a href="/DocumentCenter/View/72085" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72085" data-url-hash="84b1795cd4003132b42ace8bf7200f8f4874e8bcca8627b1472c7a5982fe057d" data-url-status="archived">HTML</a></li></ul><p>City of Elsa Order of Election <a href="/DocumentCenter/View/72276" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72276" data-url-hash="aa61396f8a07d773100f4eda0abd08eaec1e5de788030ca1efda201bcc3768b8" data-url-status="disabled">PDF</a> / <a href="/DocumentCenter/View/72320" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72320" data-url-hash="aa61396f8a07d773100f4eda0abd08eaec1e5de788030ca1efda201bcc3768b8" data-url-status="disabled">HTML</a></p><p>City of Hidalgo Order of <strong>Cancelation</strong> of Election - Certification of unopposed Candidates <a href="/DocumentCenter/View/72157" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72157" data-url-hash="2482117b7d7ca96e0a958b63d16bf0e060aaef334630f6eb93c001bae4772891" data-url-status="disabled">PDF</a> / <a href="/DocumentCenter/View/72158" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72158" data-url-hash="5e4b7dc14ce292922a4acfba0e2bf80dbfb6b27e171f0f70cd1c26557501354d" data-url-status="archived">HTML</a></p><p>City of Mercedes Order of Election <a href="/DocumentCenter/View/72086" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72086" data-url-hash="21afa8ecb73bb38018770702974b483aee46f7f703a516d9cd9c93b126fac52a" data-url-status="disabled">PDF</a> / <a href="/DocumentCenter/View/72087" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72087" data-url-hash="81616998e7550eb366c9233a0d68bca20fbcaf98953418108e798e354ec62f3f" data-url-status="archived">HTML</a></p><p>City of Palmhurst Order of Election <strong>Cancellation</strong> <a href="/DocumentCenter/View/72358" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72358" data-url-hash="87983b24c20cf46dcea1aa9989cabce73cff9fcbe52eb1d6a8faf6d89a5c772b" data-url-status="disabled">PDF</a> / <a href="/DocumentCenter/View/72389" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72389" data-url-hash="b26de6e98a58e3e3ba99f91f7cc3edeb63fe2fb9c8cd92e82169ae0517c104f1" data-url-status="archived">HTML</a>&nbsp;</p><ul><li>City of Palmhurst - Unopposed Declared Elected <a href="/DocumentCenter/View/72359" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72359" data-url-hash="ebf4a5813c3a41344e20c17914e79198b53ddcc914ddf62aef22c55d80910c57" data-url-status="disabled">PDF</a> / <a href="/DocumentCenter/View/72390" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72390" data-url-hash="695a02c095624e0cfbee23c7845ffcc58068badab159f23d2983cc4efbe8a1a2" data-url-status="archived">HTML</a></li></ul><p>City of Palmview Order of <strong>Cancelation&nbsp;</strong>of Election - Certification of Unopposed Candidates <a href="/DocumentCenter/View/72360" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72360" data-url-hash="0d51efd1600e399cbe346db8672b03ff2d1e1991fc6462fa4f5964fe4c4035d6" data-url-status="disabled">PDF</a> / <a href="/DocumentCenter/View/72391" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72391" data-url-hash="aff98e0c59568aedc62c9af799a4c6d6c2ed76e1af5b9cb29652ae789043b4e4" data-url-status="archived">HTML</a></p><h1><span style="font-size: 24px;">School Districts</span></h1><p>McAllen Independent School District Order of Election: <a href="/DocumentCenter/View/72398" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72398" data-url-hash="165ead53f80e6595d83d98b8e87f98e6ba4f2b061a11ddf77dd8cc7b403ec35b" data-url-status="disabled">PDF</a> / <a href="/DocumentCenter/View/72399" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72399" data-url-hash="5ac797c25b264d3e9561911714439db8f5c9c6a5e2acd66a6348ee8c7d1268f9" data-url-status="archived">HTML</a></p><p>Mission Consolidated Independent School District Order of Election: <a href="/DocumentCenter/View/72275" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72275" data-url-hash="17f2df09a2c104089fa4e587e759ff3644a127c72f9172cbdfa43dde25284744" data-url-status="disabled">PDF</a> / <a href="/DocumentCenter/View/72315" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72315" data-url-hash="b443b988d56ded6a2e8fc7f491837a88231cbe92a4686f71621afa9099bad20f" data-url-status="archived">HTML</a></p><p>Sharyland Independent School District Notice of Bond Election: <a href="/DocumentCenter/View/72435" target="_blank" rel="noopener">PDF</a> / <a href="/DocumentCenter/View/72438" target="_blank" rel="noopener">ESP</a> / HTML</p><ul><li>Sharyland ISD Order Calling Bond Election: <a href="/DocumentCenter/View/72437" target="_blank" rel="noopener">PDF</a> / <a href="/DocumentCenter/View/72436" target="_blank" rel="noopener">ESP</a> / HTML</li></ul><p>South Texas College Order of Election: <a href="/DocumentCenter/View/72312" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72312" data-url-hash="007705bbc70d179109f9daae1601e1349b0af2c5f1ea71090a70cf2a0d0ff46e" data-url-status="disabled">PDF</a> / <a href="/DocumentCenter/View/72313" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72313" data-url-hash="5ebe50321ca805286d53197c61f8ec3c457cf6e0fb3cb95e69a79dac2a94c225" data-url-status="archived">HTML</a></p><h1><span style="font-size: 24px;">Emergency Service Districts&nbsp;</span></h1><p>Emergency Service District 1, Order of Election: <a href="/DocumentCenter/View/72316" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72316" data-url-hash="154625c1dd7f8374e1519c31a740ca0795a294595e02bddf9be68fbf95d410fd" data-url-status="disabled">PDF</a> / <a href="/DocumentCenter/View/72317" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72317" data-url-hash="a44e2eb755d8356bfcb914af40712dfb726c202a9bc8205d485a847fe324e0d7" data-url-status="archived">HTML</a></p><h1><span style="font-size: 24px;">Ballot Board</span></h1><p>Notice of Early Voting Ballot Board &nbsp;<a href="/DocumentCenter/View/72443" target="_blank" rel="noopener">PDF</a> / <a href="/DocumentCenter/View/72446" target="_blank" rel="noopener">&nbsp;HTML</a></p><p>Notice of Delivery of Balloting Materials to the Early Voting Ballot Board <a href="/DocumentCenter/View/72444" target="_blank" rel="noopener">PDF</a> / <a href="/DocumentCenter/View/72447" target="_blank" rel="noopener">HTML</a></p><p>Notice of Delivery of Mail Ballots Materials to Early Voting Ballot Board <a href="/DocumentCenter/View/72445" target="_blank" rel="noopener">PDF</a> / <a href="/DocumentCenter/View/72448" target="_blank" rel="noopener">HTML</a></p><p>___________________________________________________________________________________________________________</p><h1 style="text-align: justify;"><span style="font-family: Arial,Helvetica,sans-serif;"><strong>*Non-Contracting Entity</strong>&nbsp;</span></h1><p style="text-align: left;"><strong>*New Law: Section 4.003 as amended by House Bill 933 (2019) requires that counties post on the county website the notice and list of polling locations of ANY political subdivision that delivers their notice to the county under 4.008. This is regardless of whether the county is contracting with the entity.</strong></p><ul><li style="text-align: left;">City of McAllen Order of Election <a href="/DocumentCenter/View/72318" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72318" data-url-hash="45bd7e5df3e0b622885800263e898d702727031520668abcf4b0d05958fbd88d" data-url-status="disabled">PDF</a> / <a href="/DocumentCenter/View/72319" target="_blank" rel="noopener" class="docaccess-activated" data-docaccess-source-url="https://www.hidalgocounty.us/DocumentCenter/View/72319" data-url-hash="8cf7eccdd97c0beb5dd9c627b3e508523a8736a99b6a468fe2de682c1ba63607" data-url-status="archived">HTML</a></li></ul>
+    </div>
+
+<script type="text/javascript">
+	$(document).ready(function (e) {		
+	    renderSlideshowIfApplicable($('#divEditor' + '76105c4b-cb87-45b3-b744-22fb56784da3'));
+	});
+</script>
+</div>
+	</div> <!-- inner column -->
+
+	</div> <!-- inner row -->
+
+			</div><!-- outer column --><!--		--></div> <!-- outer row -->
+
+
+		</div>
+
+	</div>
+
+	
+	<div class="newCP">
+
+	</div>
+</div>
+</div><aside data-cpRole="contentContainer" id="featureColumn" class="secondaryContent"><div class="inner">	<div id="ccd6cb6606-789f-46a4-a6ce-693012381ab1" data-containerid="d6cb6606-789f-46a4-a6ce-693012381ab1" class="pageContent cpGrid cpGrid24 showInMobile">
+				                
+
+
+
+	</div>
+</div></aside>
+</div><div data-cpRole="structuralContainer" id="structuralContainer3" class="siteSidebar">
+<aside data-cpRole="contentContainer" id="contentContainer3">	<div id="cca37a51d9-a87d-4899-9e42-ce404e867463" data-containerid="a37a51d9-a87d-4899-9e42-ce404e867463" class="pageContent cpGrid cpGrid24 showInMobile">
+				                
+
+
+
+	</div>
+</aside><nav data-cpRole="nav" id="secondaryNav" class="siteNav secondaryNav">
+
+
+
+
+
+	<ol role="menu" id="secondaryMenusecondaryNav" data-parent="105" class="rootNavMenu flyoutNav">
+	<li aria-haspopup="false" id="SideItem550" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="550" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="/105/Elections-Department" target="_self" aria-haspopup="false">Home</a>
+			</li>
+	<li aria-haspopup="false" id="SideItem3203" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="3203" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="/3203/Mission-Statement" target="_self" aria-haspopup="false">Mission Statement</a>
+			</li>
+	<li aria-haspopup="false" id="SideItem3473" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="3473" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="/3473/May-2-2026-Local-Entities-Elections" target="_self" aria-haspopup="false" onclick="return false;" >May 2, 2026 Local Entities Elections</a>
+			</li>
+	<li aria-haspopup="false" id="SideItem3477" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="3477" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="/3477/May-26-2026-Primary-Runoff-Election" target="_self" aria-haspopup="false">May 26, 2026 Primary Runoff Election</a>
+			</li>
+	<li aria-haspopup="false" id="SideItem3358" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="3358" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="https://www.hidalgocounty.us/937/County-Officials" target="_blank" aria-haspopup="false">Hidalgo County Elected Officials</a>
+			</li>
+	<li aria-haspopup="false" id="SideItem3335" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="3335" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="https://txapps.texas.gov/tolapp/sos/SOSACManager" target="_self" aria-haspopup="false">Voter Name and Address Changes</a>
+			</li>
+	<li aria-haspopup="false" id="SideItem3075" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="3075" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="/3075/Countywide-Polling-Place-Program" target="_self" aria-haspopup="false">Countywide Polling Place Program</a>
+			</li>
+	<li aria-haspopup="false" id="SideItem2092" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="2092" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="https://hidalgoelections.maps.arcgis.com/apps/instant/nearby/index.html?appid=ca66194e256342bca592007a24e0c953" target="_blank" aria-haspopup="false">Your Early Voting Polling Location</a>
+			</li>
+	<li aria-haspopup="false" id="SideItem547" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="547" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="https://hidalgoelections.maps.arcgis.com/apps/instant/nearby/index.html?appid=f63ecf63fc2c4c898eb7f5e2a5b8a2ef" target="_blank" aria-haspopup="false">Your Election Day Polling Location</a>
+			</li>
+	<li aria-haspopup="false" id="SideItem3198" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="3198" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="/DocumentCenter/View/69458/2025-Voter-Registration-Application" target="_self" aria-haspopup="false">Voter Registration Application</a>
+			</li>
+	<li aria-haspopup="false" id="SideItem3222" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="3222" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="/3222/Application-for-Ballot-by-Mail" target="_self" aria-haspopup="false">Application for Ballot by Mail </a>
+			</li>
+	<li aria-haspopup="false" id="SideItem2245" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="2245" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="https://goelect.txelections.civixapps.com/ivis-mvp-ui/#/login" target="_blank" aria-haspopup="false">Voter Lookup Tool</a>
+			</li>
+	<li aria-haspopup="false" id="SideItem1494" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="1494" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="/1494/Voter-ID" target="_self" aria-haspopup="false">Voter ID</a>
+			</li>
+	<li aria-haspopup="false" id="SideItem2805" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="2805" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="/2805/Covid-19-Election-Preparedness" target="_self" aria-haspopup="false">Covid-19 Election Preparedness </a>
+			</li>
+	<li aria-haspopup="false" id="SideItem522" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="522" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="/522/Voter-Information" target="_self" aria-haspopup="false">Voter Information</a>
+			</li>
+	<li aria-haspopup="false" id="SideItem2806" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="2806" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="/2806/Persons-With-Disabilities" target="_self" aria-haspopup="false">Persons With Disabilities </a>
+			</li>
+	<li aria-haspopup="false" id="SideItem3197" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="3197" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="/3197/Curbside-Voting" target="_self" aria-haspopup="false">Curbside Voting</a>
+			</li>
+	<li aria-haspopup="false" id="SideItem539" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="539" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="/539/Archived-Election-Results" target="_self" aria-haspopup="false">Archived Election Results</a>
+			</li>
+	<li aria-haspopup="false" id="SideItem2181" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="2181" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="/2181/Candidate-Information" target="_self" aria-haspopup="false">Candidate Information</a>
+			</li>
+	<li aria-haspopup="false" id="SideItem1717" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="1717" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="/1717/Campaign-Finance-Reports" target="_self" aria-haspopup="false">Campaign Finance Reports</a>
+			</li>
+	<li aria-haspopup="false" id="SideItem1506" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="1506" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="/1506/Volunteer-Deputy-Information-Training" target="_self" aria-haspopup="false">Volunteer Deputy Information &amp; Training</a>
+			</li>
+	<li aria-haspopup="false" id="SideItem533" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="533" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="/533/Poll-Worker-Student-Election-Clerk-Infor" target="_self" aria-haspopup="false">Poll Worker &amp; Student Election Clerk Information</a>
+			</li>
+	<li aria-haspopup="false" id="SideItem540" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="540" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="/DocumentCenter/View/64931/pollwatchers-guide" target="_blank" aria-haspopup="false">Poll Watchers Handbook</a>
+			</li>
+	<li aria-haspopup="false" id="SideItem2800" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="2800" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="/DocumentCenter/View/69383/NEW-PIR-FORM-APPROVED-1-3-2025" target="_blank" aria-haspopup="false">Public Information Request Form</a>
+			</li>
+	<li aria-haspopup="false" id="SideItem2084" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="2084" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="https://hidalgoelections.maps.arcgis.com/apps/instant/portfolio/index.html?appid=77d7eda47e3349a09a06f59000b4f901" target="_blank" aria-haspopup="false">Hidalgo County District Maps</a>
+			</li>
+	<li aria-haspopup="false" id="SideItem2110" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="2110" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="https://www.hartintercivic.com/hybrid/" target="_self" aria-haspopup="false">Hart Verity Hybrid Voting System</a>
+			</li>
+	<li aria-haspopup="false" id="SideItem3443" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="3443" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="/3443/2025-Redistricting" target="_self" aria-haspopup="false">2025 Redistricting</a>
+			</li>
+	<li aria-haspopup="false" id="SideItem2987" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="2987" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="/2987/2021-Redistricting" target="_self" aria-haspopup="false">2021 Redistricting </a>
+			</li>
+	<li aria-haspopup="false" id="SideItem1287" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="1287" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="/1287/2012-Redistricting" target="_self" aria-haspopup="false">2012 Redistricting</a>
+			</li>
+	<li aria-haspopup="false" id="SideItem555" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="555" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="/555/Political-Parties" target="_self" aria-haspopup="false">Political Parties</a>
+			</li>
+	<li aria-haspopup="false" id="SideItem2623" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="2623" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="https://www.sos.state.tx.us/" target="_blank" aria-haspopup="false">Texas Secretary of State</a>
+			</li>
+	<li aria-haspopup="false" id="SideItem2957" class="topMenuItem" data-display-main-item-sub-menu-indicators="True" data-pageid="2957" data-displaymegamenu="False">
+					<a class="navMainItem secondaryNavItem" href="/2957/National-Voter-Registration-Month" target="_self" aria-haspopup="false">National Voter Registration Month</a>
+			</li>
+
+	</ol>
+
+
+	<script type="text/javascript">
+		window.addEventListener('load', function () {
+			//setup menu manager properties for secondary menu
+			menuManager.isSideMenuEditable = false;
+			menuManager.sideMenuMaxSubMenuLevels = 4;
+			menuManager.sideMenuHasCustomLinks = false;
+		});
+	</script>
+	<script type="text/javascript">
+		window.addEventListener('load', function () {
+			//Init secondary menu
+			var setupDraggable = menuManager.isSideMenuEditable;
+			var urlToGetHiddenMenus = '/Pages/MenuSecondary/HiddenSecondarySubMenus?pageID=3473&moduleID=&themeID=2&menuContainerID=secondaryNav';
+			var menuID = 'secondaryMenusecondaryNav';
+			menuManager.setMOMMode(2, SIDE_MENU);
+			menuManager.setupMenu(menuID, 'secondaryNav', SIDE_MENU, setupDraggable, urlToGetHiddenMenus);
+		});
+	</script>
+
+
+
+
+</nav><aside data-cpRole="contentContainer" id="contentContainer4">	<div id="cc0bb163ce-2e79-41bb-9a62-76aaaacc6320" data-containerid="0bb163ce-2e79-41bb-9a62-76aaaacc6320" class="pageContent cpGrid cpGrid24 showInMobile">
+				                
+
+
+
+	</div>
+</aside>
+</div>
+</div></div>
+</div>
+
+
+
+
+		<div id="bannerImagesJSON3" class="hidden"></div>
+		<div id="bannerSlideshowControls_banner1" class="bannerSlideshowControlsNew none " style="display:none">
+			<a id="arrowPrev_banner1" tabindex="0" class="arrowNew prev" aria-label="Banner Arrow Previous"><svg style=" " class=""><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#iconSlideshowArrowLeft"></use></svg></a>
+			<a id="arrowNext_banner1" tabindex="0" class="arrowNew next" aria-label="Banner Arrow Next"><svg style=" " class=""><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#iconSlideshowArrowRight"></use></svg></a>
+		</div>
+			<script type="text/javascript">
+				$(window).on("load", function () {
+					$.when(window.Pages.rwdSetupComplete)
+						.done(function () {
+							renderExternalBannerSlideshow('banner1',
+								{"BannerOptionID":3,"ThemeID":2,"SlotName":"banner1","Name":"Default","IsDefault":true,"BannerMode":2,"SlideShowSlideTiming":"5","SlideshowTransition":0,"SlideShowTransitionTiming":"1","ImageScale":false,"ImageAlignment":2,"ImageScroll":true,"MuteSound":true,"VideoType":0,"Status":40,"SlideshowControlsPosition":0,"SlideshowControlsAlignment":0,"SlideshowBannerControlsColorScheme":0,"DisplayVideoPauseButton":false,"VideoPauseButtonAlignment":1,"VideoPauseButtonControlsAlignment":0,"VideoPauseButtonStyle":"#FFFFFF","VideoPauseButtonBackgroundStyle":"#000000","VideoPauseButtonAlignmentClass":"alignRight viewport","DisplaySlideshowPauseButton":true,"SlideshowControlsColor":"#FFFFFF","SlideshowControlsBackgroundColor":"#000000","SlideshowPauseButtonClass":"isHidden","BannerImages":[{"BannerImageID":8,"BannerOptionID":3,"FileName":"/ImageRepository/Document?documentID=25053","Height":591,"Width":1700,"StartingOn":null,"StoppingOn":null,"IsLink":false,"LinkAddress":null,"Sequence":2,"RecordStatus":0,"ModifiedBy":0,"ModifiedOn":"\/Date(-62135575200000)\/","AltText":""},{"BannerImageID":9,"BannerOptionID":3,"FileName":"/ImageRepository/Document?documentID=25054","Height":591,"Width":1700,"StartingOn":null,"StoppingOn":null,"IsLink":false,"LinkAddress":null,"Sequence":3,"RecordStatus":0,"ModifiedBy":0,"ModifiedOn":"\/Date(-62135575200000)\/","AltText":""}],"BannerVideos":[{"BannerVideoID":3,"BannerOptionID":3,"VideoFileName":"","ImageFileName":"EmptyBannerBkg201703091800519068.png","IsLink":false,"LinkAddress":null,"ModifiedBy":0,"ModifiedOn":"\/Date(-62135575200000)\/","VideoFileID":"00000000-0000-0000-0000-000000000000","ImageFileID":"00000000-0000-0000-0000-000000000000","VideoWidth":0,"VideoHeight":0,"ImageWidth":0,"ImageHeight":0,"LinkedVideoUrl":"","RecordStatus":0,"AltText":null}],"RecordStatus":0,"ModifiedBy":0,"ModifiedOn":"\/Date(-62135575200000)\/"},
+								'/App_Themes/Interior/Images/',
+								'Rotating');
+						});
+				});
+			</script>
+
+</div>
+</div><div data-cpRole="structuralContainer" id="structuralContainer9">
+<div class="siteWrap"><aside data-cpRole="contentContainer" id="contentContainer1">	<div id="cc9e4d251b-2e82-4e60-830e-98ba68aef65c" data-containerid="9e4d251b-2e82-4e60-830e-98ba68aef65c" class="pageContent cpGrid cpGrid24 isLockedContainer showInMobile" data-contentcontainerbreakpoint="51">
+				                
+
+		<div class="row outer wide"><!--
+--><div class="outer col col12 first" style="" data-widgetcontainerid="4753b529-e5d2-4d1a-b574-eec1a10f1db8">				
+	<div class="row nest first last wide">
+	
+	<div class="inner col col12 first last idf7d28e30-f959-4dba-9c54-0a38babd0d71" style="" data-widgetcontainerid="f7d28e30-f959-4dba-9c54-0a38babd0d71">	
+<div data-widget-id="db401760-c3a0-4c47-b618-5cd2c0290bd7" data-widget-controller-path="/GraphicLinks/Widget">
+
+
+
+
+<div id="graphicLinkWidgetdb401760-c3a0-4c47-b618-5cd2c0290bd7" class="widget widgetGraphicLinks skin5 widgetOptionSet16 wide" data-elementqueryclasses='{"wide-narrow":"min-width:25em"}' data-elementquerymatch='matchMultiColumn' data-elementqueryunmatch='unmatchMultiColumn' data-modulewidgettype="graphicLinks">
+	<div class="widgetHeader">
+		<div class="">
+				</div>
+	</div>
+	<div class="widgetBody cpGrid cpGrid3 "> 	
+				<nav class="widgetGraphicLinksNav" aria-label="Graphic links">
+					<div class="row   wide"><!--
+--><div class="col col1 first "><ul class="semanticList"><!--
+	    --><li class="widgetItem GraphicLinks">
+
+<div>
+	<a href="https://www.hidalgocounty.us/202/Jury" target="_self" class="fancyButton fancyButton154 " >
+		<span>
+			<span><span class="text">Jury Duty</span></span>
+		</span>
+	</a>
+</div>
+		<style scoped="scoped">.fancyButton154.fancyButton:link,.fancyButton154.fancyButton:visited, .fancyButton154div.fancyButton{
+	padding-top: 85px;
+	background-image: url(/ImageRepository/Document?documentID=25080);
+	background-repeat: no-repeat;
+	background-position: center top;
+}
+.fancyButton154.fancyButton:hover,.fancyButton154.fancyButton:focus,.fancyButton154.fancyButton:active,.fancyButton154.fancyButton.hover{
+	background-image: url(/ImageRepository/Document?documentID=25081);
+}
+.fancyButton154.fancyButton:link > span,.fancyButton154.fancyButton:visited > span, .fancyButton154div.fancyButton > span{
+}
+.fancyButton154.fancyButton:hover > span,.fancyButton154.fancyButton:focus > span,.fancyButton154.fancyButton:active > span,.fancyButton154.fancyButton.hover > span{
+}
+.fancyButton154.fancyButton .text{
+	color: #20456a;
+	font-size: 1.2em;
+	font-family: "Ubuntu";
+	text-align: center;
+	font-weight: 500;
+	text-decoration: none;
+	background-repeat: no-repeat;
+	background-position: left top;
+
+
+}
+.fancyButton154.fancyButton:hover .text,.fancyButton154.fancyButton:focus .text,.fancyButton154.fancyButton:active .text,.fancyButton154.fancyButton.hover .text{
+	text-decoration: none;
+	background-repeat: no-repeat;
+	background-position: left top;
+
+
+}
+</style>
+
+ </li><!--
+--></ul></div><!----><div class="col col1  "><ul class="semanticList"><!--
+	    --><li class="widgetItem GraphicLinks">
+
+<div>
+	<a href="https://www.governmentjobs.com/careers/hidalgocountytx" target="_blank" class="fancyButton fancyButton156 "  aria-label="Employment Opens in new window">
+		<span>
+			<span><span class="text">Employment</span></span>
+		</span>
+	</a>
+</div>
+		<style scoped="scoped">.fancyButton156.fancyButton:link,.fancyButton156.fancyButton:visited, .fancyButton156div.fancyButton{
+	padding-top: 85px;
+	background-image: url('/ImageRepository/Document?documentID=25076');
+	background-repeat: no-repeat;
+	background-position: center top;
+}
+.fancyButton156.fancyButton:hover,.fancyButton156.fancyButton:focus,.fancyButton156.fancyButton:active,.fancyButton156.fancyButton.hover{
+	background-image: url('/ImageRepository/Document?documentID=25077');
+}
+.fancyButton156.fancyButton:link > span,.fancyButton156.fancyButton:visited > span, .fancyButton156div.fancyButton > span{
+}
+.fancyButton156.fancyButton:hover > span,.fancyButton156.fancyButton:focus > span,.fancyButton156.fancyButton:active > span,.fancyButton156.fancyButton.hover > span{
+}
+.fancyButton156.fancyButton .text{
+	color: #20456a;
+	font-size: 1.2em;
+	font-family: "Ubuntu";
+	text-align: center;
+	font-weight: 500;
+	text-decoration: none;
+	background-repeat: no-repeat;
+	background-position: left top;
+
+
+}
+.fancyButton156.fancyButton:hover .text,.fancyButton156.fancyButton:focus .text,.fancyButton156.fancyButton:active .text,.fancyButton156.fancyButton.hover .text{
+	text-decoration: none;
+	background-repeat: no-repeat;
+	background-position: left top;
+
+
+}
+</style>
+
+ </li><!--
+--></ul></div><!----><div class="col col1  last"><ul class="semanticList"><!--
+	    --><li class="widgetItem GraphicLinks">
+
+<div>
+	<a href="https://www.hidalgocounty.us/2703/Open-Records-Division" target="_self" class="fancyButton fancyButton155 " >
+		<span>
+			<span><span class="text">Public Information</span></span>
+		</span>
+	</a>
+</div>
+		<style scoped="scoped">.fancyButton155.fancyButton:link,.fancyButton155.fancyButton:visited, .fancyButton155div.fancyButton{
+	padding-top: 85px;
+	background-image: url('/ImageRepository/Document?documentID=25078');
+	background-repeat: no-repeat;
+	background-position: center top;
+}
+.fancyButton155.fancyButton:hover,.fancyButton155.fancyButton:focus,.fancyButton155.fancyButton:active,.fancyButton155.fancyButton.hover{
+	background-image: url('/ImageRepository/Document?documentID=25079');
+}
+.fancyButton155.fancyButton:link > span,.fancyButton155.fancyButton:visited > span, .fancyButton155div.fancyButton > span{
+}
+.fancyButton155.fancyButton:hover > span,.fancyButton155.fancyButton:focus > span,.fancyButton155.fancyButton:active > span,.fancyButton155.fancyButton.hover > span{
+}
+.fancyButton155.fancyButton .text{
+	color: #20456a;
+	font-size: 1.2em;
+	font-family: "Ubuntu";
+	text-align: center;
+	font-weight: 500;
+	text-decoration: none;
+	background-repeat: no-repeat;
+	background-position: left top;
+
+
+}
+.fancyButton155.fancyButton:hover .text,.fancyButton155.fancyButton:focus .text,.fancyButton155.fancyButton:active .text,.fancyButton155.fancyButton.hover .text{
+	text-decoration: none;
+	background-repeat: no-repeat;
+	background-position: left top;
+
+
+}
+</style>
+
+ </li><!--
+--></ul></div><!--					--></div>
+				</nav>
+	</div>
+	<div class="widgetFooter">
+			</div>
+</div>
+
+</div>
+	</div> <!-- inner column -->
+
+	</div> <!-- inner row -->
+
+			</div><!-- outer column --><!----><div class="outer col col12 last" style="" data-widgetcontainerid="d7a0ccf7-4449-4a97-8586-0beda16ce1ec">				
+	<div class="row nest first last wide">
+	
+	<div class="inner col col12 first last id8160d672-8d41-41d1-8826-5b33a58614cc" style="" data-widgetcontainerid="8160d672-8d41-41d1-8826-5b33a58614cc">	
+<div data-widget-id="3ae7d606-4dd1-4d16-bef0-bd1e27412a9d" data-widget-controller-path="/GraphicLinks/Widget">
+
+
+
+
+<div id="graphicLinkWidget3ae7d606-4dd1-4d16-bef0-bd1e27412a9d" class="widget widgetGraphicLinks skin5 widgetOptionSet16 wide" data-elementqueryclasses='{"wide-narrow":"min-width:25em"}' data-elementquerymatch='matchMultiColumn' data-elementqueryunmatch='unmatchMultiColumn' data-modulewidgettype="graphicLinks">
+	<div class="widgetHeader">
+		<div class="">
+				</div>
+	</div>
+	<div class="widgetBody cpGrid cpGrid3 "> 	
+				<nav class="widgetGraphicLinksNav" aria-label="Graphic links">
+					<div class="row   wide"><!--
+--><div class="col col1 first "><ul class="semanticList"><!--
+	    --><li class="widgetItem GraphicLinks">
+
+<div>
+	<a href="/1939/Commissioners-Court-LIVE" target="_self" class="fancyButton fancyButton159 " >
+		<span>
+			<span><span class="text">Commissioners Court</span></span>
+		</span>
+	</a>
+</div>
+		<style scoped="scoped">.fancyButton159.fancyButton:link,.fancyButton159.fancyButton:visited, .fancyButton159div.fancyButton{
+	padding-top: 85px;
+	background-image: url(/ImageRepository/Document?documentID=25084);
+	background-repeat: no-repeat;
+	background-position: center top;
+}
+.fancyButton159.fancyButton:hover,.fancyButton159.fancyButton:focus,.fancyButton159.fancyButton:active,.fancyButton159.fancyButton.hover{
+	background-image: url(/ImageRepository/Document?documentID=25085);
+}
+.fancyButton159.fancyButton:link > span,.fancyButton159.fancyButton:visited > span, .fancyButton159div.fancyButton > span{
+}
+.fancyButton159.fancyButton:hover > span,.fancyButton159.fancyButton:focus > span,.fancyButton159.fancyButton:active > span,.fancyButton159.fancyButton.hover > span{
+}
+.fancyButton159.fancyButton .text{
+	color: #20456a;
+	font-size: 1.2em;
+	font-family: "Ubuntu";
+	text-align: center;
+	font-weight: 500;
+	text-decoration: none;
+	background-repeat: no-repeat;
+	background-position: left top;
+
+
+}
+.fancyButton159.fancyButton:hover .text,.fancyButton159.fancyButton:focus .text,.fancyButton159.fancyButton:active .text,.fancyButton159.fancyButton.hover .text{
+	text-decoration: none;
+	background-repeat: no-repeat;
+	background-position: left top;
+
+
+}
+</style>
+
+ </li><!--
+--></ul></div><!----><div class="col col1  "><ul class="semanticList"><!--
+	    --><li class="widgetItem GraphicLinks">
+
+<div>
+	<a href="/1325/Online-Payment-Center" target="_self" class="fancyButton fancyButton158 " >
+		<span>
+			<span><span class="text">Pay Online</span></span>
+		</span>
+	</a>
+</div>
+		<style scoped="scoped">.fancyButton158.fancyButton:link,.fancyButton158.fancyButton:visited, .fancyButton158div.fancyButton{
+	padding-top: 85px;
+	background-image: url(/ImageRepository/Document?documentID=25082);
+	background-repeat: no-repeat;
+	background-position: center top;
+}
+.fancyButton158.fancyButton:hover,.fancyButton158.fancyButton:focus,.fancyButton158.fancyButton:active,.fancyButton158.fancyButton.hover{
+	background-image: url(/ImageRepository/Document?documentID=25083);
+}
+.fancyButton158.fancyButton:link > span,.fancyButton158.fancyButton:visited > span, .fancyButton158div.fancyButton > span{
+}
+.fancyButton158.fancyButton:hover > span,.fancyButton158.fancyButton:focus > span,.fancyButton158.fancyButton:active > span,.fancyButton158.fancyButton.hover > span{
+}
+.fancyButton158.fancyButton .text{
+	color: #20456a;
+	font-size: 1.2em;
+	font-family: "Ubuntu";
+	text-align: center;
+	font-weight: 500;
+	text-decoration: none;
+	background-repeat: no-repeat;
+	background-position: left top;
+
+
+}
+.fancyButton158.fancyButton:hover .text,.fancyButton158.fancyButton:focus .text,.fancyButton158.fancyButton:active .text,.fancyButton158.fancyButton.hover .text{
+	text-decoration: none;
+	background-repeat: no-repeat;
+	background-position: left top;
+
+
+}
+</style>
+
+ </li><!--
+--></ul></div><!----><div class="col col1  last"><ul class="semanticList"><!--
+	    --><li class="widgetItem GraphicLinks">
+
+<div>
+	<a href="/EmergencyManagement" target="_self" class="fancyButton fancyButton198 " >
+		<span>
+			<span><span class="text">Hazard Mitigation Plan</span></span>
+		</span>
+	</a>
+</div>
+		<style scoped="scoped">.fancyButton198.fancyButton:link,.fancyButton198.fancyButton:visited, .fancyButton198div.fancyButton{
+	padding-top: 85px;
+	background-image: url('/ImageRepository/Document?documentID=45115');
+	background-repeat: no-repeat;
+	background-position: center 5px ;
+}
+.fancyButton198.fancyButton:hover,.fancyButton198.fancyButton:focus,.fancyButton198.fancyButton:active,.fancyButton198.fancyButton.hover{
+	background-image: url('/ImageRepository/Document?documentID=45116');
+	background-position: center 5px ;
+}
+.fancyButton198.fancyButton:link > span,.fancyButton198.fancyButton:visited > span, .fancyButton198div.fancyButton > span{
+}
+.fancyButton198.fancyButton:hover > span,.fancyButton198.fancyButton:focus > span,.fancyButton198.fancyButton:active > span,.fancyButton198.fancyButton.hover > span{
+}
+.fancyButton198.fancyButton .text{
+	color: #20456a;
+	font-size: 1.2em;
+	font-family: "Ubuntu";
+	text-align: center;
+	font-weight: 500;
+	text-decoration: none;
+	background-repeat: no-repeat;
+	background-position: left top;
+
+
+}
+.fancyButton198.fancyButton:hover .text,.fancyButton198.fancyButton:focus .text,.fancyButton198.fancyButton:active .text,.fancyButton198.fancyButton.hover .text{
+	text-decoration: none;
+	background-repeat: no-repeat;
+	background-position: left top;
+
+
+}
+</style>
+
+ </li><!--
+--></ul></div><!--					--></div>
+				</nav>
+	</div>
+	<div class="widgetFooter">
+			</div>
+</div>
+
+</div>
+	</div> <!-- inner column -->
+
+	</div> <!-- inner row -->
+
+			</div><!-- outer column --><!--		--></div> <!-- outer row -->
+
+
+	</div>
+</aside></div>
+</div><div data-cpRole="structuralContainer" id="structuralContainer7">
+<div class="siteWrap"><footer data-cpRole="contentContainer" id="contentContainer6" class="siteFooter">	<div id="cccf0d3b06-5164-4545-ae1f-1688be109a7e" data-containerid="cf0d3b06-5164-4545-ae1f-1688be109a7e" class="pageContent cpGrid cpGrid24 isLockedContainer showInMobile" data-contentcontainerbreakpoint="45">
+				                
+
+		<div class="row outer wide"><!--
+--><div class="outer col col24 first last" style="" data-widgetcontainerid="e12647b3-4cb4-4506-bf45-519f8c8c09d6">				
+	<div class="row nest first last wide">
+	
+	<div class="inner col col24 first last id8d5ca45f-8e32-45b0-9a47-cc16664a3db5" style="" data-widgetcontainerid="8d5ca45f-8e32-45b0-9a47-cc16664a3db5">	
+ 
+	<div data-widget-id='71d645bc-a37e-4ca3-bf77-794511a2cfde' data-moduleName="customHtml" id='widgetCustomHtml71d645bc-a37e-4ca3-bf77-794511a2cfde' class="widget widgetCustomHtml skin4 narrow" >
+	<div class="widgetBody pageStyles" id="widgetBody71d645bc-a37e-4ca3-bf77-794511a2cfde">
+		<div id="customHtml71d645bc-a37e-4ca3-bf77-794511a2cfde"><div><style>
+    a { 
+        line-height: 1.8 !important; /* Default line-size */
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  //const categoryLinks = document.querySelectorAll('a[id^="catline"]');
+  //categoryLinks.forEach(link => {
+  //  link.style.minHeight = '24px';
+  //});
+
+  const sliderContainer = document.querySelector('.carousel');
+  const sliderTitle = document.querySelector('.carousel + h2'); // Assumes title is next to slider
+
+  if (sliderContainer && sliderTitle) {
+    sliderContainer.setAttribute('role', 'region');
+    sliderContainer.setAttribute('aria-labelledby', sliderTitle.id || 'slider-title');
+
+    // Ensure the title has an ID
+    if (!sliderTitle.id) {
+      sliderTitle.id = 'slider-title';
+    }
+
+    console.log('Slider accessibility enhanced with role="region" and aria-labelledby.');
+  } else {
+    console.log('Slider container or title not found.');
+  }
+});
+</script></div></div>
+	</div>
+	</div>
+	</div> <!-- inner column -->
+
+	</div> <!-- inner row -->
+
+			</div><!-- outer column --><!--		--></div> <!-- outer row -->
+		<div class="row outer wide"><!--
+--><div class="outer col col5 first" style="" data-widgetcontainerid="b4887701-ed30-4b3f-be69-a76db7155504">				
+	<div class="row nest first last wide">
+	
+	<div class="inner col col5 first last idc44fa321-69c1-4072-92f8-8fbf29972ceb" style="" data-widgetcontainerid="c44fa321-69c1-4072-92f8-8fbf29972ceb">	
+
+<div class="widget image pageStyles" id="divImageOuter695fdd93-00aa-462d-8041-37a99de4616d" data-widget-id="695fdd93-00aa-462d-8041-37a99de4616d">
+    
+	<div class="widgetBody " id="divImage695fdd93-00aa-462d-8041-37a99de4616d"><img src="/ImageRepository/Document?documentID=25086" alt="Seal" title="Seal"/>	</div></div>
+	</div> <!-- inner column -->
+
+	</div> <!-- inner row -->
+
+			</div><!-- outer column --><!----><div class="outer col col1" style="" data-widgetcontainerid="d8b580bc-62c5-4df2-a61e-b821f271be79">				
+	<div class="row nest first last wide">
+	
+	<div class="inner col col1 first last id8929ac5e-1704-4227-a2d9-5c4477596a75" style="" data-widgetcontainerid="8929ac5e-1704-4227-a2d9-5c4477596a75">	
+
+<div class="widget widgetSpacer" id="19f5d27b-3198-4cd7-960f-43745342f314"></div>	</div> <!-- inner column -->
+
+	</div> <!-- inner row -->
+
+			</div><!-- outer column --><!----><div class="outer col col6" style="" data-widgetcontainerid="55ba1278-bb66-4767-a28b-05b3e963ad85">				
+	<div class="row nest first last wide">
+	
+	<div class="inner col col6 first last id51cb6ede-8add-4d83-98bb-82c502a40772" style="" data-widgetcontainerid="51cb6ede-8add-4d83-98bb-82c502a40772">	
+    <div data-widget-id="ed475741-be0f-4c6c-a059-0bb2ebcccf1d" data-widget-controller-path="/InfoAdvanced/Widget">
+
+
+
+
+
+	<section id="divInfoAdved475741-be0f-4c6c-a059-0bb2ebcccf1d" class="widget widgetInfoAdvanced skin4 widgetOptionSet5 wide" data-modulewidgettype="infoAdv" data-elementqueryclasses='{"wide-narrow":"min-width:25em"}' data-elementquerymatch='matchMultiColumn' data-elementqueryunmatch='unmatchMultiColumn' aria-labelledby="headered475741-be0f-4c6c-a059-0bb2ebcccf1d">
+			<header class="widgetHeader" id="headered475741-be0f-4c6c-a059-0bb2ebcccf1d">
+		<div class="">
+					<h3 >Contact</h3>
+								</div>
+	</header>
+	<div class="widgetBody  cpGrid cpGrid1 ">
+		<div class="row  wide">
+					<div class="col col1 first last">
+						<ol class="pageStyles semanticList">
+
+<li class="InfoAdvanced widgetItem fr-view">
+	Hidalgo County Courthouse<br>
+100 North Closner<br>
+<div>
+Edinburg, Texas 78539</div>
+<div><br>
+</div>
+<div><a href="https://www.hidalgocounty.us/directory.aspx" target="_self" class="Hyperlink">DIRECTORY</a><br>
+</div>
+<br>
+<br>
+</li>						</ol>
+					</div>
+		</div>
+	</div>
+	<div class="widgetFooter">
+
+	</div>
+
+	</section>
+
+
+
+<script type="text/javascript">
+	//Render slideshow if info advacned items contain one.
+	$(document).ready(function (e) {
+		$('#divInfoAdved475741-be0f-4c6c-a059-0bb2ebcccf1d .InfoAdvanced.widgetItem').each(function () {
+			renderSlideshowIfApplicable($(this));		
+		});
+	});
+</script></div>	</div> <!-- inner column -->
+
+	</div> <!-- inner row -->
+
+			</div><!-- outer column --><!----><div class="outer col col1" style="" data-widgetcontainerid="02fc1d0c-1185-4b20-9b08-31f08afc6815">				
+	<div class="row nest first last wide">
+	
+	<div class="inner col col1 first last id0246e838-549a-4833-ad3c-b059451a6f29" style="" data-widgetcontainerid="0246e838-549a-4833-ad3c-b059451a6f29">	
+
+<div class="widget widgetSpacer" id="59ec5a56-cda1-43f1-8485-f9c3910b74f8"></div>	</div> <!-- inner column -->
+
+	</div> <!-- inner row -->
+
+			</div><!-- outer column --><!----><div class="outer col col5" style="" data-widgetcontainerid="4d7363b3-9258-4ccf-8032-efb17cf0cd43">				
+	<div class="row nest first last wide">
+	
+	<div class="inner col col5 first last id030e3839-3ccb-4a6d-829e-74b821eb3b2f" style="" data-widgetcontainerid="030e3839-3ccb-4a6d-829e-74b821eb3b2f">	
+	<div data-widget-id="67052b48-5eff-409e-8dd4-72b7e0951bda" data-widget-controller-path="/QuickLinks/Widget">
+
+
+
+
+
+ 
+
+
+	<section id="widgetQuicklink67052b48-5eff-409e-8dd4-72b7e0951bda" class="widget widgetQuickLinks skin4 widgetOptionSet15 narrow" data-modulewidgettype="quickLinks" data-elementqueryclasses='{"wide-narrow":"min-width:25em"}' data-elementquerymatch='matchMultiColumn' data-elementqueryunmatch='unmatchMultiColumn' aria-labelledby="quickLinksHeader67052b48-5eff-409e-8dd4-72b7e0951bda">
+			<header class="widgetHeader" id="quickLinksHeader67052b48-5eff-409e-8dd4-72b7e0951bda">
+		<div class="">
+					<h3><a  style="" href="/QuickLinks.aspx?CID=27" >Quick Links</a></h3>
+						</div>
+	</header>
+	<div class="widgetBody cpGrid cpGrid1 ">
+        <div class="row  narrow">
+				<div class="col col1 first last">
+					<ol class="semanticList">
+
+    <li style="position:relative" class="widgetItem QuickLinks">
+        <a class="widgetDesc widgetQuickLinksLink" href="https://www.hidalgocounty.us/472/Employees-Only" target="_self" >Employees Only</a>
+        <div class="widgetMeta"></div>
+    </li>
+
+    <li style="position:relative" class="widgetItem QuickLinks">
+        <a class="widgetDesc widgetQuickLinksLink" href="https://hidalgocounty.erplinq.com/vp/" target="_blank"  aria-label="Vendor Portal  opens in new window">Vendor Portal </a>
+        <div class="widgetMeta"></div>
+    </li>
+
+    <li style="position:relative" class="widgetItem QuickLinks">
+        <a class="widgetDesc widgetQuickLinksLink" href="/128/Tax-Rates" target="_self" >Tax Rates</a>
+        <div class="widgetMeta"></div>
+    </li>
+
+    <li style="position:relative" class="widgetItem QuickLinks">
+        <a class="widgetDesc widgetQuickLinksLink" href="/DocumentCenter/View/71731/2026-Holidays" target="_self" >2026 County Holidays</a>
+        <div class="widgetMeta"></div>
+    </li>
+
+    <li style="position:relative" class="widgetItem QuickLinks">
+        <a class="widgetDesc widgetQuickLinksLink" href="https://www.hidalgocounty.us/3212/ADA-Policy" target="_self" >ADA Policy</a>
+        <div class="widgetMeta"></div>
+    </li>
+					</ol>
+				</div>
+		</div>
+        
+	</div>
+	<div class="widgetFooter">
+	</div>
+	<div class="addItemModal hidden">
+		<div class="url hidden">/QuickLinks.aspx</div>
+	</div>
+
+	</section>
+</div>
+	</div> <!-- inner column -->
+
+	</div> <!-- inner row -->
+
+			</div><!-- outer column --><!----><div class="outer col col1" style="" data-widgetcontainerid="5fdc0f39-58b6-4287-97a7-a71d86088499">				
+	<div class="row nest first last wide">
+	
+	<div class="inner col col1 first last id4559b2c5-999d-4332-96c7-7afcd9da53b9" style="" data-widgetcontainerid="4559b2c5-999d-4332-96c7-7afcd9da53b9">	
+
+<div class="widget widgetSpacer" id="c2365e24-9f96-4f2b-8f92-46e35ec8eff7"></div>	</div> <!-- inner column -->
+
+	</div> <!-- inner row -->
+
+			</div><!-- outer column --><!----><div class="outer col col5 last" style="" data-widgetcontainerid="7a115aea-4d52-45bc-9cee-37179b7d34b8">				
+	<div class="row nest first last wide">
+	
+	<div class="inner col col5 first last id2369921e-b388-4ca7-9016-3c61cc2fbf5d" style="" data-widgetcontainerid="2369921e-b388-4ca7-9016-3c61cc2fbf5d">	
+	<div data-widget-id="963f3635-8d5c-4c25-afe3-2a03cfc8d73c" data-widget-controller-path="/QuickLinks/Widget">
+
+
+
+
+
+ 
+
+
+	<section id="widgetQuicklink963f3635-8d5c-4c25-afe3-2a03cfc8d73c" class="widget widgetQuickLinks skin4 widgetOptionSet15 narrow" data-modulewidgettype="quickLinks" data-elementqueryclasses='{"wide-narrow":"min-width:25em"}' data-elementquerymatch='matchMultiColumn' data-elementqueryunmatch='unmatchMultiColumn' aria-labelledby="quickLinksHeader963f3635-8d5c-4c25-afe3-2a03cfc8d73c">
+			<header class="widgetHeader" id="quickLinksHeader963f3635-8d5c-4c25-afe3-2a03cfc8d73c">
+		<div class="">
+					<h3><a  style="" href="/QuickLinks.aspx?CID=1" >Helpful Links</a></h3>
+						</div>
+	</header>
+	<div class="widgetBody cpGrid cpGrid1 ">
+        <div class="row  narrow">
+				<div class="col col1 first last">
+					<ol class="semanticList">
+
+    <li style="position:relative" class="widgetItem QuickLinks">
+        <a class="widgetDesc widgetQuickLinksLink" href="https://www.hidalgocounty.us/3384/2026-Budget-Process" target="_blank"  aria-label="2026 Budget Process opens in new window">2026 Budget Process</a>
+        <div class="widgetMeta"></div>
+    </li>
+
+    <li style="position:relative" class="widgetItem QuickLinks">
+        <a class="widgetDesc widgetQuickLinksLink" href="http://pa.co.hidalgo.tx.us/default.aspx" target="_self" >Case & Jail Records Search </a>
+        <div class="widgetMeta"></div>
+    </li>
+
+    <li style="position:relative" class="widgetItem QuickLinks">
+        <a class="widgetDesc widgetQuickLinksLink" href="https://www.hidalgocounty.us/898/Tier-II-Reports" target="_self" >Hidalgo County LEPC</a>
+        <div class="widgetMeta"></div>
+    </li>
+
+    <li style="position:relative" class="widgetItem QuickLinks">
+        <a class="widgetDesc widgetQuickLinksLink" href="https://www.hidalgocounty.us/2071/Title-VINondiscrimination-Plan" target="_self" >Title VI</a>
+        <div class="widgetMeta"></div>
+    </li>
+
+    <li style="position:relative" class="widgetItem QuickLinks">
+        <a class="widgetDesc widgetQuickLinksLink" href="https://www.accesscorrections.com/#/" target="_blank"  aria-label="Inmate Trust Account opens in new window">Inmate Trust Account</a>
+        <div class="widgetMeta"></div>
+    </li>
+
+    <li style="position:relative" class="widgetItem QuickLinks">
+        <a class="widgetDesc widgetQuickLinksLink" href="/805/County-Administrative-Policies" target="_self" >County Administrative Policies</a>
+        <div class="widgetMeta"></div>
+    </li>
+					</ol>
+				</div>
+		</div>
+        
+	</div>
+	<div class="widgetFooter">
+	</div>
+	<div class="addItemModal hidden">
+		<div class="url hidden">/QuickLinks.aspx</div>
+	</div>
+
+	</section>
+</div>
+	</div> <!-- inner column -->
+
+	</div> <!-- inner row -->
+
+			</div><!-- outer column --><!--		--></div> <!-- outer row -->
+
+
+	</div>
+</footer></div>
+</div><div data-cpRole="structuralContainer" id="structuralContainer11">
+<div class="siteWrap"><aside data-cpRole="contentContainer" id="contentContainer5">	<div id="cc57fa6fc7-ed9b-4b73-b51b-66e67056ee4f" data-containerid="57fa6fc7-ed9b-4b73-b51b-66e67056ee4f" class="pageContent cpGrid cpGrid24 isLockedContainer showInMobile" data-contentcontainerbreakpoint="1">
+				                
+
+		<div class="row outer autoWidths right wide"><!--
+--><div class="outer col col12 first" style="" data-widgetcontainerid="2c5e2605-0939-4004-9e05-c7f37ec862bc">				
+	<div class="row nest first last wide">
+	
+	<div class="inner col col12 first last id25b5aa77-34d9-46bc-96c3-b5a2c533b92a" style="" data-widgetcontainerid="25b5aa77-34d9-46bc-96c3-b5a2c533b92a">	
+<div data-widget-id="08a12d8a-fa52-426e-bf0c-a84724e1ecb4" data-widget-controller-path="/Layout/WidgetShare">
+
+		<script type="text/javascript">
+			$(document).ready(function () {
+				setWidgetServiceClicking($("#widgetShareHeader08a12d8a-fa52-426e-bf0c-a84724e1ecb4"), true, function () {
+					var $widgetBody = $('#widgetShareBody08a12d8a-fa52-426e-bf0c-a84724e1ecb4');
+
+					if ($widgetBody.is(':visible')) {
+						var menuItems = $('.widgetItem a', $widgetBody);
+
+						$(menuItems[0]).focus();
+
+						$('.widgetItem', $widgetBody).unbind("keydown").bind("keydown", function (e) {
+
+							if (e.which === 9) {
+								var index = menuItems.index(e.target);
+
+								if ((index === 0 && e.shiftKey) || (index === (menuItems.length - 1) && !e.shiftKey)) {
+									$("#widgetShareHeader08a12d8a-fa52-426e-bf0c-a84724e1ecb4").trigger('click').focus();
+								}
+							}
+			});
+					} else {
+						$('.widgetItem', $widgetBody).unbind("keydown");
+					}
+				});
+			});
+		</script>
+
+	<section id="widgetShare08a12d8a-fa52-426e-bf0c-a84724e1ecb4" class="widget widgetShare skin8 widgetOptionSet6 flyOutParent wide"  aria-label="Share">
+			<header id="widgetShareHeader08a12d8a-fa52-426e-bf0c-a84724e1ecb4" class="widgetHeader" tabindex="0" role="button" aria-haspopup="true">
+				<h3><img alt="Share" class="imageHover" data-hover="/ImageRepository/Document?documentID=25061" data-image="/ImageRepository/Document?documentID=25060" src="/ImageRepository/Document?documentID=25060" /></h3>
+	</header>
+    <div id="widgetShareBody08a12d8a-fa52-426e-bf0c-a84724e1ecb4" class="widgetBody flyOut top rightEdge widget widgetShare skin8 cpGrid cpGrid1" style="display:none;">
+        <div class="row                   
+ wide">
+	<div class="col col1 first last">
+		<ol class="semanticList">
+                <li class="widgetItem" ><a tabindex="0" role="button" class="widgetShareFacebook shareService" onkeypress="if(event.which == 13) { this.onclick(); }" href="/Layout/WidgetShare/ShareLink/Facebook" target="_blank" aria-label="Share on Facebook opens in new window">Facebook</a></li>
+                <li class="widgetItem" ><a tabindex="0" role="button" class="widgetShareTwitter shareService" onkeypress="if(event.which == 13) { this.onclick(); }" href="/Layout/WidgetShare/ShareLink/Twitter" target="_blank" aria-label="Share on Twitter opens in new window">Twitter</a></li>
+                <li class="widgetItem" ><a tabindex="0" role="button" class="widgetSharePinterest shareService" onkeypress="if(event.which == 13) { this.onclick(); }" href="/Layout/WidgetShare/ShareLink/Pinterest" target="_blank" aria-label="Share on Pinterest opens in new window">Pinterest</a></li>
+                <li class="widgetItem" ><a tabindex="0" role="button" class="widgetShareDelicious shareService" onkeypress="if(event.which == 13) { this.onclick(); }" href="/Layout/WidgetShare/ShareLink/Delicious" target="_blank" aria-label="Share on Delicious opens in new window">Delicious</a></li>
+                <li class="widgetItem" ><a tabindex="0" role="button" class="widgetShareBlogger shareService" onkeypress="if(event.which == 13) { this.onclick(); }" href="/Layout/WidgetShare/ShareLink/Blogger" target="_blank" aria-label="Share on Blogger opens in new window">Blogger</a></li>
+                <li class="widgetItem" ><a tabindex="0" role="button" class="widgetShareLinkedIn shareService" onkeypress="if(event.which == 13) { this.onclick(); }" href="/Layout/WidgetShare/ShareLink/LinkedIn" target="_blank" aria-label="Share on LinkedIn opens in new window">LinkedIn</a></li>
+		</ol>
+	</div>
+
+        </div>
+    </div>
+
+	</section>
+
+</div>
+	</div> <!-- inner column -->
+
+	</div> <!-- inner row -->
+
+			</div><!-- outer column --><!----><div class="outer col col12 last" style="" data-widgetcontainerid="9d17b2e7-76f8-440e-b6cd-a72c2618d70c">				
+	<div class="row nest first last wide">
+	
+	<div class="inner col col12 first last id6f47b037-ff34-47ef-9ab2-13a8ceecea1a" style="" data-widgetcontainerid="6f47b037-ff34-47ef-9ab2-13a8ceecea1a">	
+<div data-widget-id="08aa8a42-c802-4618-b193-c8aff15d40a6" data-widget-controller-path="/Layout/WidgetSiteTools">
+
+		<script type="text/javascript">
+			$(document).ready(function () {
+				setWidgetServiceClicking($("#widgetSiteToolsHeader08aa8a42-c802-4618-b193-c8aff15d40a6"), true, function () {
+					var $widgetBody = $('#widgetSiteToolsBody08aa8a42-c802-4618-b193-c8aff15d40a6');
+
+					if ($widgetBody.is(':visible')) {
+						var menuItems = $('.widgetItem a', $widgetBody);
+
+						$(menuItems[0]).focus();
+
+						$('.widgetItem', $widgetBody).unbind("keydown").bind("keydown", function (e) {
+
+							if (e.which === 9) {
+								var index = menuItems.index(e.target);
+
+								if ((index === 0 && e.shiftKey) || (index === (menuItems.length - 1) && !e.shiftKey)) {
+									$("#widgetSiteToolsHeader08aa8a42-c802-4618-b193-c8aff15d40a6").trigger('click').focus();
+								}
+							}
+						});
+					} else {
+						$('.widgetItem', $widgetBody).unbind("keydown");
+					}
+				});
+			});
+		</script>
+
+	<section id="widgetSiteTools08aa8a42-c802-4618-b193-c8aff15d40a6" class="widget widgetSiteTools skin8 widgetOptionSet8 flyOutParent wide"  aria-label="Site Tools">
+				<header id="widgetSiteToolsHeader08aa8a42-c802-4618-b193-c8aff15d40a6" class="widgetHeader" tabindex="0" role="button" aria-haspopup="true">
+			<h3><img alt="Site Tools" class="imageHover" data-hover="/ImageRepository/Document?documentID=25063" data-image="/ImageRepository/Document?documentID=25062" src="/ImageRepository/Document?documentID=25062" /></h3>
+		</header>
+	<div id="widgetSiteToolsBody08aa8a42-c802-4618-b193-c8aff15d40a6" class="widgetBody whiteIcons flyOut top rightEdge widget widgetSiteTools skin8 cpGrid cpGrid1" style="display:none;">
+         <div class="row                   
+ wide">
+	<div class="col col1 first last">
+		<ol class="semanticList">
+					<li class="widgetItem"><a tabindex="0" role="button" aria-label="Site Tools Home" class="widgetSiteToolsHome siteToolsService" href="/">Home</a></li>
+					<li class="widgetItem"><a tabindex="0" role="button" aria-label="Site Tools My Account" class="widgetSiteToolsMyAccount siteToolsService" href="/MyAccount">My Account</a></li>
+					<li id="PrinterFriendly08aa8a42-c802-4618-b193-c8aff15d40a6" class="widgetItem"><a tabindex="0" aria-label="Site Tools Printer Friendly opens in new window" role="button" class="widgetSiteToolsPrinterFriendly siteToolsService" onkeypress="if (event.which == 13) { this.onclick(); }" onclick="Core.Layout.dynamicJavascript('printPreview();'); return false;" href="#PrinterFriendly08aa8a42-c802-4618-b193-c8aff15d40a6">Printer Friendly</a></li>
+					<li class="widgetItem"><a tabindex="0" role="button" aria-label="Site Tools Email Page" class="widgetSiteToolsEmailPage siteToolsService" href="/EmailPage">Email Page</a></li>
+					<li class="widgetItem"><a tabindex="0" role="button" aria-label="Site Tools Contact Us" class="widgetSiteToolsContactUs siteToolsService" href="/directory.aspx">Contact Us</a></li>
+					<li class="widgetItem"><a tabindex="0" role="button" aria-label="Site Tools RSS" class="widgetSiteToolsRSS siteToolsService" href="/rss.aspx">RSS</a></li>
+					<li class="widgetItem"><a tabindex="0" role="button" aria-label="Site Tools Site Map" class="widgetSiteToolsSiteMap siteToolsService" href="/SiteMap">Site Map</a></li>
+					<li id="TranslatePage08aa8a42-c802-4618-b193-c8aff15d40a6" class="widgetItem"><a tabindex="0" aria-label="Site Tools Translate Page opens in new window" role="button" class="widgetSiteToolsTranslatePage siteToolsService" onkeypress="if (event.which == 13) { this.onclick(); }" onclick="Core.Layout.dynamicJavascript('window.open(\&#39;https://translate.google.com/translate?js=n&amp;sl=auto&amp;tl=es&amp;u=\&#39; + document.location.href, \&quot;TranslateWindow\&quot;);'); return false;" href="#TranslatePage08aa8a42-c802-4618-b193-c8aff15d40a6">Translate Page</a></li>
+					<li class="widgetItem"><a tabindex="0" role="button" aria-label="Site Tools Notifications" class="widgetSiteToolsNotifications siteToolsService" href="/list.aspx">Notifications</a></li>
+					<li class="widgetItem"><a tabindex="0" role="button" aria-label="Site Tools Documents" class="widgetSiteToolsDocuments siteToolsService" href="/DocumentCenter">Documents</a></li>
+		</ol>
+	</div>
+
+		 </div>
+	</div>
+
+	</section>
+
+
+
+</div>
+	</div> <!-- inner column -->
+
+	</div> <!-- inner row -->
+
+			</div><!-- outer column --><!--		--></div> <!-- outer row -->
+
+
+	</div>
+</aside></div>
+</div>
+</div>
+
+            </div>
+        </div>
+    </div>
+
+<link href="/745732998.css" rel="stylesheet" type="text/css" />
+
+<div id="SplashMessageWrapper" class="cp-Splash-wrapper">
+	<div role="dialog" aria-labelledby="cp-Splash-title" aria-describedby="editorContentDesc" aria-modal="true" tabindex="-1" id="SplashMessage" class="hidden cp-Splash cp-Splash--modal is-open">
+		<div class="cp-Splash-header">
+			<h2 class="cp-Splash-title" id="cp-Splash-title">Loading</h2>
+			<button class="cp-Splash-Btn cp-Splash-close" aria-label="Close this modal" title="Close this window">
+				<svg id="iconClose" viewBox="0 0 25 25">
+					<polygon style="fill:currentcolor"
+							 points="18.806,6.98 18.075,6.248 12.532,11.792 6.989,6.248 6.257,6.98 11.786,12.508 6.212,18.084 6.943,18.815 12.532,13.224 18.12,18.815 18.851,18.084 13.277,12.508"></polygon>
+				</svg>
+			</button>
+		</div>
+		<div class="cp-Splash-body">
+			<div class="cp-Splash-Prose editorContent fr-view" id="editorContentDesc">
+				<!-- Content from the Froala Editor will go here. -->
+				Loading
+			</div>
+		</div>
+		<div class="cp-Splash-footer">
+			<button class="cp-Splash-Btn cp-Splash-Btn--NoShow">Do Not Show Again</button>
+			<button class="cp-Splash-Btn cp-Splash-Btn--Close">Close</button>
+		</div>
+	</div>
+</div>
+
+<script src="/Assets/Scripts/APIClient.js"></script>
+<script src="/Assets/Mystique/Shared/Scripts/Moment/Moment.min.js"></script>
+<script src="/Assets/Scripts/SplashModal/SplashModalRender.js"></script>
+<script>
+
+		$(document).ready(function () {
+			var filter = {
+				targetId: '3473',
+				targetType: 1
+			}
+
+			new SplashModalRender().triggerRender(filter);
+		});
+</script>
+
+
+	
+	
+	
+	
+
+
+
+	<script type="text/javascript">function dynamicStretchContainers () {Core.Layout.stretchContainers('#structuralContainer3, #structuralContainer12');}</script>
+
+
+
+
+
+
+    <script src="/-978663714.js" type="text/javascript"></script>
+    <!-- Google Translate -->
+
+<script type="text/javascript">
+	var translateActiveCookie = getCookieValue('translateActive');
+
+	if (translateActiveCookie == 'true') {
+		enableGoogleTranslate();
+	} else {
+		var button = '<a class="translateWidget" title="Enable Google Translate" style="background-color: #FFF;border-color: #9b9b9b #d5d5d5 transparent #d5d5d5;border-style: solid;border-width: 1px 1px 0 1px;bottom:0;color: #000;cursor: pointer;font-size: .9em;padding: 2px 6px 3px 4px;position: fixed;right: 20px;z-index: 5;">';
+		button += '<img alt="Google Translate Icon" src="/Assets/Images/GoogleTranslate.gif" style="box-sizing: content-box !important;height:19px;margin: -2px 0 0 -2px;padding-right: 5px;width:19px;">Enable Google Translate</a>';
+		$('div[data-cprole="structuralContainer"]').last().after(button);
+	}
+
+	function googleTranslateElementInit() {
+  		var el = document.getElementById("google_translate_element");
+  		if (el && el.innerHTML.trim() !== "") {
+  		    return;
+  		}
+
+  		new google.translate.TranslateElement({pageLanguage: 'en', layout: google.translate.TranslateElement.InlineLayout.SIMPLE}, 'google_translate_element');
+	}
+
+	function enableGoogleTranslate() {
+		$('#google_translate_element').show();
+		var sz = document.createElement('script'); sz.type = 'text/javascript'; sz.async = true;
+		sz.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+		var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(sz, s);
+		$('div[data-cprole="structuralContainer"]').last().after('<div id="google_translate_element" style="position: fixed; top: 4.5em; right: 20px; z-index: 5;"></div>');
+	        document.cookie = "translateActive=true; expires=12/31/2999; path=/";
+	}
+
+	$('a.translateWidget').unbind('click').click(function (e) {
+		$(this).hide();
+		enableGoogleTranslate();
+	});
+</script>
+
+<!-- End Google Translate -->
+	
+
+<!-- Siteimprove Priority Script-->
+<script type="text/javascript"> 
+/*<![CDATA[*/ 
+(function() { 
+var sz = document.createElement('script'); sz.type = 'text/javascript'; sz.async = true; 
+sz.src = '//siteimproveanalytics.com/js/siteanalyze_1306102.js'; 
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(sz, s); 
+})(); 
+/*]]>*/ 
+</script>
+<!--End Siteimprove Priority Script-->
+
+<!-- Google tag (gtag.js) --> <script async src="https://www.googletagmanager.com/gtag/js?id=G-WVRZHDHZ8Q"></script> <script> window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-WVRZHDHZ8Q'); </script><!-- AudioEye --> <script type="text/javascript">!function(){var b=function(){window.__AudioEyeSiteHash="b37110bed5fd7fe0969202252c954543";var a=document.createElement("script");a.src="https://wsmcdn.audioeye.com/aem.js";a.type="text/javascript";a.setAttribute("async","");document.getElementsByTagName("body")[0].appendChild(a)};"complete"!==document.readyState?window.addEventListener?window.addEventListener("load",b):window.attachEvent&&window.attachEvent("onload",b):b()}();</script> <!-- End AudioEye -->
+
+
+    <script type="text/javascript">
+        $(function () {
+            document.cookie = "responsiveGhost=0; path=/";
+        });
+        $(window).on("load", function () {
+            $('body').addClass('doneLoading').removeClass('hideContent');
+
+            if ($('#404Content').length > 0)
+                $('div#bodyWrapper').css('padding', '0px');
+        });
+    </script>
+
+    <noscript>
+        <style>
+            body.hideContent {
+                opacity: 1 !important;
+            }
+        </style>
+    </noscript>
+
+        
+<div style="display: none;">
+	<svg xmlns="http://www.w3.org/2000/svg" style="display:none;">
+
+		<symbol id="iconArrow--left" viewbox="0 0 25 25">
+			<title>Arrow Left</title>
+			<polygon style="fill:currentcolor" points="18.044,25 19.498,23.545 8.409,12.454 19.408,1.455 17.954,0 5.502,12.452"></polygon>
+		</symbol>
+
+		<symbol id="iconArrow--right" viewbox="0 0 25 25">
+			<title>Arrow Right</title>
+			<polygon style="fill:currentcolor" points="6.957,0 5.502,1.455 16.591,12.546 5.592,23.545 7.047,25 19.498,12.548"></polygon>
+		</symbol>
+
+	</svg>
+</div>
+    <script type="text/javascript">loadCSS('//fonts.googleapis.com/css?family=Ubuntu:500,700,regular|');</script>
+    
+
+    <div class="hidden activeWidgetSkinComponentsOnPageJson">[]</div>
+        <div style="display: none;">
+            <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+                <symbol id="iconSlideshowArrowLeft" viewBox="0 0 22.68 40">
+                    <title>Slideshow Left Arrow</title>
+                    <g>
+                        <path style="fill:currentcolor;" d="M20,40a2.67,2.67,0,0,1-1.9-.79L.79,21.9a2.68,2.68,0,0,1,0-3.79L18.1.79a2.68,2.68,0,1,1,3.79,3.79L6.47,20,21.89,35.42A2.68,2.68,0,0,1,20,40Z"></path>
+                    </g>
+                </symbol>
+                <symbol id="iconSlideshowArrowRight" viewBox="0 0 22.68 40">
+                    <title>Slideshow Right Arrow</title>
+                    <g>
+                        <path style="fill:currentcolor;" d="M2.68,0a2.67,2.67,0,0,1,1.9.79L21.89,18.1a2.68,2.68,0,0,1,0,3.79L4.58,39.21A2.68,2.68,0,0,1,.79,35.42L16.21,20,.79,4.58A2.68,2.68,0,0,1,2.68,0Z"></path>
+                    </g>
+                </symbol>
+            </svg>
+        </div>
+    
+	
+
+    <div id="root-picker-outlet"></div>
+</body>
+</html>
